@@ -1,0 +1,7 @@
+{
+  "name": "@ks0555/tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "main": "tsconfig.json",
+  "files": ["tsconfig.json", "tsconfig.node.json", "tsconfig.react.json"]
+}
