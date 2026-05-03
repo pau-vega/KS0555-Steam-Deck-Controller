@@ -10,7 +10,7 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 ## Current State
 
 **Active Phase:** Phase2 (Backend — WebSocket + Bluetooth Serial)
-**Status:** Context Gathered
+**Status:** Complete
 **Roadmap:** 3 phases, 20 requirements mapped
 
 ## Progress
@@ -18,15 +18,15 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
 | 1 | ✅ | 4/4 | 100% |
-| 2 | 🔵 | 0/0 | Context Gathered |
+| 2 | ✅ | 2/2 | 100% |
 | 3 | ○ | 0/0 | 0% |
 
 ## Session State
 
 **Last session:** 2026-05-03
 **Phase:** Phase2 (Backend — WebSocket + Bluetooth Serial)
-**Action:** Gathered context — 6 decisions captured (WebSocket transport, logging, error handling, serial lifecycle, reconnect, command validation)
-**Resume file:** .planning/phases/02-backend-websocket-bluetooth-serial/02-CONTEXT.md
+**Action:** Completed Plan 02-02 (tests) — 12/12 Vitest tests passing, typecheck clean
+**Resume file:** None
 
 ## Workflow Context
 

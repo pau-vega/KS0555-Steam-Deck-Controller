@@ -78,9 +78,9 @@
 | MONO-04 | Phase 1 | Complete |
 | BACK-01 | Phase 2 | Complete |
 | BACK-02 | Phase 2 | Complete |
-| BACK-03 | Phase 2 | Pending |
+| BACK-03 | Phase 2 | Complete |
 | BACK-04 | Phase 2 | Complete |
-| BACK-05 | Phase 2 | Pending |
+| BACK-05 | Phase 2 | Complete |
 | BACK-06 | Phase 2 | Complete |
 | FRONT-01 | Phase 3 | Pending |
 | FRONT-02 | Phase 3 | Pending |

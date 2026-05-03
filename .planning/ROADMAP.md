@@ -39,8 +39,8 @@ Plans:
 6. Console logs show command receipt and serial status changes
 
 Plans:
-- [ ] 02-01-PLAN.md — Set up Fastify server with WebSocket and Serial Port (Wave 1)
-- [ ] 02-02-PLAN.md — Add Vitest tests for command validation and WebSocket handling (Wave 2)
+- [x] 02-01-PLAN.md — Set up Fastify server with WebSocket and Serial Port (Wave 1)
+- [x] 02-02-PLAN.md — Add Vitest tests for command validation and WebSocket handling (Wave 2)
 
 ---
 
