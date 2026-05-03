@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --config ../../packages/eslint-config/src/react.ts",
+    "lint": "eslint . --config ../../packages/eslint-config/src/react.js",
     "test": "vitest run"
   },
   "dependencies": {
@@ -19,8 +19,8 @@
     "@ks0555/eslint-config": "workspace:*",
     "@ks0555/tsconfig": "workspace:*",
     "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "^4.5.0",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.0",
     "typescript": "~5.9.3",
     "vite": "^8.0.8",
     "tailwindcss": "^4.2.2",

@@ -1,6 +1,6 @@
-import fastify, { type FastifyInstance } from 'fastify'
+import fastify from 'fastify'
 
-export default function build(): FastifyInstance {
+export default function build() {
   const server = fastify({ logger: true })
 
   server.get('/', async () => {
