@@ -15,3 +15,8 @@ export interface ServerConfig {
   port: number
   host: string
 }
+
+// Helper: validate command (D-05)
+export function isValidCommand(command: string): command is ValidCommand {
+  return ['F', 'B', 'L', 'R', 'S'].includes(command)
+}

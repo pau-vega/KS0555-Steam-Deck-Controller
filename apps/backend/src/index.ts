@@ -2,6 +2,7 @@ import fastify from 'fastify'
 import websocket from '@fastify/websocket'
 import { SerialPort } from 'serialport'
 import type { ValidCommand, WebSocketMessage, SerialPortConfig, ServerConfig } from './types.js'
+import { isValidCommand } from './types.js'
 
 // Configuration
 const serverConfig: ServerConfig = {
@@ -129,11 +130,6 @@ export default function build() {
   connectSerial(2000)
 
   return server
-}
-
-// Helper: validate command (D-05)
-function isValidCommand(command: string): command is ValidCommand {
-  return ['F', 'B', 'L', 'R', 'S'].includes(command)
 }
 
 // Start server if this is the main module
