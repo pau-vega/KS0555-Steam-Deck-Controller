@@ -3,7 +3,6 @@ import { useWebSocket } from "./hooks/use-websocket";
 import { useGamepad } from "./hooks/use-gamepad";
 import { ControlPad } from "./components/control-pad";
 import { StatusBar } from "./components/status-bar";
-import "./app.css";
 
 type Direction = "F" | "B" | "L" | "R" | "S";
 
