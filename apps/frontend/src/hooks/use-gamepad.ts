@@ -29,7 +29,8 @@ export function useGamepad() {
 
   const pollGamepad = useCallback(() => {
     const gamepads = navigator.getGamepads();
-    const gp = gamepads[0];
+    const gp =
+      Array.from(gamepads).find((g) => g?.id.includes("Steam")) || gamepads[0];
 
     if (!gp) {
       frameRef.current = requestAnimationFrame(pollGamepad);
