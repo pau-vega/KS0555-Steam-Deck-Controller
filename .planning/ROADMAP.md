@@ -50,6 +50,8 @@ Plans:
 
 **Requirements:** FRONT-01, FRONT-02, FRONT-03, FRONT-04, FRONT-05, FRONT-06, FRONT-07, FRONT-08
 
+**Plans:** 3 plans
+
 **Success Criteria:**
 1. UI displays connection status that updates when WebSocket connects/disconnects
 2. Manual buttons (F, B, L, R, S) send commands via WebSocket when clicked
@@ -58,3 +60,8 @@ Plans:
 5. Analog stick deadzone prevents jitter from triggering commands
 6. Commands only sent on direction change, not continuously
 7. WebSocket auto-reconnects if backend restarts
+
+Plans:
+- [ ] 03-01-PLAN.md — Migrate to Tailwind CSS, configure WebSocket URL via env, update StatusBar labels (Wave 1)
+- [ ] 03-02-PLAN.md — Gamepad support, direction-change-only sending, WebSocket auto-reconnect (Wave 2)
+- [ ] 03-03-PLAN.md — Test suite for hooks and components with Vitest (Wave 3)
