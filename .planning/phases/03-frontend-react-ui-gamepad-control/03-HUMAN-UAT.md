@@ -3,22 +3,22 @@ status: partial
 phase: 03-frontend-react-ui-gamepad-control
 source: [03-VERIFICATION.md]
 started: 2026-05-04T09:50:00Z
-updated: 2026-05-04T09:50:00Z
+updated: 2026-05-04T10:30:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Visual UI Appearance
+number: 2
+name: Manual Button Functionality
 expected: |
-  Dark theme renders correctly with Tailwind @theme colors (background: #1a1a2e, surface: #16213e, accent: #e94560)
+  Click each button (F, B, L, R, S), verify correct commands sent via WebSocket
 awaiting: user response
 
 ## Tests
 
 ### 1. Visual UI Appearance
 expected: Dark theme renders correctly with Tailwind @theme colors (background: #1a1a2e, surface: #16213e, accent: #e94560)
-result: [pending]
+result: pass
 
 ### 2. Manual Button Functionality
 expected: Click each button (F, B, L, R, S), verify correct commands sent via WebSocket
@@ -39,9 +39,9 @@ result: [pending]
 ## Summary
 
 total: 5
-passed: 0
+passed: 1
 issues: 0
-pending: 5
+pending: 4
 skipped: 0
 blocked: 0
 
