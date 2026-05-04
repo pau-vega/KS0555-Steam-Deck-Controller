@@ -29,7 +29,7 @@ export function App() {
 
   useEffect(() => {
     autoReconnect();
-  }, [wsConnected]);
+  }, [wsConnected, autoReconnect]);
 
   return (
     <div className="app">
