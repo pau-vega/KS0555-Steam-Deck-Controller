@@ -8,7 +8,11 @@ updated: 2026-05-04T09:50:00Z
 
 ## Current Test
 
-[awaiting human testing]
+number: 1
+name: Visual UI Appearance
+expected: |
+  Dark theme renders correctly with Tailwind @theme colors (background: #1a1a2e, surface: #16213e, accent: #e94560)
+awaiting: user response
 
 ## Tests
 
