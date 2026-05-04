@@ -39,6 +39,10 @@ export function App() {
       <div className="text-lg p-3 bg-surface rounded-lg border border-border">
         Last command: <strong className="text-accent text-xl">{lastCommand}</strong>
       </div>
+      <div className="text-center">
+        <span className="text-sm text-gray-400">Current direction: </span>
+        <span className="text-accent font-bold">{direction}</span>
+      </div>
     </div>
   );
 }
