@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import { useGamepad } from './use-gamepad'
 
 function createMockGamepad(axes: number[], id = 'Steam Deck Gamepad'): Gamepad {

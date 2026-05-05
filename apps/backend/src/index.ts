@@ -1,7 +1,9 @@
-import fastify from 'fastify'
 import websocket from '@fastify/websocket'
+import fastify from 'fastify'
 import { SerialPort } from 'serialport'
+
 import type { ValidCommand, WebSocketMessage, SerialPortConfig, ServerConfig } from './types.js'
+
 import { isValidCommand } from './types.js'
 
 // Configuration

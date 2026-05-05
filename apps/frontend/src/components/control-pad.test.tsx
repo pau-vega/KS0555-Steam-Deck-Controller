@@ -1,8 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Mock } from 'vitest'
+
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { ControlPad } from './control-pad'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import type { Direction } from '../types'
+
+import { ControlPad } from './control-pad'
 
 describe('ControlPad', () => {
   let mockOnCommand: Mock<(command: Direction) => void>;

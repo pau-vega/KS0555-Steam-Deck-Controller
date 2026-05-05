@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useWebSocket } from "./hooks/use-websocket";
-import { useGamepad } from "./hooks/use-gamepad";
+
 import { ControlPad } from "./components/control-pad";
 import { StatusBar } from "./components/status-bar";
+import { useGamepad } from "./hooks/use-gamepad";
+import { useWebSocket } from "./hooks/use-websocket";
 
 type Direction = "F" | "B" | "L" | "R" | "S";
 

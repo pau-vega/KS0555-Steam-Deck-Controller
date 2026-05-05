@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import build from '../index.js'
+
 import type { ValidCommand } from '../types.js'
+
+import build from '../index.js'
 
 // Mock SerialPort
 vi.mock('serialport', () => {

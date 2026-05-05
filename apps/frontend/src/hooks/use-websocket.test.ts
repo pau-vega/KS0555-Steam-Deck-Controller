@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { useWebSocket } from './use-websocket'
-
 import type { Mock } from 'vitest'
+
+import { renderHook, waitFor, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+import { useWebSocket } from './use-websocket'
 
 // Store the mock instance for tests to access
 let mockWsInstance: MockWebSocketInstance | null = null
