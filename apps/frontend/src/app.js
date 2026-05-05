@@ -21,6 +21,6 @@ export function App() {
     }, [direction, sendCommand]);
     useEffect(() => {
         autoReconnect();
-    }, [wsConnected]);
+    }, [wsConnected, autoReconnect]);
     return (_jsxs("div", { className: "app", children: [_jsx("h1", { children: "\uD83E\uDD16 Robot Controller" }), _jsx(StatusBar, { wsConnected: wsConnected, gamepadConnected: gamepadConnected, connecting: connecting }), _jsx(ControlPad, { onCommand: sendCommand, disabled: !wsConnected }), _jsxs("div", { className: "text-lg p-3 bg-surface rounded-lg border border-border", children: ["Last command: ", _jsx("strong", { className: "text-accent text-xl", children: lastCommand })] }), _jsxs("div", { className: "text-center", children: [_jsx("span", { className: "text-sm text-gray-400", children: "Current direction: " }), _jsx("span", { className: "text-accent font-bold", children: direction })] })] }));
 }

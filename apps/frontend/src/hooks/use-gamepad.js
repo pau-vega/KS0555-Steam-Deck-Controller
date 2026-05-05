@@ -17,6 +17,7 @@ export function useGamepad() {
     const [direction, setDirection] = useState("S");
     const [gamepadConnected, setGamepadConnected] = useState(false);
     const frameRef = useRef(0);
+    const connectedRef = useRef(false);
     const pollGamepad = useCallback(() => {
         const gamepads = navigator.getGamepads();
         const gp = Array.from(gamepads).find((g) => g?.id.includes("Steam")) || gamepads[0];
@@ -24,17 +25,19 @@ export function useGamepad() {
             frameRef.current = requestAnimationFrame(pollGamepad);
             return;
         }
-        if (!gamepadConnected) {
+        if (!connectedRef.current) {
+            connectedRef.current = true;
             setGamepadConnected(true);
         }
         const newDirection = getDirectionFromAxes(gp.axes);
         setDirection(newDirection);
         frameRef.current = requestAnimationFrame(pollGamepad);
-    }, [gamepadConnected]);
+    }, []);
     useEffect(() => {
         frameRef.current = requestAnimationFrame(pollGamepad);
         const onConnected = () => setGamepadConnected(true);
         const onDisconnected = () => {
+            connectedRef.current = false;
             setGamepadConnected(false);
             setDirection("S");
         };

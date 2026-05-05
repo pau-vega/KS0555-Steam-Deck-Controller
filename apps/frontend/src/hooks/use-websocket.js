@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
 export function useWebSocket() {
     const [connected, setConnected] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
     const connect = useCallback(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN)
+        const current = wsRef.current;
+        if (current?.readyState === WebSocket.OPEN || current?.readyState === WebSocket.CONNECTING)
             return;
         setConnecting(true);
         const ws = new WebSocket(WS_URL);
@@ -44,7 +45,13 @@ export function useWebSocket() {
     useEffect(() => {
         connect();
         return () => {
-            wsRef.current?.close();
+            const ws = wsRef.current;
+            if (ws) {
+                ws.onopen = null;
+                ws.onclose = null;
+                ws.onerror = null;
+                ws.close();
+            }
             if (reconnectTimerRef.current) {
                 clearTimeout(reconnectTimerRef.current);
             }
