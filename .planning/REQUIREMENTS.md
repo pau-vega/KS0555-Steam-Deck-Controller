@@ -11,9 +11,9 @@ Requirements for Tauri v2 migration milestone. Each maps to roadmap phases.
 
 - [ ] **TAUR-01**: Initialize Tauri v2 project inside apps/frontend/src-tauri/ with Cargo.toml, tauri.conf.json, and main.rs entrypoint
 - [ ] **TAUR-02**: Configure tauri.conf.json with productName "Robot Controller", identifier "com.ks0555.robotcontroller", devUrl "http://localhost:5173", and AppImage bundle target for Linux
-- [ ] **TAUR-03**: Add @tauri-apps/cli@^2 and @tauri-apps/api@^2 to apps/frontend with pnpm, add tauri and tauri:build scripts
+- [ ] **TAUR-03**: Add @tauri-apps/cli@^2.10.1 and @tauri-apps/api@^2.10.1 to apps/frontend with pnpm, add tauri and tauri:build scripts
 - [ ] **TAUR-04**: Configure vite.config.ts with Tauri integration: clearScreen false, strictPort true, port 5173, and watch ignore for src-tauri/
-- [ ] **TAUR-05**: Add btleplug@^0.12, gilrs@^0.11, serde, and tokio to src-tauri/Cargo.toml with Rust edition 2021
+- [ ] **TAUR-05**: Add btleplug@0.12.0, gilrs@0.11.1, serde, and tokio to src-tauri/Cargo.toml with Rust edition 2021
 
 ### BLE Communication (btleplug)
 
@@ -75,37 +75,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TAUR-01 | Phase 1 | Pending |
-| TAUR-02 | Phase 1 | Pending |
-| TAUR-03 | Phase 1 | Pending |
-| TAUR-04 | Phase 1 | Pending |
-| TAUR-05 | Phase 1 | Pending |
-| BLE-01 | Phase 2 | Pending |
-| BLE-02 | Phase 2 | Pending |
-| BLE-03 | Phase 2 | Pending |
-| BLE-04 | Phase 2 | Pending |
-| BLE-05 | Phase 2 | Pending |
-| BLE-06 | Phase 2 | Pending |
-| GPAD-01 | Phase 3 | Pending |
-| GPAD-02 | Phase 3 | Pending |
-| GPAD-03 | Phase 3 | Pending |
-| GPAD-04 | Phase 3 | Pending |
-| GPAD-05 | Phase 3 | Pending |
-| GPAD-06 | Phase 3 | Pending |
-| HOOK-01 | Phase 4 | Pending |
-| HOOK-02 | Phase 4 | Pending |
-| HOOK-03 | Phase 4 | Pending |
-| HOOK-04 | Phase 4 | Pending |
-| HOOK-05 | Phase 4 | Pending |
-| VAL-01 | Phase 5 | Pending |
-| VAL-02 | Phase 5 | Pending |
-| VAL-03 | Phase 5 | Pending |
-| VAL-04 | Phase 5 | Pending |
+| TAUR-01 | Phase 6 | Pending |
+| TAUR-02 | Phase 6 | Pending |
+| TAUR-03 | Phase 6 | Pending |
+| TAUR-04 | Phase 6 | Pending |
+| TAUR-05 | Phase 6 | Pending |
+| BLE-01 | Phase 7 | Pending |
+| BLE-02 | Phase 7 | Pending |
+| BLE-03 | Phase 7 | Pending |
+| BLE-04 | Phase 7 | Pending |
+| BLE-05 | Phase 7 | Pending |
+| BLE-06 | Phase 7 | Pending |
+| GPAD-01 | Phase 8 | Pending |
+| GPAD-02 | Phase 8 | Pending |
+| GPAD-03 | Phase 8 | Pending |
+| GPAD-04 | Phase 8 | Pending |
+| GPAD-05 | Phase 8 | Pending |
+| GPAD-06 | Phase 8 | Pending |
+| HOOK-01 | Phase 9 | Pending |
+| HOOK-02 | Phase 9 | Pending |
+| HOOK-03 | Phase 9 | Pending |
+| HOOK-04 | Phase 9 | Pending |
+| HOOK-05 | Phase 9 | Pending |
+| VAL-01 | Phase 10 | Pending |
+| VAL-02 | Phase 10 | Pending |
+| VAL-03 | Phase 10 | Pending |
+| VAL-04 | Phase 10 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 26 total
-- Mapped to phases: 26
+- Mapped to phases: 26 ✓
 - Unmapped: 0 ✓
+- Phase range: Phase 6 through Phase 10
 
 ---
 *Requirements defined: 2026-05-05*

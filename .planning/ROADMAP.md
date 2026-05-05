@@ -1,96 +1,131 @@
-# Roadmap: Steam Deck Robot Controller
+# Roadmap: Steam Deck Robot Controller — Milestone v2.0 Tauri Migration
+
+**Milestone:** v2.0 Tauri Migration
+**Goal:** Migrate apps/frontend from browser-based React+Vite to a Tauri v2 desktop app, replacing broken Web Bluetooth and Gamepad APIs with native Rust alternatives.
+**Granularity:** Coarse (5 phases)
+
+---
 
 ## Phases
 
-- [x] **Phase 1: Monorepo Foundation** - pnpm workspaces, TypeScript, dev scripts
-- [x] **Phase 2: Backend — WebSocket + Bluetooth Serial** - Node.js backend bridging WebSocket to Bluetooth serial
-- [x] **Phase 3: Frontend — React UI + Gamepad Control** - React UI with manual buttons, gamepad, auto-reconnect
-- [x] **Phase 4: TypeScript Quality Hardening** - Delete leftover JS files and enforce TS best practices across codebase
-- [x] **Phase 5: ESLint Config TypeScript Conversion** - Convert eslint-config package from JS to TypeScript ESM
+- [ ] **Phase 6: Tauri Shell Setup** - Initialize Tauri v2 project with Cargo.toml, tauri.conf.json, Vite integration
+- [ ] **Phase 7: BLE Commands with btleplug** - Implement Rust BLE module for BT24 robot communication via Tauri commands
+- [ ] **Phase 8: Gamepad Monitoring with gilrs** - Background thread polling gilrs and emitting gamepad events
+- [ ] **Phase 9: Hook Rewrites** - Rewrite use-bluetooth.ts and use-gamepad.ts to use Tauri IPC with stable interfaces
+- [ ] **Phase 10: Build and Test on SteamOS** - Validate full stack on target platform with production AppImage
+
+---
 
 ## Phase Details
 
-### Phase 1: Monorepo Foundation
-**Goal**: Set up pnpm workspaces monorepo with frontend and backend apps, TypeScript configured, and working dev scripts.
-**Depends on**: Nothing (first phase)
-**Requirements**: MONO-01, MONO-02, MONO-03, MONO-04
+### Phase 6: Tauri Shell Setup
+**Goal**: Tauri v2 project initialized and configured inside apps/frontend/ with proper IPC setup
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: TAUR-01, TAUR-02, TAUR-03, TAUR-04, TAUR-05
 **Success Criteria** (what must be TRUE):
-  1. `pnpm install` from root installs all dependencies without errors
-  2. `pnpm dev` starts both frontend and backend development servers
-  3. Both apps have TypeScript configured with strict mode
-  4. Workspace structure has `apps/frontend`, `apps/backend`, and empty `packages/` directory
-**Plans**: 01-01-PLAN.md, 01-02-PLAN.md, 01-03-PLAN.md, 01-04-PLAN.md
+  1. `apps/frontend/src-tauri/` directory exists with Cargo.toml, tauri.conf.json, and main.rs entrypoint
+  2. `pnpm --filter @ks0555/frontend tauri dev` starts without errors and loads the Vite frontend at http://localhost:5173
+  3. tauri.conf.json configured with productName "Robot Controller", identifier "com.ks0555.robotcontroller", devUrl "http://localhost:5173", and AppImage bundle target for Linux
+  4. Vite config has Tauri integration: clearScreen false, strictPort true, port 5173, watch ignore for src-tauri/
+   5. Cargo.toml includes btleplug@0.12.0, gilrs@0.11.1, serde, and tokio with Rust edition 2021
+**Plans**: TBD
 
-### Phase 2: Backend — WebSocket + Bluetooth Serial
-**Goal**: Build Node.js backend that connects to DX-BT24 via serial port and bridges WebSocket commands to Bluetooth serial.
-**Depends on**: Phase 1
-**Requirements**: BACK-01, BACK-02, BACK-03, BACK-04, BACK-05, BACK-06, SAFE-01, SAFE-02
+### Phase 7: BLE Commands with btleplug
+**Goal**: Rust BLE module implemented with Tauri commands for BT24 robot communication
+**Depends on**: Phase 6
+**Requirements**: BLE-01, BLE-02, BLE-03, BLE-04, BLE-05, BLE-06
 **Success Criteria** (what must be TRUE):
-  1. WebSocket server starts and accepts connections on a configurable port
-  2. Serial connection to `/dev/rfcomm0` at 9600 baud establishes successfully
-  3. Sending "F" via WebSocket results in "F" written to serial port
-  4. Serial disconnection triggers auto-reconnect with backoff
-  5. WebSocket client disconnect triggers "S" written to serial port
-  6. Console logs show command receipt and serial status changes
-**Plans**: 02-01-PLAN.md, 02-02-PLAN.md
+  1. `invoke('ble_connect')` scans for BT24 device (filter by name "BT24", service UUID 0000ffe0-0000-1000-8000-00805f9b34fb), connects, and emits "ble-state-changed" with "connecting" then "connected"
+  2. `invoke('ble_send', { command: 'F' })` writes command string to BT24 characteristic UUID 0000ffe1-0000-1000-8000-00805f9b34fb using WriteType::WithoutResponse
+  3. `invoke('ble_disconnect')` disconnects from BT24 peripheral and emits "ble-state-changed" with "disconnected"
+  4. Connected Peripheral stored in Tauri managed state (app.manage()) for access across commands
+  5. Unexpected disconnections (CentralEvent::DeviceDisconnected) auto-emit "ble-state-changed" with "disconnected"
+**Plans**: TBD
 
-### Phase 3: Frontend — React UI + Gamepad Control
-**Goal**: Build React UI with connection status, manual buttons, gamepad support, and WebSocket communication.
-**Depends on**: Phase 2
-**Requirements**: FRONT-01, FRONT-02, FRONT-03, FRONT-04, FRONT-05, FRONT-06, FRONT-07, FRONT-08
+### Phase 8: Gamepad Monitoring with gilrs
+**Goal**: Background thread polls gilrs and emits gamepad events to frontend
+**Depends on**: Phase 6
+**Requirements**: GPAD-01, GPAD-02, GPAD-03, GPAD-04, GPAD-05, GPAD-06
 **Success Criteria** (what must be TRUE):
-  1. UI displays connection status that updates when WebSocket connects/disconnects
-  2. Manual buttons (F, B, L, R, S) send commands via WebSocket when clicked
-  3. Last sent command is displayed on screen
-  4. Gamepad stick input maps to correct robot commands with visible feedback
-  5. Analog stick deadzone prevents jitter from triggering commands
-  6. Commands only sent on direction change, not continuously
-  7. WebSocket auto-reconnects if backend restarts
-**Plans**: 03-01-PLAN.md, 03-02-PLAN.md, 03-03-PLAN.md
-**UI hint**: yes
+  1. Steam Deck built-in controller detected by checking gamepad.name() contains "Steam", emits "gamepad-connected" event on EventType::Connected
+  2. Gamepad direction changes (F/B/L/R/S with 0.15 deadzone on LeftStickX/Y) emit "gamepad-direction" events only when direction actually changes (direction change guard)
+  3. Controller disconnect emits "gamepad-disconnected" event on EventType::Disconnected
+  4. Background thread uses std::thread::spawn or tauri::async_runtime::spawn with cloned AppHandle (not Window) for cross-thread event emitting
+  5. Scan results post-filtered by device name "BT24" on Linux since BlueZ merges discovery filters across all D-Bus clients
+**Plans**: TBD
 
-### Phase 4: TypeScript Quality Hardening
-**Goal**: Remove all leftover JS files from the frontend and eliminate TypeScript anti-patterns (any, missing return types, missing import type) so the entire codebase is strictly typed and lint-clean.
-**Depends on**: Phase 3
-**Requirements**: CLEAN-01, TS-01, TS-02, TS-03, VAL-01, VAL-02, VAL-03, VAL-04
+### Phase 9: Hook Rewrites
+**Goal**: Frontend hooks rewritten to use Tauri IPC instead of Web APIs while preserving interfaces
+**Depends on**: Phase 7, Phase 8
+**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04, HOOK-05
 **Success Criteria** (what must be TRUE):
-  1. All 13 leftover `.js` files in `apps/frontend/src/` are deleted and no JS file remains alongside a `.ts`/`.tsx` equivalent
-  2. `grep -r "any" apps/ packages/` returns zero hits in `.ts`/`.tsx` files
-  3. Every top-level non-hook/non-component function in `.ts`/`.tsx` files has an explicit return type annotation
-  4. All type-only imports across the monorepo use `import type` syntax
-  5. `pnpm build`, `pnpm typecheck`, and `pnpm lint` all complete with zero errors
-**Plans**: 5 plans
+  1. `useBluetooth()` returns identical shape `{ connected, connecting, unsupported, connect, send }` — uses invoke("ble_connect"), invoke("ble_disconnect"), invoke("ble_send"), and listen("ble-state-changed")
+  2. `useGamepad()` returns identical shape `{ direction, gamepadConnected }` — uses listen("gamepad-direction"), listen("gamepad-connected"), listen("gamepad-disconnected")
+  3. app.tsx, control-pad.tsx, status-bar.tsx work unchanged (verified: git diff shows no changes to these files after migration)
+  4. @types/web-bluetooth removed from apps/frontend dependencies (no longer needed after Tauri migration)
+**Plans**: TBD
 
-Plans:
-- [x] 04-01-PLAN.md — Delete 13 leftover JS files from apps/frontend/src/
-- [x] 04-02-PLAN.md — Fix TS anti-patterns (any, import type, return types)
-- [x] 04-03-PLAN.md — Validation gate (build, typecheck, lint, TS rules)
-- [x] 04-04-PLAN.md — Gap closure: fix TS6059 and add tsconfigRootDir to react.js
-- [ ] 04-05-PLAN.md — Gap closure: delete untracked JS files remaining on disk
-
-### Phase 5: ESLint Config TypeScript Conversion
-**Goal**: Convert the shared eslint-config package from plain JavaScript to TypeScript ESM so the package itself is type-safe and consistent with the rest of the monorepo.
-**Depends on**: Phase 4
-**Requirements**: CLEAN-02, CLEAN-03, CLEAN-04
+### Phase 10: Build and Test on SteamOS
+**Goal**: Full stack validated on target platform with production build
+**Depends on**: Phase 9
+**Requirements**: VAL-01, VAL-02, VAL-03, VAL-04
 **Success Criteria** (what must be TRUE):
-  1. `packages/eslint-config/src/node.js` no longer exists — replaced by a `.ts` module exporting the same config
-  2. `packages/eslint-config/src/react.js` no longer exists — replaced by a `.ts` module exporting the same config
-  3. Both `apps/frontend` and `apps/backend` import from eslint-config without any import errors or type errors
-  4. `pnpm build`, `pnpm typecheck`, and `pnpm lint` all complete with zero errors after the conversion
-  5. ts-reviewer agent passes on the converted eslint-config package
-**Plans**: 3 plans
+  1. `pnpm --filter @ks0555/frontend tauri dev` starts without errors on Linux/SteamOS
+  2. Gamepad events flow through Rust gilrs → Tauri event → React without using navigator.getGamepads()
+  3. BLE connect/send works through Rust btleplug without using navigator.bluetooth
+  4. app.tsx is unchanged after migration (verified with git diff)
+**Plans**: TBD
 
-Plans:
-- [x] 05-01-PLAN.md — Convert node.js and react.js to TypeScript ESM modules
-- [x] 05-02-PLAN.md — Add tsup config and update package.json with ESM + types
-- [x] 05-03-PLAN.md — Update lint scripts and validate conversion with build/typecheck/lint
- 
-## Progress Table
- 
+---
+
+## Progress
+
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Monorepo Foundation | 4/4 | Done | 2026-05-05 |
-| 2. Backend — WebSocket + Bluetooth Serial | 2/2 | Done | 2026-05-05 |
-| 3. Frontend — React UI + Gamepad Control | 3/3 | Done | 2026-05-05 |
-| 4. TypeScript Quality Hardening | 4/4 | Done | 2026-05-05 |
-| 5. ESLint Config TypeScript Conversion | 3/3 | Done | 2026-05-05 |
+| 6. Tauri Shell Setup | 0/3 | Not started | - |
+| 7. BLE Commands with btleplug | 0/3 | Not started | - |
+| 8. Gamepad Monitoring with gilrs | 0/3 | Not started | - |
+| 9. Hook Rewrites | 0/2 | Not started | - |
+| 10. Build and Test on SteamOS | 0/2 | Not started | - |
+
+---
+
+## Coverage Summary
+
+**Total v2.0 requirements:** 26
+**Mapped to phases:** 26 ✓
+**Unmapped:** 0 ✓
+
+| Requirement | Phase |
+|-------------|-------|
+| TAUR-01 | Phase 6 |
+| TAUR-02 | Phase 6 |
+| TAUR-03 | Phase 6 |
+| TAUR-04 | Phase 6 |
+| TAUR-05 | Phase 6 |
+| BLE-01 | Phase 7 |
+| BLE-02 | Phase 7 |
+| BLE-03 | Phase 7 |
+| BLE-04 | Phase 7 |
+| BLE-05 | Phase 7 |
+| BLE-06 | Phase 7 |
+| GPAD-01 | Phase 8 |
+| GPAD-02 | Phase 8 |
+| GPAD-03 | Phase 8 |
+| GPAD-04 | Phase 8 |
+| GPAD-05 | Phase 8 |
+| GPAD-06 | Phase 8 |
+| HOOK-01 | Phase 9 |
+| HOOK-02 | Phase 9 |
+| HOOK-03 | Phase 9 |
+| HOOK-04 | Phase 9 |
+| HOOK-05 | Phase 9 |
+| VAL-01 | Phase 10 |
+| VAL-02 | Phase 10 |
+| VAL-03 | Phase 10 |
+| VAL-04 | Phase 10 |
+
+---
+
+*Roadmap created: 2026-05-05*
+*Milestone: v2.0 Tauri Migration*
