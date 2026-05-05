@@ -14,5 +14,13 @@ module.exports = [
     rules: {
       "perfectionist/sort-imports": "error"
     }
+  },
+  {
+    files: ["*.config.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: null
+      }
+    }
   }
 ];
