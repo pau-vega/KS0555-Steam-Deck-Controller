@@ -29,10 +29,10 @@ All requirements from initial milestone shipped across Phases 1–3.
 
 ### Validation Gates
 
-- [ ] **VAL-01**: `pnpm build` completes with zero errors across all packages
-- [ ] **VAL-02**: `pnpm typecheck` (tsc --noEmit) passes with zero errors across all packages
-- [ ] **VAL-03**: `pnpm lint` passes with zero errors across all packages
-- [ ] **VAL-04**: TypeScript rules agent (ts-reviewer) runs and passes at end of each phase
+- [x] **VAL-01**: `pnpm build` completes with zero errors across all packages
+- [x] **VAL-02**: `pnpm typecheck` (tsc --noEmit) passes with zero errors across all packages
+- [x] **VAL-03**: `pnpm lint` passes with zero errors across all packages
+- [x] **VAL-04**: TypeScript rules agent (ts-reviewer) runs and passes at end of each phase
 
 ## v2 Requirements
 
@@ -94,10 +94,10 @@ All requirements from initial milestone shipped across Phases 1–3.
 | TS-01 | Phase 4 | Done |
 | TS-02 | Phase 4 | Done |
 | TS-03 | Phase 4 | Done |
-| VAL-01 | Phase 4 | Pending |
-| VAL-02 | Phase 4 | Pending |
-| VAL-03 | Phase 4 | Pending |
-| VAL-04 | Phase 4 | Pending |
+| VAL-01 | Phase 4 | Done |
+| VAL-02 | Phase 4 | Done |
+| VAL-03 | Phase 4 | Done |
+| VAL-04 | Phase 4 | Done |
 | CLEAN-02 | Phase 5 | Pending |
 | CLEAN-03 | Phase 5 | Pending |
 | CLEAN-04 | Phase 5 | Pending |
