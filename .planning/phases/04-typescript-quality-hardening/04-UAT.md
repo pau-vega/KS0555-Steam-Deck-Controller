@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-typescript-quality-hardening
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md]
 started: 2026-05-05T14:00:00Z
-updated: 2026-05-05T14:15:00Z
+updated: 2026-05-05T14:20:00Z
 ---
 
 ## Current Test
@@ -62,7 +62,11 @@ blocked: 0
   reason: "User reported: find apps/frontend/src -name '*.js' returns 13 .js files still present"
   severity: major
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "JS files deleted from git in e985693 but remained on disk as untracked files. Follow-up commit a4218ca ('actually delete') only added vite.config.js and vitest.config.js — did not remove the original JS files from disk."
+  artifacts:
+    - path: "apps/frontend/src"
+      issue: "13 .js files exist on disk as untracked files (?? in git status)"
+  missing:
+    - "Delete untracked JS files from apps/frontend/src/ that have TS equivalents"
+    - "Ensure git clean -fd is run after git rm to remove files from disk"
   debug_session: ""
