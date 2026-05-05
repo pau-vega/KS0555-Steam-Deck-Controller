@@ -7,8 +7,8 @@ import { useWebSocket } from './use-websocket'
 
 // Store the mock instance for tests to access
 let mockWsInstance: MockWebSocketInstance | null = null
-let mockSendFn: Mock = null as unknown as Mock
-let mockCloseFn: Mock = null as unknown as Mock
+let mockSendFn!: Mock
+let mockCloseFn!: Mock
 
 interface MockWebSocketInstance {
   url: string

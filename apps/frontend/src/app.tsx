@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react"
 
-import { ControlPad } from "./components/control-pad";
-import { StatusBar } from "./components/status-bar";
-import { useGamepad } from "./hooks/use-gamepad";
-import { useWebSocket } from "./hooks/use-websocket";
+import type { Direction } from "./types"
 
-type Direction = "F" | "B" | "L" | "R" | "S";
+import { ControlPad } from "./components/control-pad"
+import { StatusBar } from "./components/status-bar"
+import { useGamepad } from "./hooks/use-gamepad"
+import { useWebSocket } from "./hooks/use-websocket"
 
 export function App() {
   const [lastCommand, setLastCommand] = useState<Direction>("S");
