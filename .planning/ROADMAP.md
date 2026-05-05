@@ -5,7 +5,7 @@
 - [x] **Phase 1: Monorepo Foundation** - pnpm workspaces, TypeScript, dev scripts
 - [x] **Phase 2: Backend — WebSocket + Bluetooth Serial** - Node.js backend bridging WebSocket to Bluetooth serial
 - [x] **Phase 3: Frontend — React UI + Gamepad Control** - React UI with manual buttons, gamepad, auto-reconnect
-- [ ] **Phase 4: TypeScript Quality Hardening** - Delete leftover JS files and enforce TS best practices across codebase
+- [x] **Phase 4: TypeScript Quality Hardening** - Delete leftover JS files and enforce TS best practices across codebase
 - [ ] **Phase 5: ESLint Config TypeScript Conversion** - Convert eslint-config package from JS to TypeScript ESM
 
 ## Phase Details
