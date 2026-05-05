@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { isValidCommand, VALID_COMMANDS, type ValidCommand } from '../types.js'
+import { isValidCommand, VALID_COMMANDS } from '../types.js'
+import type { ValidCommand } from '../types.js'
 
 describe('Command Validation', () => {
   it('should validate valid commands', () => {
