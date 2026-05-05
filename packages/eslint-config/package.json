@@ -2,8 +2,13 @@
   "name": "@ks0555/eslint-config",
   "version": "0.1.0",
   "private": true,
-  "main": "src/node.js",
-  "files": ["src/"],
+  "type": "module",
+  "main": "dist/node.js",
+  "types": "dist/node.d.ts",
+  "files": ["dist/"],
+  "scripts": {
+    "build": "tsup"
+  },
   "peerDependencies": {
     "eslint": ">=9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -11,5 +16,9 @@
     "eslint-plugin-react": "^7.0.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-perfectionist": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
   }
 }
