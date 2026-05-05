@@ -8,23 +8,34 @@ A minimal monorepo application that connects a Steam Deck's gamepad to a Bluetoo
 
 Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
 
+## Current Milestone: v1.1 TypeScript Migration
+
+**Goal:** Remove leftover JS files, convert remaining JS packages to TypeScript, and enforce TypeScript best practices (no `any`) across the entire codebase.
+
+**Target features:**
+- Delete 12 leftover `.js` files in frontend (superseded by `.ts`/`.tsx`)
+- Convert `packages/eslint-config/src/node.js` and `react.js` to TypeScript
+- Eliminate all `any` types from test and source files
+- Apply TypeScript best practices: explicit return types, `import type`, discriminated unions, `interface extends`
+
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Monorepo structure with pnpm workspaces (apps/frontend, apps/backend) — Phase 1
+- ✓ Backend WebSocket server accepts frontend connections — Phase 2
+- ✓ Bluetooth serial bridge (DX-BT24 via serialport) — Phase 2
+- ✓ React UI with connection status and manual control buttons — Phase 3
+- ✓ Gamepad API integration with deadzone and direction-change guard — Phase 3
+- ✓ WebSocket auto-reconnect — Phase 3
 
 ### Active
 
-- [ ] Monorepo structure with pnpm workspaces (apps/frontend, apps/backend)
-- [ ] Backend connects to DX-BT24 Bluetooth serial module and forwards commands
-- [ ] WebSocket communication between frontend and backend
-- [ ] React UI with connection status and manual control buttons (F, B, L, R, S)
-- [ ] Gamepad API integration mapping Steam Deck stick input to robot commands
-- [ ] Auto-reconnect on serial connection drop
-- [ ] Send "S" (stop) when WebSocket client disconnects
-- [ ] Deadzone handling for analog sticks
-- [ ] Only send commands on direction change (no spam)
+- [ ] TypeScript migration: delete leftover JS files from frontend
+- [ ] TypeScript migration: convert eslint-config package to TypeScript
+- [ ] TypeScript quality: eliminate all `any` types across codebase
+- [ ] TypeScript quality: explicit return types on all top-level non-hook/non-component functions
+- [ ] TypeScript quality: `import type` for all type-only imports
 
 ### Out of Scope
 
@@ -78,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-03 after initialization*
+*Last updated: 2026-05-05 after milestone v1.1 start*
