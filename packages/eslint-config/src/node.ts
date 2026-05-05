@@ -1,31 +1,31 @@
-import eslintJs from "@eslint/js"
-import eslintConfigPrettier from "eslint-config-prettier/flat"
-import perfectionist from "eslint-plugin-perfectionist"
-import prettier from "eslint-plugin-prettier"
-import { defineConfig, globalIgnores } from "eslint/config"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import type { Plugin as PerfectionistPlugin } from "eslint-plugin-perfectionist"
+import type { Linter } from "eslint"
 
-export const node = defineConfig([
-  globalIgnores(["dist/**", "build/**", "node_modules/**", "coverage/**", ".turbo/**"]),
+const config: Linter.Config[] = [
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    extends: [eslintJs.configs.recommended, tseslint.configs.recommended, eslintConfigPrettier],
-    languageOptions: {
-      globals: { ...globals.node },
-      parser: tseslint.parser,
+    files: ["**/*.ts"],
+    plugins: {
+      perfectionist: require("eslint-plugin-perfectionist") as PerfectionistPlugin,
     },
-    plugins: { prettier, perfectionist },
+    languageOptions: {
+      parser: require("@typescript-eslint/parser"),
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: process.cwd(),
+      },
+    },
     rules: {
       "perfectionist/sort-imports": "error",
-      "@typescript-eslint/consistent-type-imports": "error",
-      "prettier/prettier": [
-        "warn",
-        {
-          semi: false,
-          printWidth: 120,
-        },
-      ],
     },
   },
-])
+  {
+    files: ["*.config.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: null,
+      },
+    },
+  },
+]
+
+export default config

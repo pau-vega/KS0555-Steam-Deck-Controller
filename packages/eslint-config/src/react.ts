@@ -1,50 +1,27 @@
-import reactPlugin from "@eslint-react/eslint-plugin"
-import eslintJs from "@eslint/js"
-import eslintConfigPrettier from "eslint-config-prettier/flat"
-import perfectionist from "eslint-plugin-perfectionist"
-import prettier from "eslint-plugin-prettier"
-import reactHooks from "eslint-plugin-react-hooks"
-import reactRefresh from "eslint-plugin-react-refresh"
-import { defineConfig, globalIgnores } from "eslint/config"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import type { Plugin as ReactPlugin } from "eslint-plugin-react"
+import type { Plugin as ReactHooksPlugin } from "eslint-plugin-react-hooks"
+import type { Plugin as PerfectionistPlugin } from "eslint-plugin-perfectionist"
+import type { Linter } from "eslint"
 
-export const react = defineConfig([
-  globalIgnores([
-    "dist/**",
-    "build/**",
-    "node_modules/**",
-    "coverage/**",
-    ".turbo/**",
-    ".react-router/**",
-    "storybook-static/**",
-  ]),
+const config: Linter.Config[] = [
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-
-    extends: [
-      eslintJs.configs.recommended,
-      ...tseslint.configs.recommended,
-      eslintConfigPrettier,
-      reactPlugin.configs["recommended-typescript"],
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.recommended,
-    ],
-
-    languageOptions: {
-      globals: globals.browser,
-    },
-
+    files: ["**/*.ts", "**/*.tsx"],
     plugins: {
-      "@typescript-eslint": tseslint.plugin,
-      prettier,
-      perfectionist,
+      react: require("eslint-plugin-react") as ReactPlugin,
+      "react-hooks": require("eslint-plugin-react-hooks") as ReactHooksPlugin,
+      perfectionist: require("eslint-plugin-perfectionist") as PerfectionistPlugin,
     },
-
+    languageOptions: {
+      parser: require("@typescript-eslint/parser"),
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: process.cwd(),
+      },
+    },
     rules: {
       "perfectionist/sort-imports": "error",
-      "@typescript-eslint/consistent-type-imports": "error",
-      "prettier/prettier": ["warn"],
     },
   },
-])
+]
+
+export default config

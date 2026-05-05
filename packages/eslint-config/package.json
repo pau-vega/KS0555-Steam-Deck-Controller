@@ -1,51 +1,27 @@
 {
-  "name": "@monorepo-template/eslint-config",
-  "version": "1.0.0",
-  "license": "ISC",
+  "name": "@ks0555/eslint-config",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "private": false,
+  "main": "dist/node.js",
+  "types": "dist/node.d.ts",
   "files": [
-    "dist"
+    "dist/"
   ],
-  "sideEffects": false,
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "lint": "eslint . --fix",
-    "format": "prettier --write .",
-    "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
-  },
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
+    "build": "tsup"
   },
   "peerDependencies": {
-    "eslint": "^9.0.0",
-    "prettier": "^3.0.0",
-    "typescript": ">=5.0.0"
-  },
-  "dependencies": {
-    "@eslint-react/eslint-plugin": "^4.2.3",
-    "@eslint/js": "^10.0.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-perfectionist": "^5.9.0",
-    "eslint-plugin-prettier": "^5.5.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "catalog:",
-    "typescript-eslint": "^8.59.1"
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": ">=9.0.0",
+    "eslint-plugin-perfectionist": "^5.0.0",
+    "eslint-plugin-react": "^7.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0"
   },
   "devDependencies": {
-    "@monorepo-template/tsconfig": "workspace:*",
-    "eslint": "catalog:",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "prettier": "catalog:",
-    "tsup": "catalog:",
-    "typescript": "catalog:"
+    "@types/node": "^22.19.17",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }

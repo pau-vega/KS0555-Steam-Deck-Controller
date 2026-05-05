@@ -1,11 +1,7 @@
 {
-  "extends": "@monorepo-template/tsconfig/base.json",
-  "include": ["src", "*.ts"],
-  "exclude": ["node_modules", "dist"],
+  "extends": "../../packages/tsconfig/tsconfig.node.json",
   "compilerOptions": {
-    "types": ["node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "moduleResolution": "node"
+  },
+  "include": ["src"]
 }

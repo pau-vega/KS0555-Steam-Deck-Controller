@@ -1,47 +1,24 @@
 {
-  "$schema": "https://turborepo.dev/schema.json",
-  "globalDependencies": ["tsconfig.base.json", "packages/tsconfig/*.json"],
-  "globalEnv": ["NODE_ENV", "CI"],
-
-  "remoteCache": {
-    "enabled": true,
-    "signature": false,
-    "timeout": 30,
-    "uploadTimeout": 60
-  },
-
+  "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^dev"]
+    },
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "package.json", "tsconfig.json"],
       "outputs": ["dist/**"]
     },
-    "dev": {
-      "persistent": true,
-      "cache": false
-    },
-    "preview": {
-      "dependsOn": ["build"],
-      "persistent": true,
-      "cache": false
-    },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^typecheck"]
     },
     "lint": {
-      "dependsOn": ["^build"]
-    },
-    "format": {},
-    "clean": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
-    },
-    "e2e": {
-      "dependsOn": ["^build"],
-      "cache": false
+      "dependsOn": ["^test"],
+      "outputs": []
     }
   }
 }

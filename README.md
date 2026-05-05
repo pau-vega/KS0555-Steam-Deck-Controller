@@ -1,46 +1,111 @@
-# Monorepo Template
+# KS0555 Steam Deck Robot Controller
 
-A TypeScript monorepo powered by pnpm workspaces and Turborepo.
+Control a Bluetooth Arduino robot (DX-BT24 module) using your Steam Deck gamepad.
 
-## Structure
+## Quick Start
 
-```
-apps/
-  showcase/       — Vite + React demo app (Tailwind, shadcn, Playwright e2e)
-packages/
-  ui/             — Shared component library (tsup, shadcn)
-  eslint-config/  — Shared ESLint configuration
-  tsconfig/       — Shared TypeScript configuration
+```bash
+pnpm install
+pnpm dev
 ```
 
 ## Prerequisites
 
-- Node.js >= 24
-- pnpm 10
+- Node.js >= 18
+- pnpm >= 10
+- Steam Deck (Desktop Mode) or any Linux machine with Bluetooth
 
-## Getting started
+## Bluetooth Setup (Steam Deck)
+
+Before running the app, pair your DX-BT24 module:
 
 ```bash
-# Install dependencies
-pnpm install
+# Open bluetoothctl
+bluetoothctl
 
-# Start all apps/packages in dev mode
+# Inside bluetoothctl:
+power on
+agent on
+default-agent
+scan on
+# Wait for "BT24" to appear, note its MAC address
+pair XX:XX:XX:XX:XX:XX
+trust XX:XX:XX:XX:XX:XX
+connect XX:XX:XX:XX:XX:XX
+quit
+```
+
+Then bind it to a serial device:
+
+```bash
+sudo rfcomm bind /dev/rfcomm0 XX:XX:XX:XX:XX:XX:XX 1
+```
+
+Verify:
+```bash
+rfcomm -a
+# Should show: rfcomm0: XX:XX:XX:XX:XX:XX channel 1 clean
+```
+
+### Chrome Gamepad Setup (Steam Deck)
+
+For the Gamepad API to work in Chrome on Steam Deck:
+
+```bash
+flatpak --user override --filesystem=/run/udev:ro com.google.Chrome
+```
+
+In Steam Gaming Mode, set Chrome's Steam Input to **"Gamepad with Mouse Trackpad"**.
+
+## Architecture
+
+```
+Frontend (React/Vite) ←→ WebSocket (ws://localhost:8080) ←→ Backend (Node.js) ←→ /dev/rfcomm0 ←→ DX-BT24 ←→ Arduino
+```
+
+## Commands
+
+The robot accepts these serial commands:
+
+| Command | Action |
+|---------|--------|
+| F | Move forward |
+| B | Move backward |
+| L | Turn left |
+| R | Turn right |
+| S | Stop |
+
+## Gamepad Mapping
+
+| Input | Command |
+|-------|---------|
+| Left stick up | F |
+| Left stick down | B |
+| Left stick left | L |
+| Left stick right | R |
+| Neutral | S |
+
+## Development
+
+```bash
+# Run both frontend and backend
 pnpm dev
 
-# Build everything
+# Run individually
+pnpm dev:frontend   # http://localhost:3000
+pnpm dev:backend    # ws://localhost:8080
+
+# Type check
+pnpm typecheck
+
+# Build for production
 pnpm build
 ```
 
-## Available scripts
+## Environment Variables (Backend)
 
-| Command              | Description                        |
-| -------------------- | ---------------------------------- |
-| `pnpm dev`           | Start dev servers                  |
-| `pnpm build`         | Build all packages and apps        |
-| `pnpm lint`          | Lint all packages                  |
-| `pnpm format`        | Format all files with Prettier     |
-| `pnpm typecheck`     | Run TypeScript type checking       |
-| `pnpm test`          | Run unit tests (Vitest)            |
-| `pnpm e2e`           | Run end-to-end tests (Playwright)  |
-| `pnpm test:coverage` | Run tests with coverage            |
-| `pnpm clean`         | Remove build artifacts             |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| WS_PORT | 8080 | WebSocket server port |
+| SERIAL_PORT | /dev/rfcomm0 | Bluetooth serial device |
+| BAUD_RATE | 9600 | Serial baud rate |

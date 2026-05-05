@@ -1,39 +1,29 @@
 {
-  "name": "monorepo-template",
+  "name": "ks0555-steam-deck-controller",
+  "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": ">=24"
-  },
+  "description": "Steam Deck Bluetooth robot controller — monorepo with React frontend and Node.js backend",
   "scripts": {
     "dev": "turbo dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
     "build": "turbo build",
-    "preview": "turbo preview",
-    "lint": "turbo lint",
-    "format": "turbo format",
-    "format:check": "prettier --check .",
     "typecheck": "turbo typecheck",
-    "clean": "turbo clean",
+    "lint": "turbo lint",
     "test": "turbo test",
-    "e2e": "turbo e2e",
-    "test:coverage": "turbo test -- --coverage",
-    "prepare": "husky"
+    "format:check": "prettier --check ."
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@10.29.3",
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
-    "@monorepo-template/tsconfig": "workspace:*",
-    "@testing-library/jest-dom": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@testing-library/user-event": "catalog:",
-    "@types/node": "^25.6.0",
-    "@vitest/coverage-v8": "catalog:",
-    "husky": "^9.1.7",
-    "jsdom": "catalog:",
-    "prettier": "catalog:",
-    "rimraf": "catalog:",
-    "turbo": "^2.9.7",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "packageManager": "pnpm@10.29.3"
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^10.3.0",
+    "prettier": "^3.8.3",
+    "turbo": "^2.9.8"
+  }
 }
