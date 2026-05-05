@@ -1,54 +1,49 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-04-14
+**Analysis Date:** 2026-05-05
 
 ## Test Framework
 
 **Runner:**
-- Vitest (latest version)
-- Config: `vitest.config.ts` at monorepo root and per-package
-- Environment: jsdom (for React component tests)
+- Vitest 4.1.4
+- Config: `vitest.config.ts` (root-level, extends to workspace packages via pnpm workspaces)
+- Environment: jsdom 29.0.2 (for React component testing)
 
 **Assertion Library:**
-- Vitest built-in `expect` API
+- Built-in Vitest assertions (expect)
+- @testing-library/jest-dom 6.9.1 (custom DOM matchers: `toBeInTheDocument()`, `toHaveClass()`)
 
 **Run Commands:**
 ```bash
-pnpm test              # Run all tests once (turbo orchestrated)
-pnpm test:watch        # Watch mode for packages/ui
-pnpm test:coverage     # Run tests with coverage reporting
-pnpm e2e               # Run Playwright E2E tests (apps/showcase only)
-pnpm e2e:ui            # Playwright tests with UI
-pnpm e2e:report        # Show Playwright HTML report
+pnpm test              # Run all tests in watch mode
+pnpm test:run          # Run all tests once
+pnpm test:coverage    # Run tests with V8 coverage report
+npx playwright test    # Run E2E tests (apps/showcase)
 ```
 
 ## Test File Organization
 
 **Location:**
-- Co-located with source code in `__tests__` subdirectory
-- Example: `packages/ui/src/lib/__tests__/utils.test.ts`
-- E2E tests in separate `e2e/` directory at app root: `apps/showcase/e2e/`
+- Co-located with source files: `packages/ui/src/lib/utils.test.ts` alongside `utils.ts`
+- Component tests live next to their component file: `packages/ui/src/components/button.test.tsx` alongside `button.tsx`
 
 **Naming:**
-- Unit/integration tests: `*.test.ts` or `*.test.tsx`
-- E2E tests: `*.spec.ts` (Playwright convention)
+- `.test.ts` for non-JSX files: `utils.test.ts`
+- `.test.tsx` for React component tests: `button.test.tsx`
+- No `.spec.ts` files detected in current codebase
 
 **Structure:**
 ```
 packages/ui/src/
 ├── lib/
-│   ├── __tests__/
-│   │   └── utils.test.ts
-│   └── utils.ts
-└── components/
-    ├── button.tsx
-    └── (no tests found — components use shadow DOM patterns from @base-ui/react)
-
-apps/showcase/
-├── e2e/
-│   └── showcase.spec.ts
-└── src/
-    └── (integration tested via E2E)
+│   ├── utils.ts
+│   └── utils.test.ts
+├── components/
+│   ├── button.tsx
+│   └── button.test.tsx
+└── hooks/
+    ├── use-is-mobile.ts
+    └── use-is-mobile.test.ts
 ```
 
 ## Test Structure
@@ -56,208 +51,105 @@ apps/showcase/
 **Suite Organization:**
 ```typescript
 import { describe, expect, it } from "vitest"
-
-import { cn } from "../utils"
+import { cn } from "./utils"
 
 describe("cn", () => {
-  it("merges class names", () => {
+  it("merges class names with clsx", () => {
     expect(cn("foo", "bar")).toBe("foo bar")
   })
-  it("handles undefined/null", () => {
-    expect(cn("foo", undefined, null, "bar")).toBe("foo bar")
-  })
-  it("handles conditional classes", () => {
-    expect(cn("base", { active: true, inactive: false })).toBe("base active")
-  })
-  it("deduplicates Tailwind via tailwind-merge", () => {
-    expect(cn("p-4", "p-8")).toBe("p-8")
-  })
-  it("returns empty string for no input", () => {
-    expect(cn()).toBe("")
+
+  it("deduplicates Tailwind classes with tailwind-merge", () => {
+    expect(cn("px-2", "px-4")).toBe("px-4")
   })
 })
 ```
 
 **Patterns:**
-- Top-level imports: `import { describe, expect, it } from "vitest"`
-- Group related tests in `describe()` blocks
-- Use clear, descriptive test names: `"merges class names"`, `"handles undefined/null"`
-- One assertion per test case (mostly)
-- Import the code being tested first (top of file)
-
-## E2E Test Structure (Playwright)
-
-**Suite Organization:**
-```typescript
-import { expect, test } from "@playwright/test"
-
-test.describe("Showcase app", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/")
-  })
-
-  test.describe("Smoke tests", () => {
-    test("loads with tab bar showing all 6 tabs", async ({ page }) => {
-      const tabs = ["Forms", "Overlays", "Navigation", "Feedback", "Data Display", "Layout"]
-      for (const tab of tabs) {
-        await expect(page.getByRole("tab", { name: tab })).toBeVisible()
-      }
-    })
-  })
-
-  test.describe("Interactive flows", () => {
-    test("Dialog opens and closes", async ({ page }) => {
-      await page.getByRole("tab", { name: "Overlays" }).click()
-      await page.getByRole("button", { name: "Open Dialog" }).click()
-      await expect(page.getByRole("heading", { name: "Edit profile" })).toBeVisible()
-      await page.getByRole("button", { name: "Close" }).first().click()
-      await expect(page.getByRole("heading", { name: "Edit profile" })).toBeHidden()
-    })
-  })
-})
-```
-
-**Patterns:**
-- `test.describe()` for nested test groups
-- `test.beforeEach()` for setup (navigate to page)
-- Accessibility-first selectors: `getByRole()`, `getByText()`
-- Clear test names describing user interactions: `"Dialog opens and closes"`, `"Tab navigation"`
-- Await all async operations explicitly
+- Setup: No global setup; tests initialize their own instances
+- Teardown: Automatic teardown via Vitest (no afterEach/afterAll unless needed)
+- Assertion pattern: Always use `expect()` with Vitest/jest-dom matchers
 
 ## Mocking
 
-**Framework:** Not heavily used in this codebase
+**Framework:** Vitest built-in `vi.mock()` and `vi.spyOn()`
+
+**Patterns:**
+```typescript
+import { vi } from "vitest"
+import { someExternalModule } from "external-lib"
+
+vi.mock("external-lib", () => ({
+  someExternalModule: vi.fn(),
+}))
+
+it("mocks external module", () => {
+  someExternalModule()
+  expect(someExternalModule).toHaveBeenCalled()
+})
+```
 
 **What to Mock:**
-- External API calls (not present in unit tests)
-- File system operations (not present)
+- External modules with side effects (e.g., analytics, logging)
+- Modules that make network requests or access browser APIs not supported in jsdom
 
 **What NOT to Mock:**
-- DOM/React components (test real behavior)
-- Utilities like `cn()` (test actual output)
-- @base-ui/react components (use real implementations)
+- Internal utilities (e.g., `cn()` from `lib/utils`)
+- React components and hooks from the same package
+- @testing-library/react methods
 
 ## Fixtures and Factories
 
 **Test Data:**
-- No factory functions found
-- Utilities tested with inline literals: `cn("foo", "bar")`, `cn("p-4", "p-8")`
-- E2E tests use hardcoded tab names and selectors
+- Inline test data for simple cases
+- No dedicated fixtures directory detected; complex test data defined in test files
 
 **Location:**
-- Inline in test files
-- No shared fixtures or factories directory
+- Test data co-located with test suites; no shared `__fixtures__` directory
 
 ## Coverage
 
-**Requirements:** Not enforced at monorepo level
+**Requirements:** None enforced (no coverage threshold in vitest config)
 
 **View Coverage:**
 ```bash
-pnpm test:coverage      # Runs turbo test -- --coverage
-```
-
-**Configuration (packages/ui/vitest.config.ts):**
-```typescript
-coverage: {
-  provider: "v8",
-  reporter: ["text", "json", "html"],
-  exclude: ["node_modules/**", "dist/**", "src/test/**", "**/*.d.ts", "**/*.config.*"],
-}
+pnpm test:coverage    # Generates coverage report in /coverage directory
 ```
 
 ## Test Types
 
 **Unit Tests:**
-- Scope: Individual utility functions (`cn()`)
-- Approach: Pure functions tested with direct input/output
-- File: `packages/ui/src/lib/__tests__/utils.test.ts`
-- Coverage: Basic happy path and edge cases (undefined, null, empty)
+- Scope: Individual functions (e.g., `cn()`), React components (e.g., `Button`)
+- Approach: Isolated testing with mocked dependencies; uses @testing-library/react for component rendering
 
 **Integration Tests:**
-- Scope: None explicitly — E2E tests cover full integration
-- Approach: N/A
+- Scope: Component interactions (e.g., form with input and button)
+- Approach: Render multiple components together; test user flows
 
 **E2E Tests:**
-- Framework: Playwright (v1+)
-- Scope: Full application workflows from user perspective
-- File: `apps/showcase/e2e/showcase.spec.ts`
-- Coverage:
-  - Smoke tests (page loads, tabs render)
-  - Navigation flows (tab switching)
-  - Interactive flows (dialog open/close, accordion expand/collapse)
-  - User interactions (clicking, visibility checks)
-
-## Playwright Configuration
-
-**Config File:** `apps/showcase/playwright.config.ts`
-
-**Key Settings:**
-```typescript
-{
-  testDir: "./e2e",
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,        // Fail on focused tests in CI
-  retries: process.env.CI ? 2 : 0,     // 2 retries in CI, 0 locally
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? "github" : "html",
-  use: {
-    baseURL: "http://localhost:5173",  // Vite default dev server
-    trace: "on-first-retry",           // Debug failed tests
-  },
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } }
-  ],
-  webServer: {
-    command: "pnpm dev",               // Start dev server
-    url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
-  }
-}
-```
+- Framework: Playwright 1.59.1 (apps/showcase)
+- Config: `apps/showcase/playwright.config.ts`
+- Scope: Full page rendering, component showcase interactions, cross-browser testing
 
 ## Common Patterns
 
 **Async Testing:**
 ```typescript
-// Playwright — async test with await
-test("Dialog opens and closes", async ({ page }) => {
-  await page.getByRole("button", { name: "Open Dialog" }).click()
-  await expect(page.getByRole("heading", { name: "Edit profile" })).toBeVisible()
+import { userEvent } from "@testing-library/user-event"
+
+it("handles async click events", async () => {
+  const user = userEvent.setup()
+  render(<Button onClick={vi.fn()}>Click me</Button>)
+  await user.click(screen.getByRole("button"))
 })
 ```
 
-**Visibility/DOM Assertions:**
+**Error Testing:**
 ```typescript
-// Playwright
-await expect(page.getByRole("tab", { name: "Forms" })).toBeVisible()
-await expect(page.getByText("Yes. It adheres...")).toBeHidden()
-```
-
-**Loops in Tests:**
-```typescript
-// E2E — validate multiple elements
-test("loads with tab bar showing all 6 tabs", async ({ page }) => {
-  const tabs = ["Forms", "Overlays", "Navigation", "Feedback", "Data Display", "Layout"]
-  for (const tab of tabs) {
-    await expect(page.getByRole("tab", { name: tab })).toBeVisible()
-  }
+it("throws error for invalid props", () => {
+  expect(() => render(<Button orientation="invalid" />)).toThrow()
 })
 ```
-
-## Setup Files
-
-**Location:** `packages/ui/src/test/setup.ts`
-
-**Contents:**
-```typescript
-import "@testing-library/jest-dom"
-```
-
-**Purpose:**
-- Imports testing utilities for DOM assertions
-- Automatically loaded by vitest in `setupFiles` config
 
 ---
 
-*Testing analysis: 2026-04-14*
+*Testing analysis: 2026-05-05*

@@ -1,167 +1,119 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-04-14
+**Analysis Date:** 2026-05-05
 
 ## Tech Debt
 
-**Large Component Files:**
-- Issue: Multiple UI components exceed 250 lines, creating complexity and reducing testability
-- Files: `packages/ui/src/components/sidebar.tsx` (674 lines), `packages/ui/src/components/combobox.tsx` (258 lines), `packages/ui/src/components/menubar.tsx` (257 lines), `packages/ui/src/components/dropdown-menu.tsx` (251 lines), `packages/ui/src/components/context-menu.tsx` (234 lines)
-- Impact: Difficult to test individual functionality, harder to reuse isolated behaviors, increased cognitive load during maintenance
-- Fix approach: Extract compound components into separate files, create custom hooks for shared logic (e.g., menu positioning, focus management), group related sub-components together
+### TypeScript 5.9.3 to 6.x Migration Pending
+- Issue: Codebase currently uses TypeScript 5.9.3; project goal is to migrate to TypeScript 6.x to address deprecations before they become errors in TS7, and stay on the latest compiler.
+- Files: `package.json` (root, `packages/ui`, `packages/eslint-config`, `packages/tsconfig`), `tsconfig.base.json`
+- Impact: Deprecated TypeScript patterns may cause build failures when TS7 releases; blocks compliance with project's "no deprecation warnings" constraint.
+- Fix approach: Update TypeScript version to 6.x in all workspace package.json files, run `pnpm typecheck` across all workspaces, resolve deprecation warnings, verify all packages build successfully.
 
-**Browser API Access Without SSR Guards:**
-- Issue: Direct `window` and `document` access in components without SSR safety checks
-- Files: `packages/ui/src/components/sidebar.tsx` (lines 75, 94-95), `packages/ui/src/hooks/use-mobile.ts` (lines 9, 11, 14)
-- Impact: Causes hydration mismatches in SSR/SSG environments, breaks Next.js static generation, potential runtime errors on server-side rendering
-- Fix approach: Wrap browser API calls in `typeof window !== 'undefined'` checks or use `useEffect` with proper initial state handling. For `useIsMobile`, add a ternary check to return a safe default during SSR
+### No Runtime Prop Validation
+- Issue: All UI components rely solely on TypeScript for prop validation; no runtime checks are implemented. Invalid props from consumers will cause silent failures or runtime errors.
+- Files: All components in `packages/ui/src/components/`
+- Impact: Consumers passing malformed props may encounter unexplained UI issues or crashes without clear error messaging.
+- Fix approach: Add lightweight runtime prop validation for public component APIs using a library like Zod, or re-add React PropTypes for development-only checks.
 
-**Cookie Handling Without SameSite/Secure Attributes:**
-- Issue: Cookie set in `sidebar.tsx` line 75 lacks security attributes
-- Files: `packages/ui/src/components/sidebar.tsx`
-- Impact: Vulnerable to CSRF attacks, cookies sent over insecure connections, improper cookie isolation
-- Fix approach: Add `SameSite=Strict; Secure` attributes when setting cookies. Consider using a server-side cookie utility for better control
+### Shared ESLint Config Overhead
+- Issue: `packages/eslint-config` bundles Node and React rules into a single flat config, which may include redundant rules or cause conflicts for non-React packages.
+- Files: `packages/eslint-config/eslint.config.ts`
+- Impact: Linting errors may be difficult to debug; inconsistent rule enforcement across workspace packages.
+- Fix approach: Audit ESLint config, split into discrete presets (e.g., `eslint-config-node`, `eslint-config-react`) if needed, remove unused rules.
 
-**Dynamic Style Injection via dangerouslySetInnerHTML:**
-- Issue: Chart component uses `dangerouslySetInnerHTML` to inject CSS styles
-- Files: `packages/ui/src/components/chart.tsx` (lines 83-100)
-- Impact: While CSS is generated safely here, reduces ability to use Content Security Policy headers, bypasses React's protective mechanisms, harder to test and maintain
-- Fix approach: Extract dynamic styles into a proper CSS module or use CSS-in-JS library. Generate a `<style>` tag using React APIs instead of raw HTML injection
+## Known Bugs
 
-## Known Issues
-
-**useIsMobile Hook Incorrect Behavior:**
-- Symptoms: Hook initializes state as `undefined` but immediately coerces to boolean with `!!isMobile`, causing components to render with wrong initial mobile state on client load
-- Files: `packages/ui/src/hooks/use-mobile.ts` (lines 6, 18)
-- Trigger: Any component using `useIsMobile` will have layout shift between SSR and hydration, or show desktop layout briefly before switching to mobile
-- Workaround: Components using `useIsMobile` should have a loading state or skip rendering until hook returns `true/false` deterministically
-
-**Chart Component Returns null Multiple Times:**
-- Symptoms: Component silently fails to render without error feedback when conditions aren't met
-- Files: `packages/ui/src/components/chart.tsx` (lines 79, 131, 144)
-- Trigger: When `colorConfig.length === 0` or payload is empty or missing labels
-- Workaround: Verify data structure before rendering Chart component, provide default config with at least one color
+### None detected
+- No confirmed bugs found in current codebase exploration. TODO/FIXME comment scan returned no critical issues.
 
 ## Security Considerations
 
-**Keyboard Shortcut Conflicts:**
-- Risk: Sidebar keyboard shortcut (Ctrl/Cmd+B) may conflict with browser shortcuts or accessibility tools
-- Files: `packages/ui/src/components/sidebar.tsx` (lines 22, 88)
-- Current mitigation: Calls `preventDefault()` on the keyboard event
-- Recommendations: Make shortcut configurable via prop, warn users of conflicts, add documentation about how to disable it
+### Missing Content Security Policy (CSP)
+- Risk: `apps/showcase` has no CSP configuration, leaving it vulnerable to XSS attacks if malicious content is injected.
+- Files: `apps/showcase/index.html`, `apps/showcase/vite.config.ts`
+- Current mitigation: None
+- Recommendations: Add CSP meta tag for development, configure CSP headers in Vite for production builds.
 
-**Unvalidated Dynamic Style Generation:**
-- Risk: While `chart.tsx` generates CSS safely from config, any future modification accepting user input could enable CSS injection
-- Files: `packages/ui/src/components/chart.tsx` (lines 85-98)
-- Current mitigation: Colors are hardcoded or come from internal config structure
-- Recommendations: Validate all color values against hex/rgb regex before injecting into CSS, use CSS custom properties with type safety
+### No Secret Management Pipeline
+- Risk: While no secrets are currently used, future integrations with external APIs (e.g., analytics, CMS) will require secure secret handling.
+- Files: N/A (current state)
+- Current mitigation: No external services with secrets are integrated.
+- Recommendations: Add `.env` validation with Zod when external services are introduced; avoid committing secrets to git.
 
 ## Performance Bottlenecks
 
-**Heavy Dependency on Base-UI:**
-- Problem: Components heavily depend on `@base-ui/react` (v1.4.0) as unseen abstraction layer; bundle impact unclear
-- Files: `packages/ui/src/components/sidebar.tsx` (lines 3-4), `packages/ui/src/components/item.tsx`, multiple components
-- Cause: Base-UI provides headless components but includes rendering overhead for complex components like menus and combobox
-- Improvement path: Audit bundle size contribution of @base-ui/react, consider if all components need headless approach or if some should use simpler primitives. Implement code splitting for large components
-
-**useRender Hook Pattern Overhead:**
-- Problem: All large components (`sidebar`, `combobox`, `menubar`) heavily use `useRender` from Base-UI for component composition
-- Files: `packages/ui/src/components/sidebar.tsx` (lines 618-646), multiple component files
-- Cause: Extra abstraction layer for prop merging and state management on every render
-- Improvement path: Profile component render performance, consider memoization of computed styles, evaluate if all uses of `useRender` are necessary
-
-**ChartContainer Initial Dimension Calculation:**
-- Problem: Chart uses fixed initial dimensions that may cause layout shift on first render
-- Files: `packages/ui/src/components/chart.tsx` (lines 10, 42)
-- Cause: `INITIAL_DIMENSION` is static; actual container size discovered on mount
-- Improvement path: Use aspect-ratio CSS to maintain proportions during load, measure container on mount before rendering responsive container
+### Unoptimized Component Re-renders
+- Problem: Complex UI components (e.g., `Command`, `DataTable`, `Tabs`) may not use `React.memo`, `useMemo`, or `useCallback` consistently, leading to unnecessary re-renders.
+- Files: `packages/ui/src/components/command.tsx`, `packages/ui/src/components/data-table.tsx`, `packages/ui/src/components/tabs.tsx`
+- Cause: Missing memoization for expensive components or callback props passed to child components.
+- Improvement path: Audit high-traffic components for re-render issues using React DevTools; add memoization where needed.
 
 ## Fragile Areas
 
-**Sidebar State Management with Multiple Triggers:**
-- Files: `packages/ui/src/components/sidebar.tsx` (lines 45-100)
-- Why fragile: Complex state coordination between mobile/desktop modes, keyboard shortcuts, cookie persistence, and controlled/uncontrolled patterns. `setOpen` callback uses stale closure over `open` (line 77 dependency).
-- Safe modification: Add extensive unit tests for state transitions, test all combinations of: mobile/desktop, controlled/uncontrolled, keyboard input, cookie updates. Use Zustand or Jotai for clearer state management instead of context+useState
-- Test coverage: Currently no tests for SidebarProvider. Add tests for: toggle on keyboard shortcut, persistence via cookie, mobile vs desktop state isolation, controlled prop overriding internal state
+### Monorepo Dependency Management
+- Files: `pnpm-workspace.yaml`, `pnpm-lock.yaml`, all `package.json` files in workspace roots
+- Why fragile: pnpm's strict peer dependency and `dedupePeerDependents: true` settings may cause unexpected breaking changes when updating deep dependencies.
+- Safe modification: Run full test suite (`pnpm test`) and build (`pnpm build`) across all workspaces after any dependency update; use `pnpm dedupe` regularly to resolve peer dependency conflicts.
+- Test coverage: Partial — integration tests exist for showcase app, but no automated tests for dependency compatibility.
 
-**ComboboxInput and Command Components Interaction:**
-- Files: `packages/ui/src/components/combobox.tsx`, `packages/ui/src/components/command.tsx`
-- Why fragile: Complex focus management, keyboard navigation, list virtualization interaction points. Multiple components must synchronize (ComboboxInput, Command, CommandList)
-- Safe modification: Avoid changing keyboard event handling without comprehensive testing. Test with screen readers (NVDA, JAWS). Ensure arrow keys, Enter, Escape all work in all states (open/closed/scrolled)
-- Test coverage: Only manual showcase examples exist; no automated tests for keyboard navigation, focus trapping, or list scroll behavior
-
-**Calendar Component Date Logic:**
-- Files: `packages/ui/src/components/calendar.tsx` (168 lines)
-- Why fragile: Date handling across months/years, leap years, timezone issues. Uses `react-day-picker` which handles complexity but is opaque
-- Safe modification: If adding custom date logic, validate against all edge cases (29 Feb, month boundaries, DST). Update tests before changing any date-related logic
-- Test coverage: No tests present; manually verified in showcase only
+### CVA Variant + Tailwind Class Merging
+- Files: All components in `packages/ui/src/components/` that use `cva` (e.g., `button.tsx`, `badge.tsx`, `alert.tsx`)
+- Why fragile: Class Variance Authority (CVA) variants may conflict with Tailwind classes if not merged correctly via the `cn()` utility; edge cases in class merging may cause style regressions.
+- Safe modification: Test all variant combinations when modifying component styles; always use `cn()` for class merging instead of string concatenation.
+- Test coverage: Low — no visual regression tests for component variants.
 
 ## Scaling Limits
 
-**Component Library Bundle Size:**
-- Current capacity: 60 source files in `packages/ui`, generating ~5600 lines of TypeScript
-- Limit: At current growth rate (shadcn-based component library), bundle approaches 100KB+ gzipped when all components are imported; tree-shaking depends on ESM exports
-- Scaling path: Implement component-level code-splitting in tsup, create separate entry points for common vs advanced components, monitor bundle size in CI
+### UI Component Library Growth
+- Current capacity: 50+ components in `packages/ui/src/components/`
+- Limit: As component count grows, tsup build times and tree-shaking efficiency may degrade; documentation and discoverability will suffer.
+- Scaling path: Enforce consistent subpath exports in `packages/ui/package.json`; audit unused/redundant components quarterly; consider component grouping or code splitting for large primitives.
 
-**Test Coverage:**
-- Current capacity: Only 3 test files total (1 button test, 1 utils test, 1 e2e test)
-- Limit: 60 components with minimal test coverage means regressions likely to slip through; no confidence in refactoring large component files
-- Scaling path: Establish minimum test coverage requirement (50%+ lines), write tests for each component's core functionality before adding new components. Consider visual regression testing for UI components
+## Dependencies at Risk
 
-**Showcase App E2E Coverage:**
-- Current capacity: Single `showcase.spec.ts` file for E2E tests
-- Limit: Only tests basic rendering; doesn't verify functionality, accessibility, or keyboard interaction across showcase examples
-- Scaling path: Expand E2E suite with tests for form submissions, menu interactions, keyboard navigation, and accessibility compliance (WCAG)
+### @base-ui/react 1.4.0
+- Risk: Headless UI library; if maintenance stalls or a major version update introduces breaking changes, all UI components in `packages/ui` will require updates.
+- Impact: 50+ components depend on @base-ui/react primitives for accessibility and behavior.
+- Migration plan: Monitor @base-ui/react release notes; run full component test suite before upgrading versions.
+
+### TypeScript 5.9.3
+- Risk: Deprecated version, will no longer receive security patches or bug fixes; TypeScript 6.x+ may introduce breaking changes for deprecated patterns.
+- Impact: Entire codebase depends on TypeScript for typechecking and builds.
+- Migration plan: Complete TypeScript 6.x migration as the project's primary current milestone.
 
 ## Missing Critical Features
 
-**No Accessibility Testing:**
-- Problem: Components exported from UI library used by showcase app, but no automated accessibility (a11y) checks in test suite
-- Blocks: Cannot verify WCAG 2.1 AA compliance, missing aria labels, keyboard navigation issues go undetected
-- Fix approach: Add `@testing-library/jest-dom` with jest-axe for a11y assertions, run axe-core in E2E tests, create accessibility test suite for all interactive components
+### Visual Regression Testing
+- Problem: No visual regression tests exist for UI components; unintended style changes may go unnoticed during development.
+- Blocks: Ensuring consistent component appearance across refactors, dependency updates, and new feature work.
+- Fix approach: Integrate a visual regression tool like Percy or Playwright's screenshot testing into the E2E test suite.
 
-**No Error Boundary:**
-- Problem: No error boundaries in component library or showcase app; runtime errors in components crash entire app
-- Blocks: Production reliability, errors in one component cascade to full app failure
-- Fix approach: Wrap showcase app root with Error Boundary component, add error boundaries around complex interactive sections (forms, modals), log errors to monitoring service
-
-**Missing Loading States:**
-- Problem: Async components (`combobox`, `select`) lack clear loading indicators
-- Blocks: Users cannot distinguish between "searching" and "no results", poor UX in data-heavy scenarios
-- Fix approach: Add `isLoading` prop to `Combobox` and `Select`, show spinner in list, disable interactions during load
+### Automated Accessibility Testing
+- Problem: No automated accessibility (a11y) checks for UI components; @base-ui/react provides accessible primitives, but custom styling may introduce a11y regressions.
+- Blocks: Ensuring compliance with WCAG standards for all components.
+- Fix approach: Add axe-core to Vitest or Playwright test suites; run automated a11y checks on all component examples.
 
 ## Test Coverage Gaps
 
-**UI Components - Almost Completely Untested:**
-- What's not tested: 59 of 60 UI components have zero test coverage. Form components, dialogs, menus, charts all untested
-- Files: `packages/ui/src/components/*.tsx` (all except button.tsx)
-- Risk: Cannot refactor large components (sidebar 674 lines) without fear of breaking functionality. Changes to complex interaction patterns (combobox keyboard nav, menu positioning) are high-risk
-- Priority: HIGH - Start with components most likely to have bugs: combobox (keyboard nav), sidebar (state), chart (data rendering)
+### UI Component Unit Tests
+- What's not tested: The majority of components in `packages/ui/src/components/` lack dedicated unit tests; only the showcase app has E2E tests via Playwright.
+- Files: `packages/ui/src/components/*`
+- Risk: Component logic regressions may not be caught until manual testing or E2E runs.
+- Priority: High
 
-**Integration Between Components:**
-- What's not tested: Multi-component interactions (form field + input + label composition, sidebar + menu integration)
-- Files: `packages/ui/src/components/field.tsx`, combined component usage in showcase
-- Risk: Field layout breaking when combined with specific input types, sidebar and navigation menu conflicts
-- Priority: MEDIUM - Test compound component patterns (Field + Input, Sidebar + Menu) before shipping
+### Utility & Hook Tests
+- What's not tested: Shared utilities (`cn()` in `packages/ui/src/lib/utils.ts`) and custom hooks (`useIsMobile()` in `packages/ui/src/hooks/useIsMobile.ts`) have minimal or no unit tests.
+- Files: `packages/ui/src/lib/utils.ts`, `packages/ui/src/hooks/useIsMobile.ts`
+- Risk: Bugs in shared utilities or hooks will propagate to all consuming components.
+- Priority: Medium
 
-**Keyboard Navigation:**
-- What's not tested: Tab order, focus management, keyboard shortcuts (except basic sidebar toggle testing exists)
-- Files: All interactive components (combobox, dropdown-menu, select, menubar)
-- Risk: Keyboard users unable to navigate menus, forms, or complex components; WCAG 2.1 violations
-- Priority: HIGH - Verify keyboard-only navigation works for all interactive components
-
-**Mobile Responsiveness:**
-- What's not tested: Components with mobile-specific behavior (sidebar, responsive fields, mobile breakpoint logic)
-- Files: `packages/ui/src/hooks/use-mobile.ts`, components using `useIsMobile`
-- Risk: Mobile layout broken, sidebar may not toggle correctly, responsive variants untested
-- Priority: MEDIUM - Add viewport-resize tests and mobile breakpoint verification
-
-**Error States:**
-- What's not tested: Error handling in components (invalid props, missing required data, boundary cases)
-- Files: All components that render data or accept user input
-- Risk: Silent failures, cryptic errors to users, hard to debug component misuse
-- Priority: LOW - Add test cases for common error scenarios (empty data, invalid config, missing required props)
+### Error Handling Tests
+- What's not tested: No tests validate error states for components (e.g., async component failures, invalid prop handling).
+- Files: `packages/ui/src/components/*`
+- Risk: Error states may be unhandled or display incorrectly in production.
+- Priority: Medium
 
 ---
 
-*Concerns audit: 2026-04-14*
+*Concerns audit: 2026-05-05*

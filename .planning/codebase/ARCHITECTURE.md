@@ -1,189 +1,289 @@
+<!-- refreshed: 2026-05-05 -->
 # Architecture
 
-**Analysis Date:** 2026-04-14
+**Analysis Date:** 2026-05-05
+
+## System Overview
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                  Steam Deck Controller UI                    │
+│              `apps/frontend/src/app.tsx`                    │
+├──────────────────┬──────────────────┬───────────────────────┤
+│   ControlPad     │    StatusBar     │   App State Mgmt      │
+│  `components/`  │  `components/`  │  `app.tsx` hooks     │
+└────────┬─────────┴────────┬─────────┴──────────┬────────────┘
+         │                  │                     │
+         ▼                  ▼                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend Hooks Layer                      │
+│              `hooks/use-bluetooth.ts`                        │
+│              `hooks/use-gamepad.ts`                          │
+└────────┬──────────────────────────────┬─────────────────────┘
+         │                              │
+         │ WebSocket (ws://localhost:3001/ws)
+         │                              │
+         ▼                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Backend Server (Fastify)                  │
+│              `apps/backend/src/index.ts`                    │
+├──────────────────┬──────────────────┬───────────────────────┤
+│  WebSocket API  │  Serial Port     │  Auto-Reconnect       │
+│  `/ws` route    │  `/dev/rfcomm0` │  Logic                │
+└──────────────────┴──────────────────┴───────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Serial Port (Bluetooth RFCOMM)              │
+│               `serialConfig.path` in backend                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Component Responsibilities
+
+| Component | Responsibility | File |
+|-----------|----------------|------|
+| App | Main application logic, state coordination | `apps/frontend/src/app.tsx` |
+| ControlPad | Directional button pad UI component | `apps/frontend/src/components/control-pad.tsx` |
+| StatusBar | Connection status display | `apps/frontend/src/components/status-bar.tsx` |
+| useBluetooth | Web Bluetooth API integration | `apps/frontend/src/hooks/use-bluetooth.ts` |
+| useGamepad | Steam Deck gamepad polling | `apps/frontend/src/hooks/use-gamepad.ts` |
+| Backend Server | WebSocket server, serial port communication | `apps/backend/src/index.ts` |
 
 ## Pattern Overview
 
-**Overall:** Monorepo with component library + showcase application using Turbo for orchestration.
+**Overall:** Client-Server architecture with real-time WebSocket communication
 
 **Key Characteristics:**
-- Workspace-based monorepo (pnpm) with two main workspaces: `/apps` and `/packages`
-- Centralized UI component library (`@monorepo-template/ui`) providing reusable React components
-- Showcase application (`apps/showcase`) demonstrates all UI components
-- Build pipeline orchestrated through Turbo with task dependencies and caching
-- Strict TypeScript with `noUncheckedIndexedAccess` enabled across all packages
-- Component styling via Tailwind CSS + CVA (Class Variance Authority) for variants
+- Monorepo with pnpm workspaces and Turbo task orchestration
+- React frontend with hooks-based state management
+- Fastify backend with WebSocket support for real-time command streaming
+- Serial port communication for Bluetooth RFCOMM connection to robot
+- TypeScript strict mode across all packages with shared tsconfig
+- Command validation via whitelist pattern (F, B, L, R, S commands)
 
 ## Layers
 
-**Monorepo Root:**
-- Purpose: Orchestrate builds, linting, and testing across all workspaces
-- Location: `/Users/pauvelascogarrofe/Documents/base-monorepo-template`
-- Contains: Root `package.json`, Turbo configuration, TypeScript base config, shared tooling
+**Workspace Root:**
+- Purpose: Orchestrate builds, linting, testing, and dev across all workspaces
+- Location: `/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2`
+- Contains: Root `package.json`, Turbo configuration, shared tooling
 - Depends on: pnpm workspaces, Turbo, shared dev dependencies
 - Used by: All workspace packages through npm/pnpm resolution
 
-**Packages Layer:**
-- Purpose: Shared, reusable code and configurations
+**Packages (Shared Configurations):**
+- Purpose: Shared, reusable configurations for TypeScript and ESLint
 - Location: `/packages`
-- Contains: UI component library, ESLint config, TypeScript configs
-- Depends on: React, Tailwind CSS, @base-ui/react
+- Contains: tsconfig variants, ESLint configurations
+- Depends on: TypeScript, ESLint plugins
 - Used by: Apps and other packages via workspace dependencies
 
-**UI Component Library (`@monorepo-template/ui`):**
-- Purpose: Centralized collection of accessible React UI components
-- Location: `/packages/ui/src`
-- Contains: 50+ components, custom hooks, utility functions
-- Depends on: @base-ui/react (headless components), class-variance-authority, clsx, tailwind-merge
-- Used by: `apps/showcase` and external consumers via npm exports
+**TypeScript Config Package:**
+- Purpose: Provide consistent TypeScript configuration across monorepo
+- Location: `packages/tsconfig/`
+- Contains: `tsconfig.json` (base), `tsconfig.node.json`, `tsconfig.react.json`
+- Depends on: `@tsconfig/node22` (implied by target ES2022)
+- Used by: All apps and packages via `extends` field
 
-**Apps Layer:**
-- Purpose: End-user applications that consume packages
-- Location: `/apps`
-- Contains: Showcase application
-- Depends on: @monorepo-template/ui, React, Vite, Tailwind CSS
-- Used by: End users and developers
+**ESLint Config Package:**
+- Purpose: Provide consistent linting rules across monorepo
+- Location: `packages/eslint-config/`
+- Contains: `src/node.ts` (Node.js config), `src/react.ts` (React config)
+- Depends on: typescript-eslint, eslint-plugin-react, eslint-plugin-perfectionist
+- Used by: All apps via workspace dependencies
 
-**Showcase Application (`apps/showcase`):**
-- Purpose: Interactive demonstration and testing environment for all UI components
-- Location: `/apps/showcase/src`
-- Contains: Component category pages, example compositions, Vite/React entry points
-- Depends on: @monorepo-template/ui, @base-ui/react, Vite, Playwright (E2E)
-- Used by: Developers, designers, and QA for component validation
+**Frontend Application:**
+- Purpose: React-based controller interface for Steam Deck
+- Location: `apps/frontend/`
+- Contains: UI components, hooks, Vite config, Vitest tests
+- Depends on: React 19, Vite 8, Tailwind CSS 4, Web Bluetooth API
+- Used by: End users controlling the robot
+
+**Backend Server:**
+- Purpose: Bridge between WebSocket clients and serial port (robot)
+- Location: `apps/backend/`
+- Contains: Fastify server, WebSocket handling, serial port communication
+- Depends on: Fastify, @fastify/websocket, serialport, ws
+- Used by: Frontend app via WebSocket connection
 
 ## Data Flow
 
-**Component Export Flow:**
+### Primary Request Path (User Input → Robot Movement)
 
-1. Components defined in `/packages/ui/src/components/` (e.g., `button.tsx`)
-2. Each component wraps a `@base-ui/react` primitive with styling via CVA + Tailwind
-3. Index file `/packages/ui/src/index.ts` re-exports all components via barrel exports
-4. Build process (`tsup`) compiles TypeScript to `dist/` with proper export mappings
-5. Showcase imports components from published exports (e.g., `@monorepo-template/ui/components/button`)
+1. User presses button or moves gamepad stick (`apps/frontend/src/components/control-pad.tsx:27` or `apps/frontend/src/hooks/use-gamepad.ts:45`)
+2. Direction state updates in `useGamepad` hook or `ControlPad` onClick handler (`apps/frontend/src/app.tsx:11-13`)
+3. `useEffect` detects direction change, calls `sendCommand` (`apps/frontend/src/app.tsx:24-29`)
+4. `sendCommand` calls `useBluetooth.send()` with direction command (`apps/frontend/src/app.tsx:16-22`)
+5. Bluetooth characteristic writes value via Web Bluetooth API (`apps/frontend/src/hooks/use-bluetooth.ts:50`)
+6. Backend WebSocket receives message (`apps/backend/src/index.ts:76-100`)
+7. Command validated against whitelist (`apps/backend/src/index.ts:81`)
+8. Valid command written to serial port (`apps/backend/src/index.ts:88-95`)
+9. Serial port (RFCOMM Bluetooth) transmits to robot
 
-**Build Pipeline Flow:**
+### WebSocket Connection Flow
 
-1. Root `turbo dev` triggers parallel `pnpm dev` in each workspace
-2. Root `turbo build` respects task dependencies: `build` depends on `^build` (dependencies first)
-3. tsconfig references propagate from root to packages via extends mechanism
-4. Build outputs cached in `.turbo/` and remote cache (enabled in turbo.json)
+1. Frontend calls `useBluetooth.connect()` (`apps/frontend/src/hooks/use-bluetooth.ts:14-45`)
+2. Web Bluetooth API requests device with filter "BT24" (`apps/frontend/src/hooks/use-bluetooth.ts:22-25`)
+3. GATT server connects, gets service and characteristic (`apps/frontend/src/hooks/use-bluetooth.ts:37-39`)
+4. Connection state updates to "connected" (`apps/frontend/src/hooks/use-bluetooth.ts:41`)
+5. Backend WebSocket route `/ws` accepts connection (`apps/backend/src/index.ts:69`)
+6. Server sends connection confirmation (`apps/backend/src/index.ts:74`)
 
-**Example: Button Component Execution:**
+### Reconnection Flow
 
-1. User clicks `<Button>` in showcase (`apps/showcase/src/components/forms.tsx`)
-2. Button component from `@monorepo-template/ui/components/button` renders
-3. Component renders ButtonPrimitive from `@base-ui/react/button` with:
-   - CVA-generated class string based on `variant` and `size` props
-   - Tailwind classes for styling
-   - SVG icons from lucide-react for visual feedback
-4. Click event propagates to React handler (example in category files)
+1. WebSocket disconnects (`apps/backend/src/index.ts:102-114`)
+2. Backend sends "S" (stop) command to serial port for safety (`apps/backend/src/index.ts:105-113`)
+3. Serial port closes (`apps/backend/src/index.ts:52-56`)
+4. Backend auto-reconnects serial port after 2 seconds (`apps/backend/src/index.ts:55`)
+5. Frontend detects Bluetooth disconnect (`apps/frontend/src/hooks/use-bluetooth.ts:27-30`)
+6. State returns to "disconnected" (`apps/frontend/src/hooks/use-bluetooth.ts:28`)
 
 **State Management:**
-
-- No centralized state management; components are presentational
-- Props passed down from showcase category files to component instances
-- Each component fully controlled by parent (showcase category pages)
-- Test examples use `useCallback`, `useState` for demonstration
+- Frontend: React useState/useRef hooks for local component state
+- Backend: Module-level variables for serialPort instance
+- No centralized state management library (Redux, Zustand, etc.)
+- Props passed down from App to components
+- Commands flow up via callbacks (onCommand pattern)
 
 ## Key Abstractions
 
-**Component Pattern:**
+**Direction Type:**
+- Purpose: Type-safe command representation
+- Examples: `apps/frontend/src/types.ts`, `apps/backend/src/types.ts`
+- Pattern: String literal union type `"F" | "B" | "L" | "R" | "S"`
+- Used in both frontend and backend for type safety
 
-- Purpose: Styled wrapper around headless primitives from @base-ui/react
-- Examples: `packages/ui/src/components/button.tsx`, `packages/ui/src/components/accordion.tsx`
-- Pattern: Named exports of sub-components (e.g., `Button`, `ButtonGroup` with multiple exports)
-- Implementation example (Button):
-  ```tsx
-  function Button({ className, ...props }) {
-    return <ButtonPrimitive className={cn(buttonVariants({ variant, size }), className)} {...props} />
-  }
-  export { Button }
-  ```
+**ValidCommand Validation:**
+- Purpose: Whitelist validation for incoming WebSocket commands
+- Location: `apps/backend/src/types.ts:20-22`
+- Pattern: Set-based lookup with type guard function
+- Prevents invalid commands from reaching serial port
 
-**Variant Definition via CVA:**
+**useBluetooth Hook:**
+- Purpose: Encapsulate Web Bluetooth API complexity
+- Location: `apps/frontend/src/hooks/use-bluetooth.ts`
+- Pattern: Custom hook with state machine (disconnected/connecting/connected/unsupported)
+- Returns: `{ connected, connecting, unsupported, connect, send }`
 
-- Purpose: Type-safe, maintainable component variants
-- Examples: `buttonVariants` in `packages/ui/src/components/button.tsx`
-- Pattern: `cva()` defines base classes and variant combinations
-- Extracts variant and size from props, generates optimized Tailwind classes
-
-**Utility Functions:**
-
-- Purpose: Shared helper functions across components
-- Location: `packages/ui/src/lib/utils.ts`
-- Key function: `cn()` merges class names with Tailwind deduplication
-- Pattern: Wraps `clsx` + `tailwind-merge` for safe class composition
-
-**Custom Hooks:**
-
-- Purpose: Reusable React logic
-- Location: `packages/ui/src/hooks/`
-- Key hook: `useIsMobile()` - detects viewport size via media query
-- Pattern: Returns boolean state synced with window resize/media query changes
-
-**Barrel Exports:**
-
-- Purpose: Cleaner imports and API surface
-- Location: `packages/ui/src/index.ts`
-- Pattern: Re-exports all components and utilities in one file
-- Allows: `import { Button } from '@monorepo-template/ui'`
+**useGamepad Hook:**
+- Purpose: Poll Steam Deck gamepad and convert to directions
+- Location: `apps/frontend/src/hooks/use-gamepad.ts`
+- Pattern: requestAnimationFrame loop with deadzone filtering
+- Returns: `{ direction, gamepadConnected }`
 
 ## Entry Points
 
-**Root Development:**
-- Location: `turbo.json`
-- Triggers: `pnpm dev` spawns Vite + watch processes for each workspace
-- Responsibilities: Coordinate workspace development builds
+**Development Mode (Turbo):**
+- Location: `turbo.json` → `pnpm dev`
+- Triggers: `turbo dev` runs parallel dev processes for all packages
+- Responsibilities: Coordinate workspace development builds with watch mode
 
-**Showcase App Entry:**
-- Location: `apps/showcase/src/main.tsx`
-- Triggers: Vite bundler creates development server on dev command
+**Frontend Development Server:**
+- Location: `apps/frontend/src/main.tsx`
+- Triggers: `vite` command (via `pnpm dev:frontend`)
 - Responsibilities: Initialize React app, render App component with StrictMode
-- Code: Imports global styles, mounts App to DOM
+- Code: Imports global styles, mounts App to DOM root element
 
-**Showcase Root Component:**
-- Location: `apps/showcase/src/app.tsx`
+**Frontend Application:**
+- Location: `apps/frontend/src/app.tsx`
 - Triggers: Called from main.tsx
-- Responsibilities: Render ComponentExample (the showcase page)
-- Code: Single-line component returning ComponentExample instance
+- Responsibilities: Coordinate Bluetooth connection, gamepad input, command sending
+- Pattern: Uses hooks for Bluetooth and gamepad, effects for direction change detection
 
-**Component Example Component:**
-- Location: `apps/showcase/src/components/component-example.tsx`
-- Triggers: Called from App
-- Responsibilities: Render tabbed interface with 6 component category sections
-- Pattern: Tabs control which category examples display; each category is imported separately
+**Backend Server:**
+- Location: `apps/backend/src/index.ts:138-152`
+- Triggers: `tsx src/index.ts` (via `pnpm dev:backend`)
+- Responsibilities: Start Fastify server, connect serial port, handle WebSocket
+- Conditional: Only starts if file run directly (not imported for testing)
 
-**UI Package Entry:**
-- Location: `packages/ui/src/index.ts`
-- Triggers: Build process exports this as library entry point
-- Responsibilities: Re-export all public components, hooks, utilities
-- Exports handled through `exports` field in `packages/ui/package.json` with subpath exports
+**Backend Factory Function:**
+- Location: `apps/backend/src/index.ts:21-135`
+- Triggers: Called by start() or by tests
+- Responsibilities: Create configured Fastify instance with WebSocket support
+- Exported: `export default function build()` for testability
+
+## Architectural Constraints
+
+- **Threading:** Single-threaded Node.js event loop in backend; browser main thread in frontend with requestAnimationFrame
+- **Global state:** Backend has module-level `serialPort` variable in `apps/backend/src/index.ts:28`; frontend state isolated to React components
+- **Circular imports:** Not applicable in this small codebase; clear dependency direction
+- **WebSocket connection:** One-way command flow (client → server); server sends JSON status messages only
+- **Serial port path:** Hardcoded to `/dev/rfcomm0` in `apps/backend/src/index.ts:16`; not configurable via env vars
+- **Bluetooth device filter:** Hardcoded to "BT24" device name in `apps/frontend/src/hooks/use-bluetooth.ts:23`
+
+## Anti-Patterns
+
+### useState for Previous Value Tracking
+
+**What happens:** Using `useRef` to track previous direction value alongside `useState` for current direction
+**Why it's wrong:** Creates two sources of truth; can lead to stale closures or missed updates
+**Do this instead:** Use `useRef` alone or combine with useEffect properly. Example from `apps/frontend/src/app.tsx:14`:
+```typescript
+const prevDirection = useRef<Direction>("S")
+// Later in effect:
+if (direction !== prevDirection.current) {
+  sendCommand(direction)
+  prevDirection.current = direction
+}
+```
+
+### Mixed Type Definitions
+
+**What happens:** Direction type defined in both `apps/frontend/src/types.ts` and `apps/frontend/src/hooks/use-gamepad.ts:3`
+**Why it's wrong:** Duplicate type definitions can drift apart; violates DRY principle
+**Do this instead:** Export from single location (`apps/frontend/src/types.ts`) and import in hooks
+
+### Hardcoded Configuration
+
+**What happens:** Serial port path, baud rate, Bluetooth device name, and server port are hardcoded
+**Why it's wrong:** Reduces flexibility; requires code changes for different environments
+**Do this instead:** Use environment variables with defaults. Example from `apps/backend/src/index.ts:10-18`:
+```typescript
+const serverConfig: ServerConfig = {
+  port: parseInt(process.env.PORT || "3001", 10),
+  host: process.env.HOST || "0.0.0.0",
+}
+// But serial config still hardcoded:
+const serialConfig: SerialPortConfig = {
+  path: "/dev/rfcomm0", // Should be process.env.SERIAL_PATH || "/dev/rfcomm0"
+  baudRate: 9600,
+}
+```
 
 ## Error Handling
 
-**Strategy:** Framework-level error boundaries not explicitly configured; relies on React StrictMode for dev warnings.
+**Strategy:** Graceful degradation with user feedback
 
 **Patterns:**
-
-- Test files use `expect()` assertions from Vitest to validate expected behavior
-- Components assume valid props; no runtime validation (TypeScript provides compile-time safety)
-- Event handlers wrapped in async `userEvent.setup()` during testing for proper async handling
+- Frontend: Bluetooth state machine shows "connecting", "connected", "unsupported" states
+- Backend: try-catch around Bluetooth connection; auto-reconnect on serial port errors
+- WebSocket: Error events logged; invalid commands return error JSON messages
+- Serial port: Write errors logged; port auto-reconnects on close/error
 
 ## Cross-Cutting Concerns
 
-**Logging:** Not explicitly configured; relies on browser console for development debugging.
+**Logging:**
+- Frontend: No logging framework; uses browser console for debugging
+- Backend: Fastify built-in logger (`server.log.info/error`); plus custom `log()` and `logError()` functions with timestamps (`apps/backend/src/index.ts:31-37`)
 
-**Validation:** TypeScript type system enforces prop types at compile time; `noUncheckedIndexedAccess` prevents unsafe array/object access.
+**Validation:**
+- Backend: `isValidCommand()` whitelist validation for WebSocket messages (`apps/backend/src/types.ts:20-22`)
+- Frontend: Relies on TypeScript types; no runtime validation
 
-**Authentication:** Not applicable; components are presentational UI with no auth logic.
+**Authentication:**
+- None: WebSocket server accepts all connections
+- Bluetooth: Web Bluetooth API handles device pairing; no application-level auth
 
-**Styling:** Centralized Tailwind CSS configuration in `/apps/showcase` and `/packages/ui` via:
-- `tailwind.config.ts` (if present) or inherited from Tailwind defaults
-- CSS reset and custom variables in `packages/ui/src/styles/globals.css`
-- Component-level utility: `cn()` function for safe class merging
+**Styling:**
+- Tailwind CSS 4 with utility classes
+- Custom CSS variables in `apps/frontend/src/index.css`
+- Class naming: `bg-surface`, `border-border`, `text-accent` (Tailwind theme)
 
-**Testing:** Vitest with jsdom environment provides React component testing across workspaces.
+**Testing:**
+- Frontend: Vitest + jsdom + @testing-library/react (`apps/frontend/vitest.config.ts`)
+- Backend: Vitest + Node environment (`apps/backend/vitest.config.ts`)
+- Test files co-located with source: `*.test.tsx` and `*.test.ts`
 
 ---
 
-*Architecture analysis: 2026-04-14*
+*Architecture analysis: 2026-05-05*

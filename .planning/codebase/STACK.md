@@ -1,131 +1,100 @@
 # Technology Stack
 
-**Analysis Date:** 2026-04-14
+**Analysis Date:** 2026-05-05
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.9.3 - Used across all packages and applications for type-safe development
-- JavaScript - Used in config files and build tooling
+- TypeScript 5.9.3 - Used in `apps/frontend` and `packages/eslint-config` for type-safe frontend development and tooling
+- TypeScript 5.7.0 - Used in `apps/backend` for server-side type safety
 
 **Secondary:**
-- JSX/TSX - React component syntax used in UI package and showcase app
+- JavaScript - Used in config files (`vitest.config.js`, `vite.config.js`) and tooling setup
 
 ## Runtime
 
 **Environment:**
-- Node.js 24+ (specified in `package.json` engines field and `.nvmrc`)
+- Node.js v24 (specified in `.nvmrc` and `package.json` engines field: `>=18.0.0`)
 
 **Package Manager:**
 - pnpm 10.29.3
-- Lockfile: `pnpm-lock.yaml` (enforced with `preferFrozenLockfile: true`)
+- Lockfile: `pnpm-lock.yaml` present
+- Workspaces: Configured via `pnpm-workspace.yaml` with `apps/*` and `packages/*`
 
 ## Frameworks
 
 **Core:**
-- React 19.2.5 - UI library for building components
-- React DOM 19.2.5 - React rendering for web
-- Base UI React 1.4.0 - Headless component library for accessible UI components
-
-**Styling:**
-- Tailwind CSS 4.2.2 - Utility-first CSS framework
-- @tailwindcss/vite 4.2.2 - Vite plugin for Tailwind CSS integration
-- @tailwindcss/postcss - PostCSS plugin for Tailwind CSS compilation
-- PostCSS - CSS transformation tool (via postcss.config.mjs in UI package)
-
-**Build/Development:**
-- Vite 8.0.8 - Fast build tool and dev server
-- Turbo 2.9.6 - Monorepo task orchestration
-- tsup 8.5.1 - TypeScript bundler (used for UI package and eslint-config)
-- Playwright 1.59.1 - E2E testing framework (showcase app)
+- React 19.2.5 - UI library for frontend (`apps/frontend`)
+- React DOM 19.2.5 - React rendering for web (`apps/frontend`)
+- Fastify 4.16.0 - Web framework for backend server (`apps/backend`)
 
 **Testing:**
-- Vitest 4.1.4 - Vite-native unit test framework
-- @vitest/coverage-v8 4.1.4 - V8-based coverage provider
-
-**Linting & Formatting:**
-- ESLint 10.2.0 - JavaScript linting with flat config support
-- Prettier 3.8.2 - Code formatter
-- typescript-eslint 8.58.2 - TypeScript support for ESLint
-- @eslint-react/eslint-plugin 4.2.3 - React-specific ESLint rules
-- eslint-plugin-perfectionist 5.8.0 - Sorting plugins for consistency
-- eslint-plugin-react-hooks 7.0.1 - React Hooks linting rules
-- eslint-config-prettier 10.1.8 - Disables conflicting ESLint rules
-- eslint-plugin-prettier 5.5.5 - Prettier integration for ESLint
-
-**UI Components & Libraries:**
-- shadcn 4.2.0 - Component library CLI tool for adding pre-built components
-- class-variance-authority 0.7.1 - Type-safe component variant creation
-- clsx 2.1.1 - Conditional className utility
-- tailwind-merge 3.5.0 - Merge Tailwind CSS classes intelligently
-- lucide-react 1.8.0 - Icon library
-- cmdk 1.1.1 - Command menu component
-- date-fns 4.1.0 - Date manipulation library
-- react-day-picker 9.14.0 - Calendar component
-- embla-carousel-react 8.6.0 - Carousel component library
-- input-otp 1.4.2 - OTP input component
-- react-resizable-panels 4.10.0 - Resizable panel library
-- recharts 3.8.0 - React charting library
-- sonner 2.0.7 - Toast notification library
-- vaul 1.1.2 - Drawer component library
-- next-themes 0.4.6 - Theme switching utility
-- tw-animate-css 1.4.0 - Tailwind animation utilities
-- @fontsource-variable/inter 5.2.8 - Inter variable font
-
-**Testing Libraries:**
+- Vitest 4.1.4 - Unit test framework (frontend: `apps/frontend/vitest.config.ts`, backend: `apps/backend/vitest.config.ts`)
 - @testing-library/react 16.3.2 - React component testing utilities
-- @testing-library/jest-dom 6.9.1 - Custom Jest matchers for DOM
-- @testing-library/user-event 14.6.1 - User event simulation for testing
-- jsdom 29.0.2 - JavaScript implementation of web standards for testing
+- @testing-library/jest-dom 6.9.1 - Custom Jest matchers for DOM assertions
+- jsdom 29.0.2 - JavaScript implementation of web standards for testing environment
+- @vitest/coverage-v8 4.1.4 - V8-based coverage provider for backend
 
-**Utilities:**
-- rimraf 6.1.3 - Cross-platform file deletion utility
-- glob 13.0.6 - File pattern matching (used in tsup config)
-- globals 17.5.0 - Global object/variable definitions for linting
+**Build/Dev:**
+- Vite 8.0.8 - Fast build tool and dev server for frontend (`apps/frontend/vite.config.ts`)
+- @vitejs/plugin-react 6.0.0 - React plugin for Vite
+- Turbo 2.9.8 - Monorepo task orchestration (`turbo.json`)
+- tsup 8.5.1 - TypeScript bundler for `packages/eslint-config`
+- tsx 4.19.0 - TypeScript runtime for backend development (`apps/backend`)
+- Tailwind CSS 4.2.2 - Utility-first CSS framework (`apps/frontend`)
+- @tailwindcss/vite 4.2.2 - Vite plugin for Tailwind CSS integration
 
-**Git Hooks:**
-- husky 9.1.7 - Git hooks manager
-- @commitlint/cli 20.5.0 - Commit message linting
-- @commitlint/config-conventional 20.5.0 - Conventional commits config
+## Key Dependencies
+
+**Critical:**
+- serialport 12.0.0 - Serial communication for robot control (`apps/backend/src/index.ts`)
+- @fastify/websocket 9.0.0 - WebSocket support for real-time frontend-backend communication
+- ws 8.18.0 - WebSocket implementation for backend
+- @types/web-bluetooth 0.0.21 - Type definitions for Web Bluetooth API
+
+**Infrastructure:**
+- @commitlint/cli 20.5.3 - Commit message linting
+- @commitlint/config-conventional 20.5.3 - Conventional commits configuration
+- ESLint 10.3.0 - JavaScript/TypeScript linting (`packages/eslint-config`)
+- @typescript-eslint/eslint-plugin 8.59.1 - TypeScript support for ESLint
+- @typescript-eslint/parser 8.59.1 - TypeScript parser for ESLint
+- Prettier 3.8.3 - Code formatter
+- husky 9.1.7 - Git hooks manager (`.husky/` directory present)
 
 ## Configuration
 
 **Environment:**
-- No `.env` files detected - This is a template/showcase project with no external dependencies requiring secrets
-- Configuration primarily through `tsconfig.base.json` with esnext target and bundler module resolution
+- No `.env` files detected - Configuration via environment variables (e.g., `PORT` for backend)
+- Backend reads `PORT` env var (default: 3001) in `apps/backend/src/index.ts`
 
 **Build:**
-- Turbo configuration: `turbo.json` - Defines task dependencies, caching, and inputs/outputs
-- TypeScript: `tsconfig.base.json` - Base config with strict mode, module detection, noUncheckedIndexedAccess enabled
-- Prettier: `.prettierrc` - Semi-colon disabled, 120 character print width
-- PostCSS: `packages/ui/postcss.config.mjs` - Loads Tailwind CSS PostCSS plugin
-
-**Monorepo:**
-- pnpm workspaces: `pnpm-workspace.yaml` - Defines workspace packages in `apps/*` and `packages/*`
-- Catalog dependencies: All testing, type, and tooling packages use pnpm catalog for version management
-- Dedupe enabled: `dedupePeerDependents: true`
+- `turbo.json` - Task orchestration with pipeline definitions for dev, build, typecheck, lint, test
+- `tsconfig.json` (root) - Base TypeScript config in `packages/tsconfig/tsconfig.json`:
+  - Target: ES2022
+  - Module: ESNext
+  - Module Resolution: bundler
+  - Strict mode enabled
+  - `noUncheckedIndexedAccess` enabled
+- `tsconfig.react.json` - React-specific config with `jsx: react-jsx` and DOM libraries
+- `tsconfig.node.json` - Node.js config with declarations enabled
+- `.prettierrc` - Prettier config: `{ "semi": false, "printWidth": 120 }`
+- `commitlint.config.ts` - Extends `@commitlint/config-conventional`
 
 ## Platform Requirements
 
 **Development:**
-- Node.js >= 24
+- Node.js >= 18.0.0 (v24 recommended per `.nvmrc`)
 - pnpm 10.29.3
-- System supporting Node.js v24
+- macOS/Linux/Windows supporting Node.js v24
+- Bluetooth support for Web Bluetooth API (for robot connectivity)
+- Serial port access for robot communication
 
 **Production:**
-- No backend/server infrastructure required - This is a frontend component library and showcase application
-- Deployment target: Static site hosting (compatible with any static host via Vite output)
-
-## Workspace Structure
-
-**Packages:**
-- `packages/ui` - React component library with export subpaths for components, hooks, CSS, and utilities
-- `packages/tsconfig` - Shared TypeScript configuration with base config extending @tsconfig/node24
-- `packages/eslint-config` - Shared ESLint and Prettier configuration with node and react presets
-
-**Applications:**
-- `apps/showcase` - Vite + React showcase application demonstrating UI components, includes E2E tests with Playwright
+- Backend: Node.js server environment with serial port access
+- Frontend: Static site hosting (Vite build output in `dist/`)
+- WebSocket endpoint: `ws://localhost:3001/ws` (configurable via `PORT` env var)
+- Serial device: `/dev/rfcomm0` at 9600 baud (configured in `apps/backend/src/index.ts`)
 
 ---
 
-*Stack analysis: 2026-04-14*
+*Stack analysis: 2026-05-05*

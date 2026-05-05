@@ -1,94 +1,119 @@
 # External Integrations
 
-**Analysis Date:** 2026-04-14
+**Analysis Date:** 2026-05-05
 
 ## APIs & External Services
 
-**None Detected**
-- This is a frontend component library and showcase application with no external API integrations
-- No SDK imports for third-party services (Stripe, Supabase, AWS, etc.) found in codebase
-- All sample data is hardcoded (e.g., placeholder URLs in showcase components)
+**Browser APIs:**
+- **Web Bluetooth API** - Used in `apps/frontend/src/hooks/use-bluetooth.ts`
+  - Purpose: Connect to Bluetooth robot device ("BT24")
+  - Service UUID: `0000ffe0-0000-1000-8000-00805f9b34fb`
+  - Characteristic UUID: `0000ffe1-0000-1000-8000-00805f9b34fb`
+  - SDK/Client: Native browser API (no npm package)
+  - Type definitions: `@types/web-bluetooth`
+  - Usage: `navigator.bluetooth.requestDevice()` for device selection and connection
+
+- **Gamepad API** - Used in `apps/frontend/src/hooks/use-gamepad.ts`
+  - Purpose: Detect and read input from Steam Deck or other gamepads
+  - SDK/Client: Native browser API
+  - Usage: `navigator.getGamepads()` for polling, `gamepadconnected`/`gamepaddisconnected` events
+  - Features: Axes-based direction detection with deadzone (0.15)
+
+**WebSocket Communication:**
+- **Frontend → Backend WebSocket** - Real-time command streaming
+  - Endpoint: `ws://localhost:3001/ws` (configurable via `PORT` env var)
+  - Client: Native WebSocket API in browser
+  - Server: `@fastify/websocket` 9.0.0 + `ws` 8.18.0
+  - Implementation: `apps/backend/src/index.ts` (lines 68-120)
+  - Protocol: JSON messages with `type` and `message` fields
+  - Commands: `F` (forward), `B` (backward), `L` (left), `R` (right), `S` (stop)
 
 ## Data Storage
 
 **Databases:**
-- None - No database client or ORM detected (Prisma, Drizzle, etc.)
+- None - This is a real-time control application with no persistent data storage
 
 **File Storage:**
-- Local filesystem only - No cloud storage integrations (S3, Cloudinary, etc.)
+- Local filesystem only
+- Build outputs: `apps/frontend/dist/`, `apps/backend/dist/`, `packages/eslint-config/dist/`
 
 **Caching:**
-- None - No caching layer (Redis, Memcached, etc.)
+- None - No caching layer implemented
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- None - No authentication system implemented
-- This is a template/showcase application with no user system
+- None - No authentication implemented
+- Direct WebSocket connections accepted without auth
+- Serial port access is local-only (no network exposure beyond WebSocket endpoint)
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- None - No error tracking service (Sentry, Bugsnag, etc.)
+- None - No external error tracking service
 
 **Logs:**
-- Console-based only - Standard JavaScript `console` methods for any logging needs
-- No structured logging or log aggregation service integrated
+- Backend: `console.log()` and `console.error()` with timestamps in `apps/backend/src/index.ts`
+- Frontend: No explicit logging (browser console for development)
+- Fastify logger enabled: `fastify({ logger: true })` in backend
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Not configured - Template repository includes no deployment configuration
-- Suitable for deployment to any static hosting: Vercel, Netlify, GitHub Pages, AWS S3, etc.
+- Backend: Node.js server environment (self-hosted or cloud)
+- Frontend: Static site hosting compatible with Vite build output
 
 **CI Pipeline:**
-- GitHub Actions compatible - `playwright.config.ts` includes CI environment detection with:
-  - CI environment variable check for conditional behavior
-  - GitHub reporter format when CI=true
-  - 2 retry attempts in CI, 0 locally
-  - Single worker in CI for stability
-- No workflow files (.github/workflows) present in this template
+- None detected - No `.github/workflows/` files present
 
 ## Environment Configuration
 
 **Required env vars:**
-- None - Application requires no environment variables to function
+- `PORT` - Backend server port (default: 3001, used in `apps/backend/src/index.ts`)
 
 **Secrets location:**
-- No secrets management configured
-- `.env` files not present (listed in `.gitignore`)
-
-## MCP Server Integration
-
-**Playwright MCP:**
-- `@playwright/mcp@latest` configured in `.mcp.json`
-- Enables AI-assisted Playwright test generation and debugging
+- None - No secrets or API keys required for this application
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None - No webhook endpoints implemented
+- WebSocket endpoint: `GET /ws` - Accepts real-time command connections from frontend
+- Health check: `GET /` - Returns server status and serial connection state
 
 **Outgoing:**
-- None - No outbound webhook calls made
+- Serial port: `/dev/rfcomm0` - Writes command characters (F/B/L/R/S) to robot via `serialport` library
+- Bluetooth (frontend): Writes command data to Bluetooth characteristic via `characteristic.writeValue()`
 
-## Content & Media
+## Hardware Integrations
 
-**External URLs:**
-- Sample image URLs hardcoded in showcase components (`src/components/categories/overlays.tsx`, `data-display.tsx`, `layout.tsx`)
-- GitHub avatars used for demonstration (github.com/vercel.png, github.com/shadcn.png)
-- Unsplash image URL for layout demo
+**Serial Communication:**
+- Library: `serialport` 12.0.0
+- Device path: `/dev/rfcomm0` (configured in `apps/backend/src/index.ts`)
+- Baud rate: 9600
+- Auto-reconnect: Enabled with 2-second retry interval
+- Commands: Single character protocol (F, B, L, R, S)
+- Implementation: `apps/backend/src/index.ts` (lines 40-65 for connection, lines 88-96 for writing)
 
-## Summary
+**Bluetooth Communication:**
+- API: Web Bluetooth API (browser-native)
+- Device name filter: "BT24"
+- Connection: GATT (Generic Attribute Profile)
+- Data transfer: Write to characteristic via `writeValue()`
+- Auto-reconnect: Not implemented (user must manually reconnect)
+- Implementation: `apps/frontend/src/hooks/use-bluetooth.ts`
 
-This is a **zero-integration** template repository. It provides:
-- A reusable React component library (@monorepo-template/ui)
-- Shared configuration packages for TypeScript, ESLint, and Prettier
-- A Vite-based showcase application demonstrating components
-- No external dependencies, APIs, or infrastructure requirements
+## Special Integration Notes
 
-The absence of integrations makes this ideal as a template for starting new projects with a clean, modern stack.
+**Command Validation:**
+- Backend validates incoming WebSocket commands against whitelist: `F`, `B`, `L`, `R`, `S`
+- Invalid commands return error message via WebSocket
+- Implementation: `apps/backend/src/types.ts` (line 20-22) and `apps/backend/src/index.ts` (line 81)
+
+**Safety Features:**
+- WebSocket disconnect triggers "S" (stop) command to serial port
+- Backend auto-reconnects to serial port on close/error
+- Frontend gamepad deadzone prevents false triggers
 
 ---
 
-*Integration audit: 2026-04-14*
+*Integration audit: 2026-05-05*
