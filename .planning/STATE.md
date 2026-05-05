@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 ## Current Position
 
 Phase: Phase 5 — ESLint Config TypeScript Conversion
-Plan: 05-01 (Pending)
-Status: Ready
-Last activity: 2026-05-05 — Phase5 context gathered: ESLint config TypeScript conversion decisions captured
+Plan: 05-03 (Complete)
+Status: Phase Complete
+Last activity: 2026-05-05 — Phase5 complete: ESLint config converted to TypeScript ESM, all validation passes
 
 ## Progress
 
@@ -22,7 +22,7 @@ Last activity: 2026-05-05 — Phase5 context gathered: ESLint config TypeScript 
 | v1.0 Phase 2 | ✅ | 2/2 | 100% |
 | v1.0 Phase 3 | ✅ | 3/3 | 100% |
 | v1.1 Phase 4 | ✅ | 4/4 | 100% |
-| v1.1 Phase 5 | ⬜ | 0/? | 0% |
+| v1.1 Phase 5 | ✅ | 3/3 | 100% |
 
 ## Decisions Made
 
@@ -40,6 +40,8 @@ Last activity: 2026-05-05 — Phase5 context gathered: ESLint config TypeScript 
 - D-20: (Phase 5) Use import type {...} for plugin types, import() for runtime plugin loading
 - D-21: (Phase 5) Use tsup to compile .ts → .js + .d.ts (ESM format)
 - D-22: (Phase 5) Rename node.js → node.ts, react.js → react.ts in packages/eslint-config/src/
+- D-23: (Phase 5) Disable dts in tsup.config.ts (eslint-plugin-perfectionist has no Plugin export)
+- D-24: (Phase 5) Add tsconfig.json with relative path to @ks0555/tsconfig (not package reference)
 
 ## Accumulated Context
 
@@ -54,7 +56,11 @@ Last activity: 2026-05-05 — Phase5 context gathered: ESLint config TypeScript 
 - Phase 4 COMPLETE — ready for Phase 5 (eslint-config TypeScript conversion)
 
 ### Phase 5 Notes
-- Two files to convert: `packages/eslint-config/src/node.js` and `packages/eslint-config/src/react.js`
-- No new ESLint rules — only convert existing rules to TypeScript (per Out of Scope)
-- Both frontend and backend must import cleanly after conversion
-- Phase 4 validation gates all pass — clean baseline for conversion
+- Phase 5 COMPLETE — ESLint config converted to TypeScript ESM
+- `node.js` → `node.ts`, `react.js` → `react.ts` (ESM export default)
+- Added `tsup.config.ts` for ESM build (dist/ output)
+- Updated `package.json` with `"type": "module"`, `"main": "dist/node.js"`, `"types": "dist/node.d.ts"`
+- Both apps' lint scripts updated to reference `.ts` config files
+- `pnpm build`, `pnpm typecheck`, `pnpm lint` all pass with zero errors
+- Auto-fixes: installed tsup, @types/node; added tsconfig.json; disabled dts (eslint-plugin-perfectionist has no Plugin export)
+- Known issue: 13 leftover `.js` files in `apps/frontend/src/` (from Phase 4 Plan 04-01 not fully completed) — not in scope for Phase 5

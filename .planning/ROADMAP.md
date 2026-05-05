@@ -6,7 +6,7 @@
 - [x] **Phase 2: Backend — WebSocket + Bluetooth Serial** - Node.js backend bridging WebSocket to Bluetooth serial
 - [x] **Phase 3: Frontend — React UI + Gamepad Control** - React UI with manual buttons, gamepad, auto-reconnect
 - [x] **Phase 4: TypeScript Quality Hardening** - Delete leftover JS files and enforce TS best practices across codebase
-- [ ] **Phase 5: ESLint Config TypeScript Conversion** - Convert eslint-config package from JS to TypeScript ESM
+- [x] **Phase 5: ESLint Config TypeScript Conversion** - Convert eslint-config package from JS to TypeScript ESM
 
 ## Phase Details
 
@@ -80,9 +80,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Convert node.js and react.js to TypeScript ESM modules
-- [ ] 05-02-PLAN.md — Add tsup config and update package.json with ESM + types
-- [ ] 05-03-PLAN.md — Update lint scripts and validate conversion with build/typecheck/lint
+- [x] 05-01-PLAN.md — Convert node.js and react.js to TypeScript ESM modules
+- [x] 05-02-PLAN.md — Add tsup config and update package.json with ESM + types
+- [x] 05-03-PLAN.md — Update lint scripts and validate conversion with build/typecheck/lint
  
 ## Progress Table
  
@@ -92,4 +92,4 @@ Plans:
 | 2. Backend — WebSocket + Bluetooth Serial | 2/2 | Done | 2026-05-05 |
 | 3. Frontend — React UI + Gamepad Control | 3/3 | Done | 2026-05-05 |
 | 4. TypeScript Quality Hardening | 4/4 | Done | 2026-05-05 |
-| 5. ESLint Config TypeScript Conversion | 0/3 | Not started | - |
+| 5. ESLint Config TypeScript Conversion | 3/3 | Done | 2026-05-05 |
