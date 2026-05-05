@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 Phase: Phase 5 — ESLint Config TypeScript Conversion
 Plan: 05-03 (Complete)
 Status: Phase Complete
-Last activity: 2026-05-05 - Completed quick task 260505-nhk: fix ts-review findings
+Last activity: 2026-05-05 - Completed quick task 260505-nxp: delete 15 leftover .js files from TS migration
 
 ## Progress
 
@@ -63,10 +63,11 @@ Last activity: 2026-05-05 - Completed quick task 260505-nhk: fix ts-review findi
 - Both apps' lint scripts updated to reference `.ts` config files
 - `pnpm build`, `pnpm typecheck`, `pnpm lint` all pass with zero errors
 - Auto-fixes: installed tsup, @types/node; added tsconfig.json; disabled dts (eslint-plugin-perfectionist has no Plugin export)
-- Known issue: 13 leftover `.js` files in `apps/frontend/src/` (from Phase 4 Plan 04-01 not fully completed) — not in scope for Phase 5
+- Known issue resolved by quick task 260505-nxp: 15 leftover `.js` files in `apps/frontend/` deleted (all had .ts/.tsx counterparts)
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260505-nhk | fix ts-review findings | 2026-05-05 | 7a6b3a8 | [260505-nhk-fix-ts-review-findings](./quick/260505-nhk-fix-ts-review-findings/) |
+| 260505-nxp | delete 15 leftover .js files from TS migration | 2026-05-05 | 9332916 | [260505-nxp-make-sure-there-are-no-js-files-after-th](./quick/260505-nxp-make-sure-there-are-no-js-files-after-th/) |
