@@ -28,7 +28,11 @@
   3. tauri.conf.json configured with productName "Robot Controller", identifier "com.ks0555.robotcontroller", devUrl "http://localhost:5173", and AppImage bundle target for Linux
   4. Vite config has Tauri integration: clearScreen false, strictPort true, port 5173, watch ignore for src-tauri/
    5. Cargo.toml includes btleplug@0.12.0, gilrs@0.11.1, serde, and tokio with Rust edition 2021
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Initialize Tauri v2 project with Cargo.toml, tauri.conf.json, main.rs, and update frontend package.json with Tauri dependencies
+- [ ] 06-02-PLAN.md — Configure Vite for Tauri integration (clearScreen, strictPort, port 5173, watch ignore)
 
 ### Phase 7: BLE Commands with btleplug
 **Goal**: Rust BLE module implemented with Tauri commands for BT24 robot communication
