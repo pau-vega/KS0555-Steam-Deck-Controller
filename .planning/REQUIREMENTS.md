@@ -16,7 +16,7 @@ All requirements from initial milestone shipped across Phases 1–3.
 
 ### JS Cleanup
 
-- [ ] **CLEAN-01**: All leftover `.js` files in `apps/frontend/src/` deleted — 13 files superseded by `.ts`/`.tsx` equivalents
+- [x] **CLEAN-01**: All leftover `.js` files in `apps/frontend/src/` deleted — 13 files superseded by `.ts`/`.tsx` equivalents
 - [ ] **CLEAN-02**: `packages/eslint-config/src/node.js` converted to TypeScript ESM module
 - [ ] **CLEAN-03**: `packages/eslint-config/src/react.js` converted to TypeScript ESM module
 - [ ] **CLEAN-04**: All consuming apps continue importing eslint-config without errors after conversion
@@ -90,7 +90,7 @@ All requirements from initial milestone shipped across Phases 1–3.
 | FRONT-06 | Phase 3 | Done |
 | FRONT-07 | Phase 3 | Done |
 | FRONT-08 | Phase 3 | Done |
-| CLEAN-01 | Phase 4 | Pending |
+| CLEAN-01 | Phase 4 | Done |
 | TS-01 | Phase 4 | Pending |
 | TS-02 | Phase 4 | Pending |
 | TS-03 | Phase 4 | Pending |

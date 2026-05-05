@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 ## Current Position
 
 Phase: Phase 4 — TypeScript Quality Hardening
-Plan: —
-Status: Not started
-Last activity: 2026-05-05 — v1.1 roadmap created (Phases 4–5)
+Plan: 04-02 (Wave 1)
+Status: In Progress - Wave 1
+Last activity: 2026-05-05 — Phase 4 plan 04-01 complete (13 JS files deleted)
 
 ## Progress
 

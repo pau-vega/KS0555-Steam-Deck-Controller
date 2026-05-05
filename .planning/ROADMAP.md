@@ -62,7 +62,7 @@
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Delete 13 leftover JS files from apps/frontend/src/
+- [x] 04-01-PLAN.md — Delete 13 leftover JS files from apps/frontend/src/
 - [ ] 04-02-PLAN.md — Fix TS anti-patterns (any, import type, return types)
 - [ ] 04-03-PLAN.md — Validation gate (build, typecheck, lint, TS rules)
 
@@ -85,5 +85,5 @@ Plans:
 | 1. Monorepo Foundation | 4/4 | Done | 2026-05-05 |
 | 2. Backend — WebSocket + Bluetooth Serial | 2/2 | Done | 2026-05-05 |
 | 3. Frontend — React UI + Gamepad Control | 3/3 | Done | 2026-05-05 |
-| 4. TypeScript Quality Hardening | 0/? | Not started | - |
+| 4. TypeScript Quality Hardening | 1/3 | In Progress | - |
 | 5. ESLint Config TypeScript Conversion | 0/? | Not started | - |
