@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import { App } from './app'
 
 const mockUseGamepad = vi.fn()
+
+// Stable send mock reference so it persists across re-renders within the same test
+const mockSend = vi.fn()
+const mockAutoReconnect = vi.fn()
 
 vi.mock('./hooks/use-websocket', () => ({
   useWebSocket: () => ({
     connected: true,
     connecting: false,
-    send: vi.fn(),
-    autoReconnect: vi.fn(),
+    send: mockSend,
+    autoReconnect: mockAutoReconnect,
   }),
 }))
 
@@ -25,6 +29,8 @@ describe('App', () => {
       gamepadConnected: true,
     })
   })
+
+  // FRONT-07 gap test — commands only sent on direction change, not continuously
 
   afterEach(() => {
     vi.restoreAllMocks()
@@ -75,5 +81,41 @@ describe('App', () => {
     const strongElements = document.querySelectorAll('strong')
     const hasF = Array.from(strongElements).some(el => el.textContent === 'F')
     expect(hasF).toBe(true)
+  })
+
+  it('FRONT-07: send() called once when direction changes and not called again on re-render with same direction', async () => {
+    // Start with direction 'S' (matches prevDirection.current initial value)
+    mockUseGamepad.mockReturnValue({
+      direction: 'S' as const,
+      gamepadConnected: true,
+    })
+    const { rerender } = render(<App />)
+
+    // send() must NOT have been called — 'S' equals prevDirection.current initial value
+    expect(mockSend).not.toHaveBeenCalled()
+
+    // Change direction to 'F' — this is a real direction change, send() should fire once
+    act(() => {
+      mockUseGamepad.mockReturnValue({
+        direction: 'F' as const,
+        gamepadConnected: true,
+      })
+    })
+    rerender(<App />)
+
+    expect(mockSend).toHaveBeenCalledTimes(1)
+    expect(mockSend).toHaveBeenCalledWith('F')
+
+    // Re-render with the SAME direction 'F' — no change, send() must NOT be called again
+    act(() => {
+      mockUseGamepad.mockReturnValue({
+        direction: 'F' as const,
+        gamepadConnected: true,
+      })
+    })
+    rerender(<App />)
+
+    // Still exactly 1 call total — the second render with same direction must not trigger send()
+    expect(mockSend).toHaveBeenCalledTimes(1)
   })
 })
