@@ -1,3 +1,12 @@
+---
+milestone: v2.0
+milestone_name: Tauri Migration
+status: planning
+progress_phases: 0
+progress_plans: 0
+progress_tasks: 0
+---
+
 # STATE.md
 
 ## Project Reference
@@ -5,24 +14,19 @@
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Milestone v1.1 — TypeScript Migration
+**Current focus:** Milestone v2.0 — Tauri Migration
 
 ## Current Position
 
-Phase: Phase 5 — ESLint Config TypeScript Conversion
-Plan: 05-03 (Complete)
-Status: Phase Complete
-Last activity: 2026-05-05 - Completed quick task 260505-nxp: delete 15 leftover .js files from TS migration
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-05 - Milestone v2.0 started
 
 ## Progress
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
-| v1.0 Phase 1 | ✅ | 4/4 | 100% |
-| v1.0 Phase 2 | ✅ | 2/2 | 100% |
-| v1.0 Phase 3 | ✅ | 3/3 | 100% |
-| v1.1 Phase 4 | ✅ | 4/4 | 100% |
-| v1.1 Phase 5 | ✅ | 3/3 | 100% |
 
 ## Decisions Made
 
