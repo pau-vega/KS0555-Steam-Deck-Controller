@@ -7,14 +7,15 @@ const mockUseGamepad = vi.fn()
 
 // Stable send mock reference so it persists across re-renders within the same test
 const mockSend = vi.fn()
-const mockAutoReconnect = vi.fn()
+const mockConnect = vi.fn()
 
-vi.mock('./hooks/use-websocket', () => ({
-  useWebSocket: () => ({
+vi.mock('./hooks/use-bluetooth', () => ({
+  useBluetooth: () => ({
     connected: true,
     connecting: false,
+    unsupported: false,
+    connect: mockConnect,
     send: mockSend,
-    autoReconnect: mockAutoReconnect,
   }),
 }))
 
