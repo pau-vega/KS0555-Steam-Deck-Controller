@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 Phase: Phase 5 — ESLint Config TypeScript Conversion
 Plan: 05-01 (Pending)
 Status: Ready
-Last activity: 2026-05-05 — Phase4 complete: gap closure plan 04-04 executed, VERIFICATION.md gaps closed
+Last activity: 2026-05-05 — Phase5 context gathered: ESLint config TypeScript conversion decisions captured
 
 ## Progress
 
@@ -35,6 +35,11 @@ Last activity: 2026-05-05 — Phase4 complete: gap closure plan 04-04 executed, 
 - D-15: Added @typescript-eslint/parser to react.js ESLint config for TypeScript parsing
 - D-16: Set tsconfigRootDir to process.cwd() in node.js ESLint config for correct tsconfig resolution
 - D-17: Add ESLint overrides for *.config.ts files to exclude from type-aware linting
+- D-18: (Phase 5) Use ESM export default [...] for eslint-config (not CommonJS module.exports)
+- D-19: (Phase 5) Use "type": "module" in packages/eslint-config/package.json
+- D-20: (Phase 5) Use import type {...} for plugin types, import() for runtime plugin loading
+- D-21: (Phase 5) Use tsup to compile .ts → .js + .d.ts (ESM format)
+- D-22: (Phase 5) Rename node.js → node.ts, react.js → react.ts in packages/eslint-config/src/
 
 ## Accumulated Context
 
