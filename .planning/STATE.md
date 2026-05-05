@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 Phase: Phase 5 — ESLint Config TypeScript Conversion
 Plan: 05-03 (Complete)
 Status: Phase Complete
-Last activity: 2026-05-05 — Phase5 complete: ESLint config converted to TypeScript ESM, all validation passes
+Last activity: 2026-05-05 - Completed quick task 260505-nhk: fix ts-review findings
 
 ## Progress
 
@@ -64,3 +64,9 @@ Last activity: 2026-05-05 — Phase5 complete: ESLint config converted to TypeSc
 - `pnpm build`, `pnpm typecheck`, `pnpm lint` all pass with zero errors
 - Auto-fixes: installed tsup, @types/node; added tsconfig.json; disabled dts (eslint-plugin-perfectionist has no Plugin export)
 - Known issue: 13 leftover `.js` files in `apps/frontend/src/` (from Phase 4 Plan 04-01 not fully completed) — not in scope for Phase 5
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260505-nhk | fix ts-review findings | 2026-05-05 | 7a6b3a8 | [260505-nhk-fix-ts-review-findings](./quick/260505-nhk-fix-ts-review-findings/) |
