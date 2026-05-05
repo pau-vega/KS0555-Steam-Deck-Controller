@@ -1,9 +1,9 @@
-import { render } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-import { StatusBar } from './status-bar'
+import { StatusBar } from "./status-bar"
 
-describe('StatusBar', () => {
+describe("StatusBar", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -16,60 +16,60 @@ describe('StatusBar', () => {
     const { container } = render(<StatusBar bleConnected={true} gamepadConnected={false} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.textContent).toContain('Bluetooth')
-    expect(bluetoothPill?.textContent).not.toContain('Backend')
+    expect(bluetoothPill?.textContent).toContain("Bluetooth")
+    expect(bluetoothPill?.textContent).not.toContain("Backend")
   })
 
-  it('shows checkmark when Bluetooth connected', () => {
+  it("shows checkmark when Bluetooth connected", () => {
     const { container } = render(<StatusBar bleConnected={true} gamepadConnected={false} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.textContent).toContain('✓')
-    expect(bluetoothPill?.textContent).toContain('Bluetooth')
+    expect(bluetoothPill?.textContent).toContain("✓")
+    expect(bluetoothPill?.textContent).toContain("Bluetooth")
   })
 
-  it('shows X when Bluetooth disconnected', () => {
+  it("shows X when Bluetooth disconnected", () => {
     const { container } = render(<StatusBar bleConnected={false} gamepadConnected={false} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.textContent).toContain('✗')
-    expect(bluetoothPill?.textContent).toContain('Bluetooth')
+    expect(bluetoothPill?.textContent).toContain("✗")
+    expect(bluetoothPill?.textContent).toContain("Bluetooth")
   })
 
   it('shows "Connecting..." when connecting', () => {
     const { container } = render(<StatusBar bleConnected={false} gamepadConnected={false} connecting={true} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.textContent).toContain('Connecting...')
+    expect(bluetoothPill?.textContent).toContain("Connecting...")
   })
 
-  it('shows Gamepad connected state', () => {
+  it("shows Gamepad connected state", () => {
     const { container } = render(<StatusBar bleConnected={true} gamepadConnected={true} />)
 
     const gamepadPill = container.firstElementChild?.lastElementChild
-    expect(gamepadPill?.textContent).toContain('✓')
-    expect(gamepadPill?.textContent).toContain('Gamepad')
+    expect(gamepadPill?.textContent).toContain("✓")
+    expect(gamepadPill?.textContent).toContain("Gamepad")
   })
 
-  it('shows Gamepad disconnected state', () => {
+  it("shows Gamepad disconnected state", () => {
     const { container } = render(<StatusBar bleConnected={true} gamepadConnected={false} />)
 
     const gamepadPill = container.firstElementChild?.lastElementChild
-    expect(gamepadPill?.textContent).toContain('✗')
-    expect(gamepadPill?.textContent).toContain('Gamepad')
+    expect(gamepadPill?.textContent).toContain("✗")
+    expect(gamepadPill?.textContent).toContain("Gamepad")
   })
 
-  it('applies success color when Bluetooth connected', () => {
+  it("applies success color when Bluetooth connected", () => {
     const { container } = render(<StatusBar bleConnected={true} gamepadConnected={false} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.className).toContain('bg-success')
+    expect(bluetoothPill?.className).toContain("bg-success")
   })
 
-  it('applies error color when Bluetooth disconnected', () => {
+  it("applies error color when Bluetooth disconnected", () => {
     const { container } = render(<StatusBar bleConnected={false} gamepadConnected={false} />)
 
     const bluetoothPill = container.firstElementChild?.firstElementChild
-    expect(bluetoothPill?.className).toContain('bg-error')
+    expect(bluetoothPill?.className).toContain("bg-error")
   })
 })

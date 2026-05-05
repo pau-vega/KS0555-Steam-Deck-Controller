@@ -1,14 +1,14 @@
-import type { Mock } from 'vitest'
+import type { Mock } from "vitest"
 
-import { render, screen, fireEvent, within } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, within } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-import type { Direction } from '../types'
+import type { Direction } from "../types"
 
-import { ControlPad } from './control-pad'
+import { ControlPad } from "./control-pad"
 
-describe('ControlPad', () => {
-  let mockOnCommand: Mock<(command: Direction) => void>;
+describe("ControlPad", () => {
+  let mockOnCommand: Mock<(command: Direction) => void>
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -19,11 +19,11 @@ describe('ControlPad', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders all 5 control buttons', () => {
+  it("renders all 5 control buttons", () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
 
     // Use within to scope queries to this render
-    const buttons = container.querySelectorAll('button')
+    const buttons = container.querySelectorAll("button")
     expect(buttons).toHaveLength(5)
   })
 
@@ -35,7 +35,7 @@ describe('ControlPad', () => {
     expect(forwardButton).toBeInTheDocument()
 
     fireEvent.click(forwardButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith('F')
+    expect(mockOnCommand).toHaveBeenCalledWith("F")
   })
 
   it('calls onCommand with "B" when backward button clicked', () => {
@@ -46,7 +46,7 @@ describe('ControlPad', () => {
     expect(backwardButton).toBeInTheDocument()
 
     fireEvent.click(backwardButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith('B')
+    expect(mockOnCommand).toHaveBeenCalledWith("B")
   })
 
   it('calls onCommand with "L" when left button clicked', () => {
@@ -57,7 +57,7 @@ describe('ControlPad', () => {
     expect(leftButton).toBeInTheDocument()
 
     fireEvent.click(leftButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith('L')
+    expect(mockOnCommand).toHaveBeenCalledWith("L")
   })
 
   it('calls onCommand with "R" when right button clicked', () => {
@@ -68,34 +68,34 @@ describe('ControlPad', () => {
     expect(rightButton).toBeInTheDocument()
 
     fireEvent.click(rightButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith('R')
+    expect(mockOnCommand).toHaveBeenCalledWith("R")
   })
 
   it('calls onCommand with "S" when stop button clicked', () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
 
     // Stop is at 2/2 and has bg-error class
-    const stopButton = container.querySelector('button.bg-error')
+    const stopButton = container.querySelector("button.bg-error")
     expect(stopButton).toBeInTheDocument()
 
     fireEvent.click(stopButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith('S')
+    expect(mockOnCommand).toHaveBeenCalledWith("S")
   })
 
-  it('buttons are disabled when disabled prop is true', () => {
+  it("buttons are disabled when disabled prop is true", () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={true} />)
 
-    const buttons = container.querySelectorAll('button')
-    buttons.forEach(button => {
+    const buttons = container.querySelectorAll("button")
+    buttons.forEach((button) => {
       expect(button).toBeDisabled()
     })
   })
 
-  it('Stop button has distinct styling (bg-error class)', () => {
+  it("Stop button has distinct styling (bg-error class)", () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
 
-    const stopButton = container.querySelector('button.bg-error')
+    const stopButton = container.querySelector("button.bg-error")
     expect(stopButton).toBeInTheDocument()
-    expect(stopButton?.textContent).toBe('■')
+    expect(stopButton?.textContent).toBe("■")
   })
 })

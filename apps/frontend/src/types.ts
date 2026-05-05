@@ -1,1 +1,1 @@
-export type Direction = "F" | "B" | "L" | "R" | "S";
+export type Direction = "F" | "B" | "L" | "R" | "S"

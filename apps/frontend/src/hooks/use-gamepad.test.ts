@@ -1,15 +1,15 @@
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, waitFor, act } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-import { useGamepad } from './use-gamepad'
+import { useGamepad } from "./use-gamepad"
 
-function createMockGamepad(axes: number[], id = 'Steam Deck Gamepad'): Gamepad {
+function createMockGamepad(axes: number[], id = "Steam Deck Gamepad"): Gamepad {
   return {
     axes,
     id,
     connected: true,
     timestamp: 0,
-    mapping: 'standard' as GamepadMappingType,
+    mapping: "standard" as GamepadMappingType,
     index: 0,
     buttons: [],
     hapticActuators: [],
@@ -17,7 +17,7 @@ function createMockGamepad(axes: number[], id = 'Steam Deck Gamepad'): Gamepad {
   } as unknown as Gamepad
 }
 
-describe('useGamepad', () => {
+describe("useGamepad", () => {
   let originalGetGamepads: typeof navigator.getGamepads
   let originalRAF: typeof window.requestAnimationFrame
   let rafCallbacks: Array<(time: number) => void> = []
@@ -53,7 +53,7 @@ describe('useGamepad', () => {
     callbacks.forEach((cb) => cb(0))
   }
 
-  it('returns direction S when axes are neutral (within deadzone)', async () => {
+  it("returns direction S when axes are neutral (within deadzone)", async () => {
     // Mock gamepad with neutral axes (within deadzone of 0.15)
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0, 0])]
@@ -67,11 +67,11 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('S')
+      expect(result.current.direction).toBe("S")
     })
   })
 
-  it('returns direction F when Y axis negative (forward)', async () => {
+  it("returns direction F when Y axis negative (forward)", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0, -0.5])]
     })
@@ -83,11 +83,11 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('F')
+      expect(result.current.direction).toBe("F")
     })
   })
 
-  it('returns direction B when Y axis positive (backward)', async () => {
+  it("returns direction B when Y axis positive (backward)", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0, 0.5])]
     })
@@ -99,11 +99,11 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('B')
+      expect(result.current.direction).toBe("B")
     })
   })
 
-  it('returns direction L when X axis negative (left)', async () => {
+  it("returns direction L when X axis negative (left)", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([-0.5, 0])]
     })
@@ -115,11 +115,11 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('L')
+      expect(result.current.direction).toBe("L")
     })
   })
 
-  it('returns direction R when X axis positive (right)', async () => {
+  it("returns direction R when X axis positive (right)", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0.5, 0])]
     })
@@ -131,11 +131,11 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('R')
+      expect(result.current.direction).toBe("R")
     })
   })
 
-  it('sets gamepadConnected=true when gamepad present', async () => {
+  it("sets gamepadConnected=true when gamepad present", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0, 0])]
     })
@@ -151,7 +151,7 @@ describe('useGamepad', () => {
     })
   })
 
-  it('sets gamepadConnected=false when no gamepad', async () => {
+  it("sets gamepadConnected=false when no gamepad", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [null] // No gamepad connected
     })
@@ -167,7 +167,7 @@ describe('useGamepad', () => {
     })
   })
 
-  it('deadzone: does not change direction for small movements', async () => {
+  it("deadzone: does not change direction for small movements", async () => {
     navigator.getGamepads = vi.fn(() => {
       return [createMockGamepad([0.1, 0.1])]
     })
@@ -179,7 +179,7 @@ describe('useGamepad', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.direction).toBe('S') // Should stay as Stop
+      expect(result.current.direction).toBe("S") // Should stay as Stop
     })
   })
 })

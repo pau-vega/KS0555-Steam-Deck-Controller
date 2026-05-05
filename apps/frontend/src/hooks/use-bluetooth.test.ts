@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, act } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-import { useBluetooth } from './use-bluetooth'
+import { useBluetooth } from "./use-bluetooth"
 
 const mockWriteValue = vi.fn()
 const mockGetCharacteristic = vi.fn()
@@ -10,7 +10,7 @@ const mockGattConnect = vi.fn()
 const mockRequestDevice = vi.fn()
 const mockAddEventListener = vi.fn()
 
-describe('useBluetooth', () => {
+describe("useBluetooth", () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
@@ -23,7 +23,7 @@ describe('useBluetooth', () => {
       addEventListener: mockAddEventListener,
     })
 
-    Object.defineProperty(navigator, 'bluetooth', {
+    Object.defineProperty(navigator, "bluetooth", {
       value: { requestDevice: mockRequestDevice },
       configurable: true,
       writable: true,
@@ -34,14 +34,14 @@ describe('useBluetooth', () => {
     vi.restoreAllMocks()
   })
 
-  it('starts disconnected when bluetooth available', () => {
+  it("starts disconnected when bluetooth available", () => {
     const { result } = renderHook(() => useBluetooth())
     expect(result.current.connected).toBe(false)
     expect(result.current.connecting).toBe(false)
     expect(result.current.unsupported).toBe(false)
   })
 
-  it('connect() sets connected after GATT chain resolves', async () => {
+  it("connect() sets connected after GATT chain resolves", async () => {
     const { result } = renderHook(() => useBluetooth())
 
     await act(async () => {
@@ -52,19 +52,17 @@ describe('useBluetooth', () => {
     expect(result.current.connecting).toBe(false)
   })
 
-  it('connect() requests device with BT24 name filter', async () => {
+  it("connect() requests device with BT24 name filter", async () => {
     const { result } = renderHook(() => useBluetooth())
 
     await act(async () => {
       await result.current.connect()
     })
 
-    expect(mockRequestDevice).toHaveBeenCalledWith(
-      expect.objectContaining({ filters: [{ name: 'BT24' }] })
-    )
+    expect(mockRequestDevice).toHaveBeenCalledWith(expect.objectContaining({ filters: [{ name: "BT24" }] }))
   })
 
-  it('send() writes encoded data when connected', async () => {
+  it("send() writes encoded data when connected", async () => {
     const { result } = renderHook(() => useBluetooth())
 
     await act(async () => {
@@ -72,7 +70,7 @@ describe('useBluetooth', () => {
     })
 
     act(() => {
-      result.current.send('F')
+      result.current.send("F")
     })
 
     expect(mockWriteValue).toHaveBeenCalledTimes(1)
@@ -81,18 +79,18 @@ describe('useBluetooth', () => {
     expect(arg?.[0]).toBe(70)
   })
 
-  it('send() does nothing when disconnected', () => {
+  it("send() does nothing when disconnected", () => {
     const { result } = renderHook(() => useBluetooth())
 
     act(() => {
-      result.current.send('F')
+      result.current.send("F")
     })
 
     expect(mockWriteValue).not.toHaveBeenCalled()
   })
 
-  it('connect() sets disconnected on requestDevice rejection', async () => {
-    mockRequestDevice.mockRejectedValue(new Error('User cancelled'))
+  it("connect() sets disconnected on requestDevice rejection", async () => {
+    mockRequestDevice.mockRejectedValue(new Error("User cancelled"))
     const { result } = renderHook(() => useBluetooth())
 
     await act(async () => {
@@ -103,7 +101,7 @@ describe('useBluetooth', () => {
     expect(result.current.connecting).toBe(false)
   })
 
-  it('connect() sets disconnected when device has no gatt', async () => {
+  it("connect() sets disconnected when device has no gatt", async () => {
     mockRequestDevice.mockResolvedValue({
       gatt: null,
       addEventListener: mockAddEventListener,

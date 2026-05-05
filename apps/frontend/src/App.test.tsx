@@ -1,7 +1,7 @@
-import { render, screen, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, act } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
-import { App } from './app'
+import { App } from "./app"
 
 const mockUseGamepad = vi.fn()
 
@@ -9,7 +9,7 @@ const mockUseGamepad = vi.fn()
 const mockSend = vi.fn()
 const mockConnect = vi.fn()
 
-vi.mock('./hooks/use-bluetooth', () => ({
+vi.mock("./hooks/use-bluetooth", () => ({
   useBluetooth: () => ({
     connected: true,
     connecting: false,
@@ -19,15 +19,15 @@ vi.mock('./hooks/use-bluetooth', () => ({
   }),
 }))
 
-vi.mock('./hooks/use-gamepad', () => ({
+vi.mock("./hooks/use-gamepad", () => ({
   useGamepad: () => mockUseGamepad(),
 }))
 
-describe('App', () => {
+describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseGamepad.mockReturnValue({
-      direction: 'S' as const,
+      direction: "S" as const,
       gamepadConnected: true,
     })
   })
@@ -38,57 +38,57 @@ describe('App', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders robot controller heading', () => {
+  it("renders robot controller heading", () => {
     render(<App />)
     expect(screen.getByText(/Robot Controller/)).toBeInTheDocument()
   })
 
-  it('displays StatusBar component', () => {
+  it("displays StatusBar component", () => {
     render(<App />)
-    const statusPills = document.querySelectorAll('.px-3.py-1')
+    const statusPills = document.querySelectorAll(".px-3.py-1")
     expect(statusPills.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('displays ControlPad component', () => {
+  it("displays ControlPad component", () => {
     const { container } = render(<App />)
-    const buttons = container.querySelectorAll('button')
+    const buttons = container.querySelectorAll("button")
     expect(buttons.length).toBe(5)
   })
 
-  it('displays last command section', () => {
+  it("displays last command section", () => {
     render(<App />)
     const elements = screen.getAllByText(/Last command:/)
     expect(elements.length).toBeGreaterThan(0)
   })
 
-  it('displays current direction section', () => {
+  it("displays current direction section", () => {
     render(<App />)
     const elements = screen.getAllByText(/Current direction:/)
     expect(elements.length).toBeGreaterThan(0)
   })
 
-  it('shows initial direction S', () => {
+  it("shows initial direction S", () => {
     render(<App />)
-    const strongElements = document.querySelectorAll('strong')
-    const hasS = Array.from(strongElements).some(el => el.textContent === 'S')
+    const strongElements = document.querySelectorAll("strong")
+    const hasS = Array.from(strongElements).some((el) => el.textContent === "S")
     expect(hasS).toBe(true)
   })
 
-  it('updates display when direction changes to F', () => {
+  it("updates display when direction changes to F", () => {
     mockUseGamepad.mockReturnValue({
-      direction: 'F' as const,
+      direction: "F" as const,
       gamepadConnected: true,
     })
     render(<App />)
-    const strongElements = document.querySelectorAll('strong')
-    const hasF = Array.from(strongElements).some(el => el.textContent === 'F')
+    const strongElements = document.querySelectorAll("strong")
+    const hasF = Array.from(strongElements).some((el) => el.textContent === "F")
     expect(hasF).toBe(true)
   })
 
-  it('FRONT-07: send() called once when direction changes and not called again on re-render with same direction', async () => {
+  it("FRONT-07: send() called once when direction changes and not called again on re-render with same direction", async () => {
     // Start with direction 'S' (matches prevDirection.current initial value)
     mockUseGamepad.mockReturnValue({
-      direction: 'S' as const,
+      direction: "S" as const,
       gamepadConnected: true,
     })
     const { rerender } = render(<App />)
@@ -99,19 +99,19 @@ describe('App', () => {
     // Change direction to 'F' — this is a real direction change, send() should fire once
     act(() => {
       mockUseGamepad.mockReturnValue({
-        direction: 'F' as const,
+        direction: "F" as const,
         gamepadConnected: true,
       })
     })
     rerender(<App />)
 
     expect(mockSend).toHaveBeenCalledTimes(1)
-    expect(mockSend).toHaveBeenCalledWith('F')
+    expect(mockSend).toHaveBeenCalledWith("F")
 
     // Re-render with the SAME direction 'F' — no change, send() must NOT be called again
     act(() => {
       mockUseGamepad.mockReturnValue({
-        direction: 'F' as const,
+        direction: "F" as const,
         gamepadConnected: true,
       })
     })

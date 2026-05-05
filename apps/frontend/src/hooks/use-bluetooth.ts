@@ -7,7 +7,7 @@ type BluetoothState = "disconnected" | "connecting" | "connected" | "unsupported
 
 export function useBluetooth() {
   const [state, setState] = useState<BluetoothState>(() =>
-    typeof navigator !== "undefined" && "bluetooth" in navigator ? "disconnected" : "unsupported"
+    typeof navigator !== "undefined" && "bluetooth" in navigator ? "disconnected" : "unsupported",
   )
   const characteristicRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null)
 

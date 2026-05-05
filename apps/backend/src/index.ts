@@ -1,20 +1,20 @@
-import websocket from '@fastify/websocket'
-import fastify from 'fastify'
-import { SerialPort } from 'serialport'
+import websocket from "@fastify/websocket"
+import fastify from "fastify"
+import { SerialPort } from "serialport"
 
-import type { ValidCommand, SerialPortConfig, ServerConfig } from './types.js'
+import type { ValidCommand, SerialPortConfig, ServerConfig } from "./types.js"
 
-import { isValidCommand } from './types.js'
+import { isValidCommand } from "./types.js"
 
 // Configuration
 const serverConfig: ServerConfig = {
-  port: parseInt(process.env.PORT || '3001', 10),
-  host: '0.0.0.0'
+  port: parseInt(process.env.PORT || "3001", 10),
+  host: "0.0.0.0",
 }
 
 const serialConfig: SerialPortConfig = {
-  path: '/dev/rfcomm0',
-  baudRate: 9600
+  path: "/dev/rfcomm0",
+  baudRate: 9600,
 }
 
 // Build function (exported for testing)
@@ -42,21 +42,21 @@ export default function build() {
 
     serialPort = new SerialPort({
       path: serialConfig.path,
-      baudRate: serialConfig.baudRate
+      baudRate: serialConfig.baudRate,
     })
 
-    serialPort.on('open', () => {
-      log('Serial port opened successfully')
+    serialPort.on("open", () => {
+      log("Serial port opened successfully")
     })
 
-    serialPort.on('close', () => {
-      log('Serial port closed')
+    serialPort.on("close", () => {
+      log("Serial port closed")
       // Auto-reconnect (BACK-04)
       setTimeout(() => connectSerial(retryInterval), retryInterval)
     })
 
-    serialPort.on('error', (err) => {
-      logError('Serial port error:', err.message)
+    serialPort.on("error", (err) => {
+      logError("Serial port error:", err.message)
       // Auto-reconnect on error
       if (serialPort && !serialPort.isOpen) {
         setTimeout(() => connectSerial(retryInterval), retryInterval)
@@ -66,21 +66,21 @@ export default function build() {
 
   // WebSocket route (BACK-01)
   server.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, (connection, request) => {
+    fastify.get("/ws", { websocket: true }, (connection, request) => {
       const socket = connection.socket
       log(`WebSocket client connected from ${request.ip}`)
 
       // Send initial connection confirmation
-      socket.send(JSON.stringify({ type: 'connected', message: 'Connected to robot backend' }))
+      socket.send(JSON.stringify({ type: "connected", message: "Connected to robot backend" }))
 
-      socket.on('message', (rawMessage) => {
+      socket.on("message", (rawMessage) => {
         const message = rawMessage.toString()
         log(`Received WebSocket message: ${message}`)
 
         // Validate command (D-05: whitelist validation)
         if (!isValidCommand(message)) {
           log(`Invalid command received: ${message}`)
-          socket.send(JSON.stringify({ type: 'error', message: 'Invalid command. Use F, B, L, R, or S' }))
+          socket.send(JSON.stringify({ type: "error", message: "Invalid command. Use F, B, L, R, or S" }))
           return
         }
 
@@ -94,37 +94,37 @@ export default function build() {
             }
           })
         } else {
-          log('Cannot send command: serial port not open')
-          socket.send(JSON.stringify({ type: 'error', message: 'Serial port not connected' }))
+          log("Cannot send command: serial port not open")
+          socket.send(JSON.stringify({ type: "error", message: "Serial port not connected" }))
         }
       })
 
-      socket.on('close', (code, reason) => {
+      socket.on("close", (code, reason) => {
         log(`WebSocket client disconnected (code: ${code}, reason: ${reason?.toString()})`)
         // Send "S" (stop) on disconnect (BACK-05, SAFE-02)
         if (serialPort && serialPort.isOpen) {
-          serialPort.write('S', (err) => {
+          serialPort.write("S", (err) => {
             if (err) {
-              logError('Failed to send stop command on disconnect:', err.message)
+              logError("Failed to send stop command on disconnect:", err.message)
             } else {
-              log('Stop command (S) sent to serial port on WebSocket disconnect')
+              log("Stop command (S) sent to serial port on WebSocket disconnect")
             }
           })
         }
       })
 
-      socket.on('error', (err) => {
-        logError('WebSocket error:', err)
+      socket.on("error", (err) => {
+        logError("WebSocket error:", err)
       })
     })
   })
 
   // Health check route
-  server.get('/', async () => {
+  server.get("/", async () => {
     return {
-      status: 'ok',
+      status: "ok",
       serialConnected: serialPort?.isOpen ?? false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
   })
 

@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 
-import type { ValidCommand } from '../types.js'
+import type { ValidCommand } from "../types.js"
 
-import build from '../index.js'
+import build from "../index.js"
 
 // Mock SerialPort
-vi.mock('serialport', () => {
+vi.mock("serialport", () => {
   return {
     SerialPort: class MockSerialPort {
       isOpen = false
@@ -15,7 +15,7 @@ vi.mock('serialport', () => {
         // Simulate async open
         setTimeout(() => {
           this.isOpen = true
-          if (this.callbacks['open']) this.callbacks['open']()
+          if (this.callbacks["open"]) this.callbacks["open"]()
         }, 10)
       }
 
@@ -30,13 +30,13 @@ vi.mock('serialport', () => {
 
       destroy() {
         this.isOpen = false
-        if (this.callbacks['close']) this.callbacks['close']()
+        if (this.callbacks["close"]) this.callbacks["close"]()
       }
-    }
+    },
   }
 })
 
-describe('Backend Server', () => {
+describe("Backend Server", () => {
   let server: ReturnType<typeof build>
 
   beforeEach(async () => {
@@ -48,36 +48,36 @@ describe('Backend Server', () => {
     await server.close()
   })
 
-  it('should start server and respond to health check', async () => {
+  it("should start server and respond to health check", async () => {
     const response = await server.inject({
-      method: 'GET',
-      url: '/'
+      method: "GET",
+      url: "/",
     })
 
     expect(response.statusCode).toBe(200)
     const body = JSON.parse(response.body as string)
-    expect(body).toHaveProperty('status', 'ok')
-    expect(body).toHaveProperty('serialConnected')
+    expect(body).toHaveProperty("status", "ok")
+    expect(body).toHaveProperty("serialConnected")
   })
 
-  it('should have WebSocket route registered at /ws', () => {
-    expect(server.hasRoute({ url: '/ws', method: 'GET' })).toBe(true)
+  it("should have WebSocket route registered at /ws", () => {
+    expect(server.hasRoute({ url: "/ws", method: "GET" })).toBe(true)
   })
 })
 
-describe('Command Validation Integration', () => {
-  const validCommands: ValidCommand[] = ['F', 'B', 'L', 'R', 'S']
+describe("Command Validation Integration", () => {
+  const validCommands: ValidCommand[] = ["F", "B", "L", "R", "S"]
 
-  it('should accept all valid commands', () => {
+  it("should accept all valid commands", () => {
     validCommands.forEach((cmd) => {
-      expect(['F', 'B', 'L', 'R', 'S'].includes(cmd)).toBe(true)
+      expect(["F", "B", "L", "R", "S"].includes(cmd)).toBe(true)
     })
   })
 
-  it('should reject commands not in whitelist', () => {
-    const invalidCommands = ['X', 'STOP', 'forward', '123']
+  it("should reject commands not in whitelist", () => {
+    const invalidCommands = ["X", "STOP", "forward", "123"]
     invalidCommands.forEach((cmd) => {
-      expect(['F', 'B', 'L', 'R', 'S'].includes(cmd)).toBe(false)
+      expect(["F", "B", "L", "R", "S"].includes(cmd)).toBe(false)
     })
   })
 })
