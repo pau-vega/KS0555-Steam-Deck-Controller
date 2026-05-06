@@ -12,32 +12,23 @@ export function useGamepad() {
     let cancelled = false
 
     const setup = async () => {
-      const unlistenDirection = await listen<{ direction: Direction }>(
-        "gamepad-direction",
-        (event) => {
-          if (cancelled) return
-          setDirection(event.payload.direction)
-        },
-      )
+      const unlistenDirection = await listen<{ direction: Direction }>("gamepad-direction", (event) => {
+        if (cancelled) return
+        setDirection(event.payload.direction)
+      })
       unlistenersRef.current.push(unlistenDirection)
 
-      const unlistenConnected = await listen<{ name: string }>(
-        "gamepad-connected",
-        (event) => {
-          if (cancelled) return
-          setGamepadConnected(true)
-        },
-      )
+      const unlistenConnected = await listen<{ name: string }>("gamepad-connected", (event) => {
+        if (cancelled) return
+        setGamepadConnected(true)
+      })
       unlistenersRef.current.push(unlistenConnected)
 
-      const unlistenDisconnected = await listen<{ name: string }>(
-        "gamepad-disconnected",
-        (event) => {
-          if (cancelled) return
-          setGamepadConnected(false)
-          setDirection("S")
-        },
-      )
+      const unlistenDisconnected = await listen<{ name: string }>("gamepad-disconnected", (event) => {
+        if (cancelled) return
+        setGamepadConnected(false)
+        setDirection("S")
+      })
       unlistenersRef.current.push(unlistenDisconnected)
     }
 
