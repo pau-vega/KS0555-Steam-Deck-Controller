@@ -14,21 +14,21 @@ progress_tasks: 4
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 6 COMPLETE — Ready for Phase 7 (BLE Commands)
+**Current focus:** Phase 7 BLE Commands — Context gathered ✓
 
 ## Current Position
 
-Phase: 6 (Tauri Shell Setup) — COMPLETE ✓
-Plan: All plans complete
-Status: Phase 6 complete — Wave 1 executed successfully
-Last activity: 2026-05-06 - Phase 6 execution complete (build ✅, tests ✅ 39/39)
+Phase: 7 (BLE Commands with btleplug) — CONTEXT COMPLETE ✓
+Plan: Not started
+Status: Ready for planning
+Last activity: 2026-05-06 - Phase 7 context gathered
 
 ## Progress
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
-| 6. Tauri Shell Setup | Not started | 0/3 | 0% |
-| 7. BLE Commands with btleplug | Not started | 0/3 | 0% |
+| 6. Tauri Shell Setup | Complete | 2/2 | 100% |
+| 7. BLE Commands with btleplug | Context complete | 0/3 | 25% |
 | 8. Gamepad Monitoring with gilrs | Not started | 0/3 | 0% |
 | 9. Hook Rewrites | Not started | 0/2 | 0% |
 | 10. Build and Test on SteamOS | Not started | 0/2 | 0% |
@@ -51,6 +51,10 @@ Last activity: 2026-05-06 - Phase 6 execution complete (build ✅, tests ✅ 39/
 - D-22: (Phase 5) Rename node.js → node.ts, react.js → react.ts in packages/eslint-config/src/
 - D-23: (Phase 5) Disable dts in tsup.config.ts (eslint-plugin-perfectionist has no Plugin export)
 - D-24: (Phase 5) Add tsconfig.json with relative path to @ks0555/tsconfig (not package reference)
+- D-25: (Phase 7) Auto-reconnect with backoff when BT24 disconnects
+- D-26: (Phase 7) Use WriteType::WithoutResponse for BLE commands
+- D-27: (Phase 7) ble_connect scan timeout: 5 seconds
+- D-28: (Phase 7) Tauri commands return Result<(), String> for error propagation
 
 ## Accumulated Context
 
@@ -64,6 +68,14 @@ Last activity: 2026-05-06 - Phase 6 execution complete (build ✅, tests ✅ 39/
 - Deviations: bundle format corrected for Tauri 2.11.0, placeholder RGBA icon added for generate_context!()
 - `pnpm --filter @ks0555/frontend build` passes ✅
 - All 39 tests pass ✅
+
+### Phase 7 Notes
+- Phase 7 CONTEXT COMPLETE — Ready for planning
+- Decisions captured: Auto-reconnect (D-25), WithoutResponse (D-26), 5s timeout (D-27), Result error propagation (D-28)
+- BLE commands: ble_connect, ble_disconnect, ble_send
+- BT24 device: service UUID 0000ffe0-..., char UUID 0000ffe1-..., device name "BT24"
+- Events: ble-state-changed
+- State: Peripheral stored via app.manage()
 
 ### Phase 5 Notes
 - Phase 5 COMPLETE — ESLint config converted to TypeScript ESM
