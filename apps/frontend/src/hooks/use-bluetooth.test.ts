@@ -20,12 +20,10 @@ vi.mock("@tauri-apps/api/core", () => ({
 }))
 
 vi.mock("@tauri-apps/api/event", () => ({
-  listen: vi.fn(
-    (_event: string, callback: (event: { payload: string }) => void) => {
-      setBleStateCallback((payload: string) => callback({ payload }))
-      return Promise.resolve(mockUnlisten)
-    },
-  ),
+  listen: vi.fn((_event: string, callback: (event: { payload: string }) => void) => {
+    setBleStateCallback((payload: string) => callback({ payload }))
+    return Promise.resolve(mockUnlisten)
+  }),
 }))
 
 describe("useBluetooth", () => {
