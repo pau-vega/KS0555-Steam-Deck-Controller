@@ -4,104 +4,102 @@
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
 **Date:** 2026-05-06
-**Phase:** 09-hook-rewrites
-**Areas discussed:** Unlisten cleanup pattern, Test rewrite strategy, Gamepad initial connected state, BLE state payload format, invoke disconnect on unmount, TypeScript payload types location
+**Phase:** 9-Hook Rewrites
+**Areas discussed:** send() error handling, Direction type source, connect() wrapping
 
 ---
 
-## Unlisten Cleanup Pattern
+## send() error handling
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| useRef to store unlistener | `unlistenersRef = useRef<UnlistenFn[]>([])`. listen resolves → push to array. Cleanup: forEach call. Synchronous. | ✓ |
-| Store promise, await in async IIFE | `promise.then(fn => fn())` in cleanup. May fire after re-mount. | |
-| You decide | Leave to planner/executor. | |
+| Fire-and-forget (void) | void invoke('ble_send', { command: data }) — silently ignore, matches current behavior exactly | ✓ |
+| Catch and console.error | Catch promise rejection, log to console for debug visibility, no UI change | |
 
-**User's choice:** useRef to store unlistener (array ref for all unlisteners)
-**Notes:** Followed up with a second question on single vs array ref — user chose array ref for all unlisteners in a single hook. Handles multiple listeners (3 in useGamepad) cleanly.
+**User's choice:** Fire-and-forget (void)
+**Notes:** No connection guard needed — Rust returns Err if disconnected, silently ignored.
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| No, invoke handles it | Rust ble_send returns Err if not connected — fire-and-forget means errors are silently ignored regardless | ✓ |
+| Yes, skip if disconnected | Guard: if state !== 'connected', return early | |
+
+**User's choice:** No, invoke handles it
+**Notes:** — | — | — |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| useCallback (stable ref) | Matches current pattern. send is a dependency in app.tsx sendCommand — stable ref avoids effect re-runs | ✓ |
+| Plain function | Simpler code, sendCommand recreates but cost is trivial | |
+
+**User's choice:** useCallback (stable ref)
+
+**connect() error handling:**
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Set disconnected, re-throw | setState('disconnected') then throw. Consumer catches with try/catch | ✓ |
+| Set disconnected, no throw | setState('disconnected'), error consumed silently | |
+
+**User's choice:** Set disconnected, re-throw
 
 ---
 
-## Test Rewrite Strategy
+## Direction type source
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Rewrite tests: mock @tauri-apps/api | vi.mock invoke/listen. Delete browser-API mocks. Test same behaviors. | ✓ |
-| Delete tests, add later in Phase 10 | Keep tests minimal for Phase 9, defer to Phase 10 validation. | |
-| Keep old tests, add new alongside | Old browser tests become dead (will fail). Not recommended. | |
+| Import from src/types.ts | Single source of truth — both app.tsx and types.ts already define it there | ✓ |
+| Keep local type | Self-contained hook, no import coupling to types.ts | |
 
-**User's choice:** Rewrite tests: mock @tauri-apps/api
+**User's choice:** Import from src/types.ts
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Capture callback in mock, call manually | `listen.mockImplementation((event, cb) => { capturedCallback = cb; ... })`. Then `act(() => capturedCallback({ payload: ... }))`. | ✓ |
-| Use EventEmitter in mock | Mock event bus, dispatch via emit(). More infrastructure. | |
-| You decide | Leave to planner/executor. | |
+| Inline type in listen call | listen<{ direction: Direction }>('gamepad-direction', callback) | ✓ |
+| Named interface | Define interface GamepadDirectionPayload { direction: Direction } at top of hook file | |
 
-**User's choice:** Capture callback in mock, call it manually
-**Notes:** No RAF loop in new useGamepad — purely event-driven. Tests fire events by calling captured listener callbacks directly.
+**User's choice:** Inline type in listen call
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Define inline | type BleState = 'disconnected' | 'connecting' | 'connected' — local, self-contained | ✓ |
+| Export from types.ts | Shared type in types.ts if other files need it (currently only useBluetooth needs it) | |
+
+**User's choice:** Define inline
 
 ---
 
-## Gamepad Initial Connected State
+## connect() wrapping
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Accept it — start with gamepadConnected: false | Hook starts false, updates on first gilrs event. gilrs emits Connected on startup for already-connected gamepads. No Rust changes. | ✓ |
-| Add Rust query command get_gamepad_state | New Tauri command returns { connected: bool, name: Option<String> }. Hook calls on mount. More work. | |
-| Emit connected event on Rust startup | Modify Phase 8 gamepad module to emit on startup. Requires Phase 8 patch. | |
+| useCallback (stable ref) | Matches current pattern, avoids unnecessary re-renders when passed as onClick prop | ✓ |
+| Plain function | Simpler code, re-render cost trivial | |
 
-**User's choice:** Accept it — start with gamepadConnected: false
-
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Confirmed — useBluetooth starts disconnected | BLE is user-initiated. Initial disconnected state correct. | ✓ |
-| Add auto-connect on mount | Automatically call invoke('ble_connect') on mount. Skips Connect button. | |
-
-**User's choice:** Confirmed — useBluetooth starts disconnected
-
----
-
-## BLE State Payload Format
+**User's choice:** useCallback (stable ref)
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Confirmed — raw string payload | listen<string>. Matches what Rust emits: app.emit("ble-state-changed", "connecting"). No Rust changes. | ✓ |
-| Change Rust to emit a struct | Emit { state: 'connecting' } typed struct. Requires patching Phase 7 code. | |
+| Set connecting first | setState('connecting') then await invoke('ble_connect') — immediate visual feedback | ✓ |
+| invoke handles it | Rust ble_connect emits 'ble-state-changed' with 'connecting' immediately | |
 
-**User's choice:** Confirmed — raw string payload
-**Notes:** Payload format confirmed by reading `apps/frontend/src-tauri/src/ble/mod.rs` directly. All three emit calls pass raw strings.
-
----
-
-## invoke('ble_disconnect') on Unmount
+**User's choice:** Set connecting first
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| No — don't disconnect on unmount | App is single-page, hook lives for full app lifetime. Disconnect is user-initiated. Matches current behavior. | ✓ |
-| Yes — disconnect on unmount | Defensive cleanup. Adds invoke call to useEffect cleanup. | |
+| In a useEffect (runs once on mount) | Set up listener in useEffect with empty deps. Listener ready before user clicks Connect | ✓ |
+| Inside connect() after setConnecting | Set up listener right before calling invoke | |
 
-**User's choice:** No — don't disconnect on unmount
-
----
-
-## TypeScript Payload Types Location
-
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Inline in each hook | Types defined at top of hook file. Self-documenting at point of use. No new files. | ✓ |
-| Add to src/types.ts | Extend existing types.ts with Tauri payload types. Centralised but adds Tauri coupling. | |
-| New src/types/tauri-events.ts | Dedicated file for Tauri event types. Clean but adds a file for 3 small types. | |
-
-**User's choice:** Inline in each hook
+**User's choice:** In a useEffect (runs once on mount)
 
 ---
 
 ## the agent's Discretion
 
-- `unsupported` field always `false` in Tauri — set as constant, keep in return shape for API stability
-- `send()` fire-and-forget: `void invoke("ble_send", { command: data })`
-- `connect()` catch block: set state to `"disconnected"` on invoke rejection
+- Return shapes are fixed — no additions or removals
+- `unsupported` always `false`
+- `send` fire-and-forget, `connect` catch-and-rethrow
 
 ## Deferred Ideas
 

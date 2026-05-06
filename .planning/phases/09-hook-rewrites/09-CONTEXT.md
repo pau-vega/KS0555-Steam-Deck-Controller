@@ -27,29 +27,37 @@ Return shapes are locked and must not change — `app.tsx`, `control-pad.tsx`, a
 - **D-05:** `gamepad-direction` payload: `{ direction: Direction }` (string char `'F' | 'B' | 'L' | 'R' | 'S'`). Confirmed from Phase 8 D-35.
 - **D-06:** `gamepad-connected` / `gamepad-disconnected` payload: `{ name: string }`. Confirmed from Phase 8 D-36. Hook only needs `name` for future display; `gamepadConnected` boolean derived from which event fired.
 
-### TypeScript Payload Types
-- **D-07:** Payload types defined **inline in each hook file**, not in `src/types.ts` or a new file. Hooks are small enough that inline types are self-documenting. No new files for types.
+### Direction Type Source
+- **D-07:** `Direction` type (`"F" | "B" | "L" | "R" | "S"`) imported from `apps/frontend/src/types.ts` — single source of truth, already used by `app.tsx`. `BluetoothState` union (`"disconnected" | "connecting" | "connected"`) stays defined inline in `use-bluetooth.ts`.
+- **D-08:** Event payload types use inline anonymous types in `listen<>` generic (e.g., `listen<{ direction: Direction }>('gamepad-direction', ...)`). No named payload interfaces.
 
 ### Initial State on Mount
-- **D-08:** `useBluetooth` starts with state `"disconnected"`. BLE connection is user-initiated (Connect button). No auto-connect on mount.
-- **D-09:** `useGamepad` starts with `gamepadConnected: false` and `direction: "S"`. Hook waits for Tauri events. gilrs emits a `Connected` event during app startup if a gamepad is already present — first event will update the hook state promptly. No Rust query command needed.
+- **D-09:** `useBluetooth` starts with state `"disconnected"`. BLE connection is user-initiated (Connect button). No auto-connect on mount.
+- **D-10:** `useGamepad` starts with `gamepadConnected: false` and `direction: "S"`. Hook waits for Tauri events. gilrs emits a `Connected` event during app startup if a gamepad is already present — first event will update the hook state promptly. No Rust query command needed.
 
 ### Disconnect on Unmount
-- **D-10:** `useBluetooth` does **not** call `invoke('ble_disconnect')` on unmount. App is single-page; hook lives for the full app lifetime. Disconnect is user-initiated. Matches current Web Bluetooth hook behavior.
+- **D-11:** `useBluetooth` does **not** call `invoke('ble_disconnect')` on unmount. App is single-page; hook lives for the full app lifetime. Disconnect is user-initiated. Matches current Web Bluetooth hook behavior.
+
+### send() Implementation
+- **D-12:** `send(data)` is fire-and-forget — `void invoke('ble_send', { command: data })`. Matches current `void characteristic.writeValue(...)` pattern. No connection guard (Rust returns `Err` if disconnected, silently ignored). `useCallback` with empty deps for stable reference (consumed by `app.tsx` as dependency in `sendCommand`).
+
+### connect() Implementation
+- **D-13:** `connect()` wrapped in `useCallback` with empty deps for stable reference (passed as `onClick` prop). Sets `setState('connecting')` before calling `invoke('ble_connect')`. On rejection: `setState('disconnected')` then re-throws. Matches current try/catch behavior and `app.tsx` call pattern (`void connect()`).
+- **D-14:** `listen('ble-state-changed')` set up in a `useEffect` with empty deps (runs once on mount). Listener is ready before user clicks Connect.
 
 ### Test Rewrite Strategy
-- **D-11:** Rewrite both hook test files to mock `@tauri-apps/api`. Delete browser-API mocks (`navigator.bluetooth`, `navigator.getGamepads`, `requestAnimationFrame` loop). Use `vi.mock('@tauri-apps/api/core')` for `invoke`, `vi.mock('@tauri-apps/api/event')` for `listen`.
-- **D-12:** Simulate Tauri listener callbacks by capturing the callback in the mock: `let capturedCallback; listen.mockImplementation((event, cb) => { capturedCallback = cb; return Promise.resolve(vi.fn()) })`. Then trigger in tests: `act(() => capturedCallback({ payload: { direction: 'F' } }))`. No RAF loop, no polling — purely event-driven.
-- **D-13:** Test coverage parity: same behaviors tested as before — connect sets state, send calls invoke, listener fires state update, cleanup calls unlisteners.
+- **D-15:** Rewrite both hook test files to mock `@tauri-apps/api`. Delete browser-API mocks (`navigator.bluetooth`, `navigator.getGamepads`, `requestAnimationFrame` loop). Use `vi.mock('@tauri-apps/api/core')` for `invoke`, `vi.mock('@tauri-apps/api/event')` for `listen`.
+- **D-16:** Simulate Tauri listener callbacks by capturing the callback in the mock: `let capturedCallback; listen.mockImplementation((_event, cb) => { capturedCallback = cb; return Promise.resolve(vi.fn()) })`. Then trigger in tests: `act(() => capturedCallback({ payload: { direction: 'F' } }))`. No RAF loop, no polling — purely event-driven.
+- **D-17:** Test coverage parity: same behaviors tested as before — connect sets state, send calls invoke, listener fires state update, cleanup calls unlisteners.
 
 ### @types/web-bluetooth Removal
-- **D-14:** Remove `@types/web-bluetooth` from `apps/frontend/package.json` `devDependencies`. No types from it should appear in the rewritten hooks (no `BluetoothRemoteGATTCharacteristic`, `BluetoothDevice`, etc.).
+- **D-18:** Remove `@types/web-bluetooth` from `apps/frontend/package.json` `devDependencies`. No types from it should appear in the rewritten hooks (no `BluetoothRemoteGATTCharacteristic`, `BluetoothDevice`, etc.).
 
 ### the agent's Discretion
 - Hook return shapes are fixed — do not add or remove fields from `{ connected, connecting, unsupported, connect, send }` or `{ direction, gamepadConnected }`.
 - `unsupported` is always `false` in Tauri context (invoke always available). The field stays in the return shape for API stability — set it to a constant `false`.
-- `send` in `useBluetooth` calls `invoke('ble_send', { command: data })`. Fire-and-forget (void the promise), matching the current `void characteristic.writeValue(...)` pattern.
-- invoke errors in `connect()` should be caught and set state to `"disconnected"`, mirroring the current catch block behavior.
+- `send` calls `invoke('ble_send', { command: data })` — fire-and-forget (`void` the promise).
+- `connect` catches invoke errors, sets `"disconnected"`, re-throws.
 
 </decisions>
 
@@ -85,7 +93,10 @@ Return shapes are locked and must not change — `app.tsx`, `control-pad.tsx`, a
 ### Tauri v2 API
 - `apps/frontend/package.json` — `@tauri-apps/api ^2.11.0` already in dependencies; `@types/web-bluetooth` to remove from devDependencies
 - Tauri v2 invoke: `import { invoke } from '@tauri-apps/api/core'`
-- Tauri v2 listen: `import { listen } from '@tauri-apps/api/event'` — returns `Promise<UnlistenFn>`
+- Tauri v2 listen: `import { listen, type UnlistenFn } from '@tauri-apps/api/event'` — returns `Promise<UnlistenFn>`
+
+### Shared Types
+- `apps/frontend/src/types.ts` — `Direction` type (imported by use-gamepad.ts)
 
 </canonical_refs>
 
@@ -93,18 +104,19 @@ Return shapes are locked and must not change — `app.tsx`, `control-pad.tsx`, a
 ## Existing Code Insights
 
 ### Reusable Assets
-- `apps/frontend/src/types.ts` — `Direction` type (`"F" | "B" | "L" | "R" | "S"`). Import it in `use-gamepad.ts` for the `listen<{ direction: Direction }>` type parameter.
+- `apps/frontend/src/types.ts` — `Direction` type (`"F" | "B" | "L" | "R" | "S"`). Import in `use-gamepad.ts` for `listen<{ direction: Direction }>` type parameter.
 - `@tauri-apps/api` — Already in `dependencies` (not devDependencies). `invoke` from `@tauri-apps/api/core`, `listen`/`UnlistenFn` from `@tauri-apps/api/event`.
 
 ### Established Patterns
 - Current hooks use `useRef` for mutable state that doesn't trigger re-renders (e.g., `characteristicRef`, `frameRef`, `connectedRef`). Extend the same pattern for `unlistenersRef`.
-- `useCallback` used for `connect` and `send` — keep this.
-- `useEffect` with a cleanup return — the `listen()` async setup fits naturally inside the existing `useEffect` in `use-gamepad.ts`.
-- Error handling in `connect()`: catch block sets state to `"disconnected"`. Keep same error handling shape with `invoke` rejection.
+- `useCallback` used for `connect` and `send` — use with empty deps (both only reference stable `setState` and module-level `invoke`).
+- `useEffect` with cleanup return — the `listen()` async setup sets up listeners on mount and returns unlisten cleanup.
+- Error handling in `connect()`: catch block sets state to `"disconnected"` then re-throws. Keep same pattern with `invoke` rejection.
+- `send()` is fire-and-forget (`void` the promise) — errors silently ignored, matching current pattern.
 
 ### Integration Points
-- `use-bluetooth.ts` useEffect: set up `listen("ble-state-changed", ...)` to update `BluetoothState`. `connect` callback calls `invoke("ble_connect")`. `send` callback calls `invoke("ble_send", { command: data })`.
-- `use-gamepad.ts` useEffect: set up 3 listeners — `listen("gamepad-direction", ...)` updates `direction`, `listen("gamepad-connected", ...)` sets `gamepadConnected: true`, `listen("gamepad-disconnected", ...)` sets `gamepadConnected: false` and `direction: "S"`.
+- `use-bluetooth.ts` `useEffect`: set up `listen("ble-state-changed", ...)` to update `BluetoothState`. `connect` callback calls `invoke("ble_connect")`. `send` callback calls `invoke("ble_send", { command: data })`.
+- `use-gamepad.ts` `useEffect`: set up 3 listeners — `listen("gamepad-direction", ...)` updates `direction`, `listen("gamepad-connected", ...)` sets `gamepadConnected: true`, `listen("gamepad-disconnected", ...)` sets `gamepadConnected: false` and `direction: "S"`.
 - Remove `requestAnimationFrame` polling loop entirely from `use-gamepad.ts`.
 - Remove all `navigator.bluetooth` and `navigator.getGamepads` references.
 
@@ -116,6 +128,9 @@ Return shapes are locked and must not change — `app.tsx`, `control-pad.tsx`, a
 - `unsupported` state: always `false` in Tauri (invoke is always available). Initialize state to `"disconnected"` directly, remove the `typeof navigator !== "undefined" && "bluetooth" in navigator` check.
 - `send` function: `void invoke("ble_send", { command: data })` — fire-and-forget matching current behavior.
 - Test mock pattern for listen: `vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(vi.fn()) }))`. Capture specific event callbacks by branching on the event name argument.
+- `Direction` type imported from `src/types.ts` (not defined locally). `BluetoothState` union stays inline.
+- `connect()`: `useCallback` with empty deps, sets `"connecting"` before `invoke`, catches errors → `"disconnected"` → re-throw.
+- Listener setup: `useEffect` on mount for all `listen()` calls. Store `UnlistenFn` in `unlistenersRef` array. Cleanup calls all unlisteners.
 
 </specifics>
 
@@ -127,5 +142,6 @@ None — discussion stayed within Phase 9 scope.
 </deferred>
 
 ---
+
 *Phase: 9-Hook Rewrites*
 *Context gathered: 2026-05-06*
