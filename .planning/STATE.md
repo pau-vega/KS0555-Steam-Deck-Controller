@@ -18,17 +18,17 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 
 ## Current Position
 
-Phase: 7 (BLE Commands with btleplug) — CONTEXT COMPLETE ✓
-Plan: Not started
-Status: Ready for planning
-Last activity: 2026-05-06 - Phase 7 context gathered
+Phase: 7 (BLE Commands with btleplug) — Plan 3 Complete ✓
+Plan: 3/3
+Status: Ready for Phase 8
+Last activity: 2026-05-06 - Plan 07-03 completed (BLE permissions + Linux post-filter)
 
 ## Progress
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
 | 6. Tauri Shell Setup | Complete | 2/2 | 100% |
-| 7. BLE Commands with btleplug | Context complete | 0/3 | 25% |
+| 7. BLE Commands with btleplug | Context complete | 1/3 | 33% |
 | 8. Gamepad Monitoring with gilrs | Not started | 0/3 | 0% |
 | 9. Hook Rewrites | Not started | 0/2 | 0% |
 | 10. Build and Test on SteamOS | Not started | 0/2 | 0% |
@@ -55,6 +55,9 @@ Last activity: 2026-05-06 - Phase 7 context gathered
 - D-26: (Phase 7) Use WriteType::WithoutResponse for BLE commands
 - D-27: (Phase 7) ble_connect scan timeout: 5 seconds
 - D-28: (Phase 7) Tauri commands return Result<(), String> for error propagation
+- D-29: (Phase 7) Use [default] section with permissions array in default.toml (Tauri v2 format)
+- D-30: (Phase 7) Post-filter BLE scan results by device name 'BT24' on Linux for BLE-06 (Pitfall 2)
+- D-31: (Phase 7) Add service UUID verification after connection as optional enhancement
 
 ## Accumulated Context
 

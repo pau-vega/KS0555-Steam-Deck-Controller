@@ -49,7 +49,7 @@ Plans:
 Plans:
 - [ ] 07-01-PLAN.md — BLE Connection Command with State Management (BLE-01, BLE-04, BLE-05)
 - [ ] 07-02-PLAN.md — BLE Send and Disconnect Commands (BLE-02, BLE-03)
-- [ ] 07-03-PLAN.md — Tauri Permissions and Linux Filtering (BLE-06)
+- [x] 07-03-PLAN.md — Tauri Permissions and Linux Filtering (BLE-06)
 
 ### Phase 8: Gamepad Monitoring with gilrs
 **Goal**: Background thread polls gilrs and emits gamepad events to frontend
@@ -92,7 +92,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Tauri Shell Setup | 2/2 | Complete | ✓ |
-| 7. BLE Commands with btleplug | 0/3 | Planned | - |
+| 7. BLE Commands with btleplug | 1/3 | In Progress | 07-03 complete |
 | 8. Gamepad Monitoring with gilrs | 0/3 | Not started | - |
 | 9. Hook Rewrites | 0/2 | Not started | - |
 | 10. Build and Test on SteamOS | 0/2 | Not started | - |
