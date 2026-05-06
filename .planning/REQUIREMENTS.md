@@ -22,7 +22,7 @@ Requirements for Tauri v2 migration milestone. Each maps to roadmap phases.
 - [ ] **BLE-03**: Implement ble_send Tauri command that writes command string (F/B/L/R/S) to BT24 characteristic UUID 0000ffe1-0000-1000-8000-00805f9b34fb using WriteType::WithoutResponse
 - [ ] **BLE-04**: Store connected Peripheral in Tauri managed state (app.manage()) for access across commands
 - [ ] **BLE-05**: Handle btleplug CentralEvent::DeviceDisconnected to auto-emit "ble-state-changed" with "disconnected" when robot disconnects unexpectedly
-- [ ] **BLE-06**: Post-filter scan results by device name "BT24" on Linux since BlueZ merges discovery filters across all D-Bus clients
+- [x] **BLE-06**: Post-filter scan results by device name "BT24" on Linux since BlueZ merges discovery filters across all D-Bus clients
 
 ### Gamepad Input (gilrs)
 
@@ -85,7 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLE-03 | Phase 7 | Pending |
 | BLE-04 | Phase 7 | Pending |
 | BLE-05 | Phase 7 | Pending |
-| BLE-06 | Phase 7 | Pending |
+| BLE-06 | Phase 7 | Complete |
 | GPAD-01 | Phase 8 | Pending |
 | GPAD-02 | Phase 8 | Pending |
 | GPAD-03 | Phase 8 | Pending |
