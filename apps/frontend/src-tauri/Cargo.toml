@@ -6,15 +6,15 @@ authors = ["KS0555"]
 edition = "2021"
 
 [build-dependencies]
-tauri-build = { version = "2.10.1", features = [] }
+tauri-build = { version = "2.6.0", features = [] }
 
 [dependencies]
-tauri = { version = "2.10.1", features = ["default", "devtools"] }
+tauri = { version = "2.11.0", features = ["default", "devtools"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # BLE communication (Phase 7)
-btleplug = { version = "0.12.0", features = ["bluez"] }
+btleplug = "0.12.0"
 
 # Gamepad input (Phase 8)
 gilrs = "0.11.1"

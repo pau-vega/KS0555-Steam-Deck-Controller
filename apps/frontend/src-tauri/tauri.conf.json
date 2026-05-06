@@ -22,9 +22,6 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["appimage"],
-    "linux": {
-      "category": "Game"
-    }
+    "targets": ["appimage"]
   }
 }
