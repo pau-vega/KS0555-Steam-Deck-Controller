@@ -1,8 +1,8 @@
 ---
 milestone: v2.0
 milestone_name: Tauri Migration
-status: planning
-progress_phases: 0
+status: in_progress
+progress_phases: 5
 progress_plans: 0
 progress_tasks: 0
 ---
@@ -14,19 +14,24 @@ progress_tasks: 0
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Milestone v2.0 — Tauri Migration
+**Current focus:** Phase 6 — Tauri Shell Setup (executing Wave 1)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 - Milestone v2.0 started
+Phase: 6 (Tauri Shell Setup)
+Plan: Wave 1 (06-01, 06-02)
+Status: Executing Wave 1
+Last activity: 2026-05-06 - Phase 6 execution started
 
 ## Progress
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
+| 6. Tauri Shell Setup | Not started | 0/3 | 0% |
+| 7. BLE Commands with btleplug | Not started | 0/3 | 0% |
+| 8. Gamepad Monitoring with gilrs | Not started | 0/3 | 0% |
+| 9. Hook Rewrites | Not started | 0/2 | 0% |
+| 10. Build and Test on SteamOS | Not started | 0/2 | 0% |
 
 ## Decisions Made
 
