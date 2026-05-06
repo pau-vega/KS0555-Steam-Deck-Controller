@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod ble;
-use ble::{BleState, setup_event_listener, ble_connect};
+use ble::{BleState, setup_event_listener, ble_connect, ble_disconnect, ble_send};
 use tauri::Manager;
 
 fn main() {
@@ -17,7 +17,9 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            ble_connect, // BLE-01
+            ble_connect,    // BLE-01
+            ble_disconnect, // BLE-02
+            ble_send,       // BLE-03
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

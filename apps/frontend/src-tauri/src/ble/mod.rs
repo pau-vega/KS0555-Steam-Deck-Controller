@@ -102,3 +102,66 @@ pub fn setup_event_listener(app: AppHandle, state: BleState) {
         }
     });
 }
+
+const BT24_CHAR_UUID: &str = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+#[tauri::command]
+pub async fn ble_disconnect(
+    app: AppHandle,
+    state: tauri::State<'_, BleState>,
+) -> Result<(), String> {
+    match state.get() {
+        Some(peripheral) => {
+            // Disconnect from peripheral
+            peripheral.disconnect().await
+                .map_err(|e| format!("Failed to disconnect: {}", e))?;
+
+            // Clear state
+            state.set(None);
+
+            // Emit disconnected event (BLE-02)
+            app.emit("ble-state-changed", "disconnected")
+                .map_err(|e| format!("Failed to emit disconnected: {}", e))?;
+
+            Ok(())
+        }
+        None => Err("Not connected to any device".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn ble_send(
+    app: AppHandle,
+    state: tauri::State<'_, BleState>,
+    command: String,
+) -> Result<(), String> {
+    // Validate command is a single character (F/B/L/R/S)
+    if command.len() != 1 {
+        return Err(format!("Invalid command: '{}'. Must be single char (F/B/L/R/S)", command));
+    }
+
+    let peripheral = state.get()
+        .ok_or_else(|| "Not connected to BT24 device".to_string())?;
+
+    // Discover services to find characteristic
+    peripheral.discover_services().await
+        .map_err(|e| format!("Failed to discover services: {}", e))?;
+
+    // Find the BT24 characteristic
+    let chars = peripheral.characteristics();
+    let char_uuid = uuid::Uuid::parse_str(BT24_CHAR_UUID)
+        .map_err(|e| format!("Invalid UUID: {}", e))?;
+
+    let characteristic = chars.iter()
+        .find(|c| c.uuid == char_uuid)
+        .ok_or_else(|| "BT24 characteristic not found".to_string())?;
+
+    // Convert command to bytes
+    let data = command.as_bytes().to_vec();
+
+    // Write to characteristic using WithoutResponse (D-02)
+    peripheral.write(&characteristic, &data, btleplug::api::WriteType::WithoutResponse).await
+        .map_err(|e| format!("Failed to send command '{}': {}", command, e))?;
+
+    Ok(())
+}
