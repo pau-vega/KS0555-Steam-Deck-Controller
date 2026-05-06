@@ -1,7 +1,22 @@
 # Tauri v2 permissions - Phase 7 BLE commands added
 
-# Include BLE permissions
-"ble.toml"
+[default]
+description = "Default permissions for BLE commands"
+
+permissions = [
+  "ble-connect",
+  "ble-disconnect",
+  "ble-send",
+  "ble-state-changed"
+]
 
 # Future: Phase 8 gamepad permissions will be added here
-# "gamepad.toml"
+# permissions = [
+#   "ble-connect",
+#   "ble-disconnect",
+#   "ble-send",
+#   "ble-state-changed",
+#   "gamepad-connect",
+#   "gamepad-disconnect",
+#   "gamepad-state-changed"
+# ]
