@@ -32,17 +32,19 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 - ✓ React UI with connection status and manual control buttons — Phase 3
 - ✓ Gamepad API integration with deadzone and direction-change guard — Phase 3
 - ✓ WebSocket auto-reconnect — Phase 3
+- ✓ Tauri v2 desktop shell with src-tauri Rust backend (Linux/SteamOS target) — Phase 6
+- ✓ BLE communication via btleplug crate — Phase 7
+- ✓ Gamepad input via gilrs crate — Phase 8
+- ✓ Tauri commands: ble_connect, ble_disconnect, ble_send — Phase 7
+- ✓ Background threads emitting events: ble-state-changed, gamepad-direction, gamepad-connected, gamepad-disconnected — Phases 7-8
+- ✓ Rewrite use-bluetooth.ts → Tauri invoke() + listen() — Phase 9
+- ✓ Rewrite use-gamepad.ts → Tauri listen() for gamepad events — Phase 9
+- ✓ Stable hook interfaces preserved (app.tsx unchanged) — Phases 7-9
 
 ### Active
 
-- [ ] Tauri v2 desktop shell with src-tauri Rust backend (Linux/SteamOS target)
-- [ ] BLE communication via btleplug crate (replaces Web Bluetooth API)
-- [ ] Gamepad input via gilrs crate (replaces navigator.getGamepads())
-- [ ] Rewrite use-bluetooth.ts → Tauri invoke() + listen() for BLE
-- [ ] Rewrite use-gamepad.ts → Tauri listen() for gamepad events
-- [ ] Keep stable hook interfaces — app.tsx, control-pad.tsx, status-bar.tsx unchanged
-- [ ] Tauri commands: ble_connect, ble_disconnect, ble_send
-- [ ] Background threads emitting events: ble-state-changed, gamepad-direction, gamepad-connected, gamepad-disconnected
+- [ ] Build and test on SteamOS target — Docker cross-compile via tauri-action, SteamOS read-only filesystem setup, Bluetooth permissions, AppImage distribution
+- [ ] Rust integration tests mocking btleplug/gilrs for event pipeline validation
 
 ### Out of Scope
 
@@ -79,14 +81,14 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Tauri v2 over v1 | v2 is current stable, better SteamOS support | — Pending |
-| btleplug for BLE | Cross-platform Rust BLE crate, works on Linux/SteamOS | — Pending |
-| gilrs for gamepad | Rust gamepad library, sees Steam Deck built-in controller | — Pending |
-| Replace Web Bluetooth API | WebKitGTK on SteamOS blocks navigator.bluetooth | — Pending |
-| Replace Gamepad API | Steam Input intercepts before WebView gets it | — Pending |
-| Keep hook return shapes stable | app.tsx, control-pad.tsx, status-bar.tsx must be unchanged | — Pending |
-| Monorepo preserved | src-tauri lives inside apps/frontend/, pnpm for packages | — Pending |
-| Deprecate apps/backend | Fastify + WebSocket no longer needed, Tauri Rust backend replaces it | — Pending |
+| Tauri v2 over v1 | v2 is current stable, better SteamOS support | ✓ Implemented Phase 6 |
+| btleplug for BLE | Cross-platform Rust BLE crate, works on Linux/SteamOS | ✓ Implemented Phase 7 |
+| gilrs for gamepad | Rust gamepad library, sees Steam Deck built-in controller | ✓ Implemented Phase 8 |
+| Replace Web Bluetooth API | WebKitGTK on SteamOS blocks navigator.bluetooth | ✓ Done Phase 7 (Rust) + Phase 9 (hooks) |
+| Replace Gamepad API | Steam Input intercepts before WebView gets it | ✓ Done Phase 8 (Rust) + Phase 9 (hooks) |
+| Keep hook return shapes stable | app.tsx, control-pad.tsx, status-bar.tsx must be unchanged | ✓ Verified Phase 9 |
+| Monorepo preserved | src-tauri lives inside apps/frontend/, pnpm for packages | ✓ Implemented Phase 6 |
+| Deprecate apps/backend | Fastify + WebSocket no longer needed, Tauri Rust backend replaces it | ✓ Deprecated Phase 6 |
 
 ## Evolution
 
@@ -106,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 after milestone v1.1 start*
+*Last updated: 2026-05-06 after Phase 9*
