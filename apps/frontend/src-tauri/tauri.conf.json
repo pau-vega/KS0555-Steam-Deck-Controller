@@ -1,0 +1,30 @@
+{
+  "productName": "Robot Controller",
+  "version": "0.1.0",
+  "identifier": "com.ks0555.robotcontroller",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "fullscreen": true,
+        "decorations": false,
+        "title": "Robot Controller"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:5173; script-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage"],
+    "linux": {
+      "category": "Game"
+    }
+  }
+}
