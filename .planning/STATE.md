@@ -20,13 +20,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 9 Hook Rewrites — Context gathered ✓
+**Current focus:** Phase 9 Hook Rewrites — Context updated ✓
  
 ## Current Position
 
 Phase: 09
 Plan: 00/TBD
-Status: Context gathered
+Status: Context updated
 Last activity: 2026-05-06
 
 ## Progress
