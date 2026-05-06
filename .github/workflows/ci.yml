@@ -27,3 +27,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo build lint typecheck test
       - run: pnpm format:check
+      - name: verify app.tsx unchanged
+        run: git diff --exit-code -- apps/frontend/src/app.tsx
