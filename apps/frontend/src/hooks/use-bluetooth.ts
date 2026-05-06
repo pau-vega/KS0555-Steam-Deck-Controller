@@ -1,59 +1,52 @@
-import { useState, useCallback, useRef } from "react"
+import { invoke } from "@tauri-apps/api/core"
+import { listen, type UnlistenFn } from "@tauri-apps/api/event"
+import { useState, useCallback, useRef, useEffect } from "react"
 
-const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
-const CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
-
-type BluetoothState = "disconnected" | "connecting" | "connected" | "unsupported"
+type BluetoothState = "disconnected" | "connecting" | "connected"
 
 export function useBluetooth() {
-  const [state, setState] = useState<BluetoothState>(() =>
-    typeof navigator !== "undefined" && "bluetooth" in navigator ? "disconnected" : "unsupported",
-  )
-  const characteristicRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null)
+  const [state, setState] = useState<BluetoothState>("disconnected")
+  const unlistenersRef = useRef<UnlistenFn[]>([])
 
   const connect = useCallback(async () => {
-    if (!("bluetooth" in navigator)) {
-      setState("unsupported")
-      return
-    }
-
     setState("connecting")
     try {
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [{ name: "BT24" }],
-        optionalServices: [SERVICE_UUID],
-      })
-
-      device.addEventListener("gattserverdisconnected", () => {
-        setState("disconnected")
-        characteristicRef.current = null
-      })
-
-      if (!device.gatt) {
-        setState("disconnected")
-        return
-      }
-
-      const server = await device.gatt.connect()
-      const service = await server.getPrimaryService(SERVICE_UUID)
-      const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID)
-      characteristicRef.current = characteristic
-      setState("connected")
-    } catch {
+      await invoke("ble_connect")
+    } catch (error) {
       setState("disconnected")
+      throw error
     }
   }, [])
 
   const send = useCallback((data: string) => {
-    const characteristic = characteristicRef.current
-    if (!characteristic) return
-    void characteristic.writeValue(new TextEncoder().encode(data))
+    void invoke("ble_send", { command: data })
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const setup = async () => {
+      const unlisten = await listen<string>("ble-state-changed", (event) => {
+        if (cancelled) return
+        const payload = event.payload as "connecting" | "connected" | "disconnected"
+        setState(payload)
+      })
+      unlistenersRef.current.push(unlisten)
+    }
+
+    setup()
+
+    return () => {
+      cancelled = true
+      unlistenersRef.current.forEach((fn) => fn())
+      unlistenersRef.current = []
+    }
   }, [])
 
   return {
     connected: state === "connected",
     connecting: state === "connecting",
-    unsupported: state === "unsupported",
+    unsupported: false as const,
     connect,
     send,
   }
