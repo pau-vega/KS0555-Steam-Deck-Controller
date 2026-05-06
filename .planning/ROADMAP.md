@@ -92,7 +92,11 @@ Plans:
   2. Gamepad events flow through Rust gilrs → Tauri event → React without using navigator.getGamepads()
   3. BLE connect/send works through Rust btleplug without using navigator.bluetooth
   4. app.tsx is unchanged after migration (verified with git diff)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — CI Pipeline + AppIcon + Tauri Build Config (VAL-01)
+- [ ] 10-02-PLAN.md — Rust Integration Tests + Validation + CI app.tsx Check (VAL-02, VAL-03, VAL-04)
 
 ---
 
