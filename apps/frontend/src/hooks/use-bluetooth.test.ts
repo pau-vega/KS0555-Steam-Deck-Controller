@@ -3,115 +3,105 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 import { useBluetooth } from "./use-bluetooth"
 
-const mockWriteValue = vi.fn()
-const mockGetCharacteristic = vi.fn()
-const mockGetPrimaryService = vi.fn()
-const mockGattConnect = vi.fn()
-const mockRequestDevice = vi.fn()
-const mockAddEventListener = vi.fn()
+const { mockInvoke, mockUnlisten, getBleStateCallback, setBleStateCallback } = vi.hoisted(() => {
+  let bleStateCallback: ((payload: string) => void) | null = null
+  return {
+    mockInvoke: vi.fn(),
+    mockUnlisten: vi.fn(),
+    getBleStateCallback: () => bleStateCallback,
+    setBleStateCallback: (cb: ((payload: string) => void) | null) => {
+      bleStateCallback = cb
+    },
+  }
+})
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: mockInvoke,
+}))
+
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn(
+    (_event: string, callback: (event: { payload: string }) => void) => {
+      setBleStateCallback((payload: string) => callback({ payload }))
+      return Promise.resolve(mockUnlisten)
+    },
+  ),
+}))
 
 describe("useBluetooth", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-
-    mockWriteValue.mockResolvedValue(undefined)
-    mockGetCharacteristic.mockResolvedValue({ writeValue: mockWriteValue })
-    mockGetPrimaryService.mockResolvedValue({ getCharacteristic: mockGetCharacteristic })
-    mockGattConnect.mockResolvedValue({ getPrimaryService: mockGetPrimaryService })
-    mockRequestDevice.mockResolvedValue({
-      gatt: { connect: mockGattConnect },
-      addEventListener: mockAddEventListener,
-    })
-
-    Object.defineProperty(navigator, "bluetooth", {
-      value: { requestDevice: mockRequestDevice },
-      configurable: true,
-      writable: true,
-    })
+    mockInvoke.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
+    setBleStateCallback(null)
   })
 
-  it("starts disconnected when bluetooth available", () => {
+  it("starts disconnected", () => {
     const { result } = renderHook(() => useBluetooth())
     expect(result.current.connected).toBe(false)
     expect(result.current.connecting).toBe(false)
     expect(result.current.unsupported).toBe(false)
   })
 
-  it("connect() sets connected after GATT chain resolves", async () => {
+  it("connect() sets connecting state then invokes ble_connect", async () => {
+    mockInvoke.mockResolvedValueOnce(undefined)
     const { result } = renderHook(() => useBluetooth())
 
-    await act(async () => {
-      await result.current.connect()
+    let promise: Promise<void>
+    act(() => {
+      promise = result.current.connect()
     })
 
+    // Should set connecting immediately
+    expect(result.current.connecting).toBe(true)
+
+    await act(async () => {
+      await promise!
+    })
+    expect(mockInvoke).toHaveBeenCalledWith("ble_connect")
+  })
+
+  it("send() calls invoke('ble_send')", () => {
+    const { result } = renderHook(() => useBluetooth())
+    result.current.send("F")
+    expect(mockInvoke).toHaveBeenCalledWith("ble_send", { command: "F" })
+  })
+
+  it("listener updates state from ble-state-changed payload", () => {
+    const { result } = renderHook(() => useBluetooth())
+
+    act(() => {
+      getBleStateCallback()!("connected")
+    })
     expect(result.current.connected).toBe(true)
     expect(result.current.connecting).toBe(false)
-  })
-
-  it("connect() requests device with BT24 name filter", async () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(mockRequestDevice).toHaveBeenCalledWith(expect.objectContaining({ filters: [{ name: "BT24" }] }))
-  })
-
-  it("send() writes encoded data when connected", async () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
 
     act(() => {
-      result.current.send("F")
+      getBleStateCallback()!("disconnected")
     })
-
-    expect(mockWriteValue).toHaveBeenCalledTimes(1)
-    const [arg] = mockWriteValue.mock.calls[0] ?? []
-    // TextEncoder().encode('F') → byte 70
-    expect(arg?.[0]).toBe(70)
-  })
-
-  it("send() does nothing when disconnected", () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    act(() => {
-      result.current.send("F")
-    })
-
-    expect(mockWriteValue).not.toHaveBeenCalled()
-  })
-
-  it("connect() sets disconnected on requestDevice rejection", async () => {
-    mockRequestDevice.mockRejectedValue(new Error("User cancelled"))
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
     expect(result.current.connected).toBe(false)
+  })
+
+  it("connect() sets disconnected on invoke rejection and re-throws", async () => {
+    mockInvoke.mockRejectedValueOnce(new Error("Connection failed"))
+    const { result } = renderHook(() => useBluetooth())
+
+    await act(async () => {
+      await expect(result.current.connect()).rejects.toThrow("Connection failed")
+    })
+
     expect(result.current.connecting).toBe(false)
+    expect(result.current.connected).toBe(false)
   })
 
-  it("connect() sets disconnected when device has no gatt", async () => {
-    mockRequestDevice.mockResolvedValue({
-      gatt: null,
-      addEventListener: mockAddEventListener,
-    })
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(result.current.connected).toBe(false)
+  it("cleanup calls unlisteners", async () => {
+    const { unmount } = renderHook(() => useBluetooth())
+    // Flush microtasks so the async effect setup completes
+    await act(async () => {})
+    unmount()
+    expect(mockUnlisten).toHaveBeenCalled()
   })
 })
