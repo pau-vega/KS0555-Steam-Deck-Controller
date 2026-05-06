@@ -43,7 +43,7 @@ Requirements for Tauri v2 migration milestone. Each maps to roadmap phases.
 
 ### Validation
 
-- [ ] **VAL-01**: `pnpm --filter @ks0555/frontend tauri dev` starts without errors on Linux/SteamOS
+- [x] **VAL-01**: `pnpm --filter @ks0555/frontend tauri dev` starts without errors on Linux/SteamOS
 - [ ] **VAL-02**: Gamepad events flow through Rust gilrs → Tauri event → React without using navigator.getGamepads()
 - [ ] **VAL-03**: BLE connect/send works through Rust btleplug without using navigator.bluetooth
 - [ ] **VAL-04**: app.tsx is unchanged after migration (verify with git diff)
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOOK-03 | Phase 9 | Pending |
 | HOOK-04 | Phase 9 | Pending |
 | HOOK-05 | Phase 9 | Pending |
-| VAL-01 | Phase 10 | Pending |
+| VAL-01 | Phase 10 | Complete |
 | VAL-02 | Phase 10 | Pending |
 | VAL-03 | Phase 10 | Pending |
 | VAL-04 | Phase 10 | Pending |

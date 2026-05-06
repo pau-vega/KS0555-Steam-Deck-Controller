@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-06T18:20:00.000Z"
+last_updated: "2026-05-06T18:40:00.000Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 5
@@ -20,13 +20,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 10 Build and Test on SteamOS — Ready to plan
+**Current focus:** Phase 10 Build and Test on SteamOS — In progress
  
 ## Current Position
 
 Phase: 10
-Plan: -/2
-Status: Ready to plan
+Plan: 1/2
+Status: In progress
 Last activity: 2026-05-06
 
 ## Progress
@@ -37,7 +37,7 @@ Last activity: 2026-05-06
 | 7. BLE Commands with btleplug | Complete | 3/3 | 100% |
 | 8. Gamepad Monitoring with gilrs | Complete | 3/3 | 100% |
 | 9. Hook Rewrites | Complete (verified) | 2/2 | 100% |
-| 10. Build and Test on SteamOS | Ready to plan | 0/2 | 0% |
+| 10. Build and Test on SteamOS | In progress | 1/2 | 50% |
 
 ## Decisions Made
 
@@ -81,6 +81,8 @@ Last activity: 2026-05-06
 - D-46: (Phase 10) Pragmatic pass model — CI validation sufficient, hardware test doc is non-blocking
 - D-47: (Phase 10) Focus SteamOS setup on read-only filesystem + Bluetooth permissions
 - D-48: (Phase 10) Add custom app icon and desktop metadata (replace Phase 6 placeholder)
+- D-49: (Plan 10-01) Use @v4 for checkout/setup-node, dtolnay/rust-toolchain@stable in build workflow
+- D-50: (Plan 10-01) Build-only mode for tauri-action — no release creation, artifact upload only
 
 ## Accumulated Context
 
@@ -156,5 +158,5 @@ Last activity: 2026-05-06
 ## Session Continuity
 
 Last session: 2026-05-06
-Stopped at: Phase 9 complete (verified), ready to plan Phase 10
+Stopped at: Completed 10-01-PLAN.md (CI pipeline + icon + bundle config)
 Resume file: None

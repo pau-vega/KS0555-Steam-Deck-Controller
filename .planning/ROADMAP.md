@@ -95,7 +95,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — CI Pipeline + AppIcon + Tauri Build Config (VAL-01)
+- [x] 10-01-PLAN.md — CI Pipeline + AppIcon + Tauri Build Config (VAL-01)
 - [ ] 10-02-PLAN.md — Rust Integration Tests + Validation + CI app.tsx Check (VAL-02, VAL-03, VAL-04)
 
 ---
@@ -108,7 +108,7 @@ Plans:
 | 7. BLE Commands with btleplug | 3/3 | Complete    | 2026-05-06 |
 | 8. Gamepad Monitoring with gilrs | 3/3 | Complete | 2026-05-06 |
 | 9. Hook Rewrites | 2/2 | Complete | 2026-05-06 |
-| 10. Build and Test on SteamOS | 0/2 | Not started | - |
+| 10. Build and Test on SteamOS | 1/2 | In progress | - |
 
 ---
 
