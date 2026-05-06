@@ -138,3 +138,67 @@ pub fn setup_gamepad_monitor(app: &tauri::App) -> Result<(), String> {
     // D-34: Spawn in setup() hook, no lifecycle management
     Ok(())
 }
+
+// ── Unit Tests ─────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deadzone_returns_stop() {
+        // Both axes below deadzone (0.15) should return S
+        assert_eq!(get_direction_from_axes(0.0, 0.0), Direction::S);
+        assert_eq!(get_direction_from_axes(0.1, 0.1), Direction::S);
+        assert_eq!(get_direction_from_axes(-0.14, 0.14), Direction::S);
+    }
+
+    #[test]
+    fn test_up_is_forward() {
+        // Negative Y = forward (standard gamepad convention)
+        assert_eq!(get_direction_from_axes(0.0, -1.0), Direction::F);
+        assert_eq!(get_direction_from_axes(-0.3, -0.8), Direction::F);
+    }
+
+    #[test]
+    fn test_down_is_backward() {
+        // Positive Y = backward
+        assert_eq!(get_direction_from_axes(0.0, 1.0), Direction::B);
+        assert_eq!(get_direction_from_axes(0.3, 0.8), Direction::B);
+    }
+
+    #[test]
+    fn test_left_is_left() {
+        // Negative X = left (dominant over small Y)
+        assert_eq!(get_direction_from_axes(-1.0, 0.0), Direction::L);
+        assert_eq!(get_direction_from_axes(-1.0, 0.2), Direction::L);
+    }
+
+    #[test]
+    fn test_right_is_right() {
+        // Positive X = right (dominant over small Y)
+        assert_eq!(get_direction_from_axes(1.0, 0.0), Direction::R);
+        assert_eq!(get_direction_from_axes(1.0, -0.2), Direction::R);
+    }
+
+    #[test]
+    fn test_deadzone_edge_cases() {
+        // Exactly at deadzone boundary should still be S
+        assert_eq!(get_direction_from_axes(0.149, 0.0), Direction::S);
+        assert_eq!(get_direction_from_axes(0.0, -0.149), Direction::S);
+    }
+
+    #[test]
+    fn test_strong_x_overrides_weak_y() {
+        // Large X with small Y → direction should be X-based
+        assert_eq!(get_direction_from_axes(0.8, 0.1), Direction::R);
+        assert_eq!(get_direction_from_axes(-0.8, -0.1), Direction::L);
+    }
+
+    #[test]
+    fn test_strong_y_overrides_weak_x() {
+        // Large Y with small X → direction should be Y-based
+        assert_eq!(get_direction_from_axes(0.1, -0.8), Direction::F);
+        assert_eq!(get_direction_from_axes(-0.1, 0.8), Direction::B);
+    }
+}
