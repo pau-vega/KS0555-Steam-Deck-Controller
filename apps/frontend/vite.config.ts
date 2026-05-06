@@ -8,5 +8,14 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
+  },
+  // Tauri integration settings (per D-21)
+  clearScreen: false, // Preserve Rust errors in terminal
+  server: {
+    strictPort: true, // Tauri expects fixed port 5173
+    port: 5173, // Must match devUrl in tauri.conf.json
+    watch: {
+      ignored: ['**/src-tauri/**'] // Don't reload on Rust changes
+    }
   }
 })
