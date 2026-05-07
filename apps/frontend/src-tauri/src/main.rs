@@ -19,6 +19,12 @@ fn main() {
         }
     }
 
+    // Gaming mode (Gamescope) — WebKitGTK fails GPU compositing under Gamescope.
+    // Disable compositing mode so the webview falls back to simple rendering.
+    if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
+        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+    }
+
     tauri::Builder::default()
         .setup(|app| {
             // Create and manage BLE state (D-05)
