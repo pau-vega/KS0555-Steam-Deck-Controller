@@ -32,12 +32,18 @@ jobs:
         run: pnpm build
 
       - uses: tauri-apps/tauri-action@v0
+        id: tauri-build-x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPIMAGE_EXTRACT_AND_RUN: 1
         with:
           projectPath: apps/frontend/src-tauri
-          uploadWorkflowArtifacts: true
+
+      - name: upload x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppImage-x64
+          path: apps/frontend/src-tauri/target/release/bundle/appimage/*.AppImage
 
   build-arm64:
     runs-on: ubuntu-22.04-arm
@@ -67,10 +73,16 @@ jobs:
         run: pnpm build
 
       - uses: tauri-apps/tauri-action@v0
+        id: tauri-build-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPIMAGE_EXTRACT_AND_RUN: 1
         with:
           projectPath: apps/frontend/src-tauri
           args: --target aarch64-unknown-linux-gnu
-          uploadWorkflowArtifacts: true
+
+      - name: upload arm64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppImage-arm64
+          path: apps/frontend/src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
