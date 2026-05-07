@@ -158,7 +158,7 @@ Last activity: 2026-05-06
 | 260507-001 | Apply the best practices for steam deck | 2026-05-07 | 731d92ad | [260507-001-steam-deck-best-practices](./quick/260507-001-steam-deck-best-practices/) |
 | 260507-002 | Mac dev support + low-friction Steam Deck install | 2026-05-07 | 70fa8961 | [260507-002-mac-dev-and-low-friction-deck-install](./quick/260507-002-mac-dev-and-low-friction-deck-install/) |
 | 260507-003 | Remove unused and obsolete code | 2026-05-07 | e3be7b1c | [260507-003-remove-unused-and-obsolete-code](./quick/260507-003-remove-unused-and-obsolete-code/) |
-| 260507-004 | Document how to run the app on each device | 2026-05-07 | _pending_ | [260507-004-document-run-on-each-device](./quick/260507-004-document-run-on-each-device/) |
+| 260507-004 | Document how to run the app on each device | 2026-05-07 | 5071a57d | [260507-004-document-run-on-each-device](./quick/260507-004-document-run-on-each-device/) |
 
 ## Session Continuity
 
