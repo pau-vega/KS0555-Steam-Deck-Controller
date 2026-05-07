@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-05-06T18:40:00.000Z"
-last_activity: 2026-05-07 - Completed quick task 260507-002: Mac dev support + low-friction Steam Deck install
+last_activity: 2026-05-07 - Completed quick task 260507-003: Remove unused and obsolete code
 progress:
   total_phases: 5
   completed_phases: 5
@@ -157,6 +157,7 @@ Last activity: 2026-05-06
 | 260505-nxp | delete 15 leftover .js files from TS migration | 2026-05-05 | 9332916 | [260505-nxp-make-sure-there-are-no-js-files-after-th](./quick/260505-nxp-make-sure-there-are-no-js-files-after-th/) |
 | 260507-001 | Apply the best practices for steam deck | 2026-05-07 | 731d92ad | [260507-001-steam-deck-best-practices](./quick/260507-001-steam-deck-best-practices/) |
 | 260507-002 | Mac dev support + low-friction Steam Deck install | 2026-05-07 | 70fa8961 | [260507-002-mac-dev-and-low-friction-deck-install](./quick/260507-002-mac-dev-and-low-friction-deck-install/) |
+| 260507-003 | Remove unused and obsolete code | 2026-05-07 | _pending_ | [260507-003-remove-unused-and-obsolete-code](./quick/260507-003-remove-unused-and-obsolete-code/) |
 
 ## Session Continuity
 

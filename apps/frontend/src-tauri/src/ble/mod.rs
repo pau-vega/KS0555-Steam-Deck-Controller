@@ -2,12 +2,14 @@ pub mod state;
 pub use state::BleState;
 use btleplug::{
     api::{Central, CentralEvent, Manager as ManagerTrait, Peripheral as PeripheralTrait, ScanFilter},
-    platform::{Adapter, Manager, Peripheral},
+    platform::Manager,
 };
-use tauri::{AppHandle, Emitter, Manager as TauriManager};
+use tauri::{AppHandle, Emitter};
 use tokio::time::{timeout, Duration};
 use futures::stream::StreamExt;
 
+// Reserved for D-31 — optional service-UUID verification after connect.
+#[allow(dead_code)]
 const BT24_SERVICE_UUID: &str = "0000ffe0-0000-1000-8000-00805f9b34fb";
 const BT24_NAME: &str = "BT24";
 const SCAN_TIMEOUT: Duration = Duration::from_secs(5);
@@ -35,7 +37,7 @@ pub async fn ble_connect(app: AppHandle, state: tauri::State<'_, BleState>) -> R
         let mut events = adapter.events().await
             .map_err(|e| format!("Failed to get events: {}", e))?;
                         while let Some(event) = events.next().await {
-            if let CentralEvent::DeviceDiscovered(device_id) = event {
+            if let CentralEvent::DeviceDiscovered(_device_id) = event {
                 // Get peripheral by device ID
                 let peripherals = adapter.peripherals().await
                     .map_err(|e| format!("Failed to get peripherals: {}", e))?;
@@ -94,7 +96,7 @@ pub async fn ble_connect(app: AppHandle, state: tauri::State<'_, BleState>) -> R
     }
 }
 
-pub fn setup_event_listener(app: AppHandle, state: BleState) {
+pub fn setup_event_listener(app: AppHandle, _state: BleState) {
     tauri::async_runtime::spawn(async move {
         // Get manager and adapter
         if let Ok(manager) = Manager::new().await {
@@ -143,7 +145,7 @@ pub async fn ble_disconnect(
 
 #[tauri::command]
 pub async fn ble_send(
-    app: AppHandle,
+    _app: AppHandle,
     state: tauri::State<'_, BleState>,
     command: String,
 ) -> Result<(), String> {

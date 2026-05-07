@@ -110,7 +110,6 @@ pnpm --filter @ks0555/frontend tauri:build  # macOS / Linux dev box
 | `apps/frontend/src-tauri/Info.plist`  | macOS Bluetooth usage description                             |
 | `packages/ui`                         | Shared component library (mostly placeholder for now)         |
 | `packages/eslint-config`, `packages/tsconfig` | Shared lint / TS configs                              |
-| `apps/backend/`                       | **Legacy** pre-Tauri WebSocket server — orphaned, do not use  |
 | `install-on-steamdeck.sh`             | One-shot installer for end users                              |
 | `build-steamdeck.sh`                  | On-device source build (SteamOS / Arch / Debian)              |
 | `docs/STEAM_DECK.md`                  | Steam Deck verification notes                                 |
