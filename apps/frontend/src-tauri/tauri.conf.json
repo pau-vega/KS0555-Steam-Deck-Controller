@@ -11,9 +11,12 @@
   "app": {
     "windows": [
       {
-        "fullscreen": true,
+        "title": "Robot Controller",
+        "width": 1280,
+        "height": 800,
+        "resizable": true,
         "decorations": false,
-        "title": "Robot Controller"
+        "center": true
       }
     ],
     "security": {
@@ -23,6 +26,11 @@
   "bundle": {
     "active": true,
     "targets": ["appimage"],
-    "icon": ["icons/icon.png"]
+    "icon": ["icons/icon.png"],
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
   }
 }

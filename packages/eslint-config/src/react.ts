@@ -5,6 +5,9 @@ import type { Linter } from "eslint"
 
 const config: Linter.Config[] = [
   {
+    ignores: ["**/target/**", "**/dist/**", "*.min.js", "*.log", "pnpm-debug.log*"],
+  },
+  {
     files: ["**/*.ts", "**/*.tsx"],
     plugins: {
       react: require("eslint-plugin-react") as ReactPlugin,
