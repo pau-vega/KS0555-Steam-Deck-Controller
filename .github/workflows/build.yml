@@ -116,3 +116,54 @@ jobs:
           files: apps/frontend/src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
           fail_on_unmatched_files: true
           generate_release_notes: true
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: build frontend
+        run: pnpm build
+
+      - uses: tauri-apps/tauri-action@v0
+        id: tauri-build-macos
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/frontend/src-tauri
+          args: --target universal-apple-darwin
+
+      - name: rename DMG with arch suffix
+        run: |
+          cd apps/frontend/src-tauri/target/universal-apple-darwin/release/bundle/dmg
+          for f in *.dmg; do
+            mv "$f" "RobotController-universal.dmg"
+          done
+
+      - name: upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DMG-macos
+          path: apps/frontend/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+
+      - name: attach DMG to GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/frontend/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          fail_on_unmatched_files: true
+          generate_release_notes: true

@@ -1,262 +1,145 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**TypeScript 6 Migration**
+**Steam Deck Robot Controller**
 
-A monorepo GitHub template (`base-monorepo-template`) used as the starting point for all new projects. Currently on TypeScript 5.9.3, migrating to TypeScript 6.x to stay on the latest compiler and address deprecations before they become errors in TS7.
+A Tauri v2 desktop app that connects a Steam Deck (or Mac, or any modern Linux box) to a Bluetooth Arduino robot driven by a DX-BT24 module. The Rust backend handles BLE via `btleplug` and gamepad input via `gilrs`; the React frontend runs in the Tauri WebView and talks to Rust through `invoke()` / `listen()`.
 
-**Core Value:** The template starts new projects on the latest TypeScript with zero deprecation warnings — clean slate every time.
+**Core Value:** Drive a real robot with the Deck's gamepad with low latency — single binary, no separate backend, no `rfcomm`, no Chrome flags.
+
+**Current Milestone:** v2.0 Tauri Migration (in progress) — replace browser-based Web Bluetooth + Gamepad APIs with native Rust alternatives so the app actually works under SteamOS / Gamescope.
 
 ### Constraints
 
-- **Compatibility**: All existing packages (showcase, ui, eslint-config) must build and typecheck after migration
-- **No deprecation warnings**: The template should be clean — no `ignoreDeprecations: "6.0"` workaround
-- **Minimal churn**: Only change what TS6 requires; don't reorganize unrelated config
+- **One process, one binary**: BLE peripheral handle and gamepad event loop both live in the Rust shell; the React side is presentational.
+- **Friction-free Steam Deck install**: end users install via a one-line `curl | bash` that drops an AppImage in `~/Applications/` and registers a `.desktop` entry; no source build, no manual deps.
+- **Mac dev parity**: same `tauri:dev` runs on macOS via CoreBluetooth + IOKit so contributors don't need to boot the Deck for every iteration.
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:codebase/STACK.md -->
 ## Technology Stack
 
-## Languages
-- TypeScript 5.9.3 - Used across all packages and applications for type-safe development
-- JavaScript - Used in config files and build tooling
-- JSX/TSX - React component syntax used in UI package and showcase app
-## Runtime
-- Node.js 24+ (specified in `package.json` engines field and `.nvmrc`)
-- pnpm 10.29.3
-- Lockfile: `pnpm-lock.yaml` (enforced with `preferFrozenLockfile: true`)
-## Frameworks
-- React 19.2.5 - UI library for building components
-- React DOM 19.2.5 - React rendering for web
-- Base UI React 1.4.0 - Headless component library for accessible UI components
-- Tailwind CSS 4.2.2 - Utility-first CSS framework
-- @tailwindcss/vite 4.2.2 - Vite plugin for Tailwind CSS integration
-- @tailwindcss/postcss - PostCSS plugin for Tailwind CSS compilation
-- PostCSS - CSS transformation tool (via postcss.config.mjs in UI package)
-- Vite 8.0.8 - Fast build tool and dev server
-- Turbo 2.9.6 - Monorepo task orchestration
-- tsup 8.5.1 - TypeScript bundler (used for UI package and eslint-config)
-- Playwright 1.59.1 - E2E testing framework (showcase app)
-- Vitest 4.1.4 - Vite-native unit test framework
-- @vitest/coverage-v8 4.1.4 - V8-based coverage provider
-- ESLint 10.2.0 - JavaScript linting with flat config support
-- Prettier 3.8.2 - Code formatter
-- typescript-eslint 8.58.2 - TypeScript support for ESLint
-- @eslint-react/eslint-plugin 4.2.3 - React-specific ESLint rules
-- eslint-plugin-perfectionist 5.8.0 - Sorting plugins for consistency
-- eslint-plugin-react-hooks 7.0.1 - React Hooks linting rules
-- eslint-config-prettier 10.1.8 - Disables conflicting ESLint rules
-- eslint-plugin-prettier 5.5.5 - Prettier integration for ESLint
-- shadcn 4.2.0 - Component library CLI tool for adding pre-built components
-- class-variance-authority 0.7.1 - Type-safe component variant creation
-- clsx 2.1.1 - Conditional className utility
-- tailwind-merge 3.5.0 - Merge Tailwind CSS classes intelligently
-- lucide-react 1.8.0 - Icon library
-- cmdk 1.1.1 - Command menu component
-- date-fns 4.1.0 - Date manipulation library
-- react-day-picker 9.14.0 - Calendar component
-- embla-carousel-react 8.6.0 - Carousel component library
-- input-otp 1.4.2 - OTP input component
-- react-resizable-panels 4.10.0 - Resizable panel library
-- recharts 3.8.0 - React charting library
-- sonner 2.0.7 - Toast notification library
-- vaul 1.1.2 - Drawer component library
-- next-themes 0.4.6 - Theme switching utility
-- tw-animate-css 1.4.0 - Tailwind animation utilities
-- @fontsource-variable/inter 5.2.8 - Inter variable font
-- @testing-library/react 16.3.2 - React component testing utilities
-- @testing-library/jest-dom 6.9.1 - Custom Jest matchers for DOM
-- @testing-library/user-event 14.6.1 - User event simulation for testing
-- jsdom 29.0.2 - JavaScript implementation of web standards for testing
-- rimraf 6.1.3 - Cross-platform file deletion utility
-- glob 13.0.6 - File pattern matching (used in tsup config)
-- globals 17.5.0 - Global object/variable definitions for linting
-- husky 9.1.7 - Git hooks manager
-- @commitlint/cli 20.5.0 - Commit message linting
-- @commitlint/config-conventional 20.5.0 - Conventional commits config
-## Configuration
-- No `.env` files detected - This is a template/showcase project with no external dependencies requiring secrets
-- Configuration primarily through `tsconfig.base.json` with esnext target and bundler module resolution
-- Turbo configuration: `turbo.json` - Defines task dependencies, caching, and inputs/outputs
-- TypeScript: `tsconfig.base.json` - Base config with strict mode, module detection, noUncheckedIndexedAccess enabled
-- Prettier: `.prettierrc` - Semi-colon disabled, 120 character print width
-- PostCSS: `packages/ui/postcss.config.mjs` - Loads Tailwind CSS PostCSS plugin
-- pnpm workspaces: `pnpm-workspace.yaml` - Defines workspace packages in `apps/*` and `packages/*`
-- Catalog dependencies: All testing, type, and tooling packages use pnpm catalog for version management
-- Dedupe enabled: `dedupePeerDependents: true`
-## Platform Requirements
-- Node.js >= 24
-- pnpm 10.29.3
-- System supporting Node.js v24
-- No backend/server infrastructure required - This is a frontend component library and showcase application
-- Deployment target: Static site hosting (compatible with any static host via Vite output)
-## Workspace Structure
-- `packages/ui` - React component library with export subpaths for components, hooks, CSS, and utilities
-- `packages/tsconfig` - Shared TypeScript configuration with base config extending @tsconfig/node24
-- `packages/eslint-config` - Shared ESLint and Prettier configuration with node and react presets
-- `apps/showcase` - Vite + React showcase application demonstrating UI components, includes E2E tests with Playwright
+### Languages
+- TypeScript 5.9.3 - Frontend (`apps/frontend/src`) and shared configs
+- Rust (edition 2021) - Tauri shell (`apps/frontend/src-tauri/src`)
+- JavaScript - Vite/Vitest config files
+
+### Runtime
+- Node.js >= 18 (`.nvmrc` pins exact version)
+- pnpm 10.29.3 (lockfile-enforced via `preferFrozenLockfile: true`)
+- Rust stable (no `rust-toolchain.toml`; CI uses `dtolnay/rust-toolchain@stable`)
+
+### Frameworks & Major Crates
+- Tauri 2.11.0 (`tauri-build` 2.6.0) - desktop shell + IPC
+- React 19 + Vite 8 - frontend
+- Tailwind CSS 4 - styling
+- `btleplug` 0.12.0 - cross-platform BLE (BlueZ on Linux, CoreBluetooth on macOS, WinRT on Windows)
+- `gilrs` 0.11.1 (with `serde` feature) - gamepad input via udev/evdev on Linux, IOKit on macOS
+- `tokio` 1 + `futures` 0.3 - async runtime for BLE/gamepad event loops
+- Vitest 4 - frontend unit tests
+- Playwright 1.59 - E2E test harness (limited use)
+- ESLint 10 (flat config) + Prettier 3 + typescript-eslint 8
+
+### Configuration
+- Workspace: `pnpm-workspace.yaml` (`apps/*`, `packages/*`)
+- Build orchestration: `turbo.json`
+- TypeScript: `tsconfig.base.json` (strict, `noUncheckedIndexedAccess` on, `target: esnext`)
+- Tauri bundle: `apps/frontend/src-tauri/tauri.conf.json` (1280×800 window, no media framework on Linux to keep AppImage small)
+- macOS BLE permission: `apps/frontend/src-tauri/Info.plist` (`NSBluetoothAlwaysUsageDescription`)
+- CI: `.github/workflows/build.yml` (x86_64 AppImage, aarch64 AppImage, universal-apple-darwin DMG on tag push)
+
+### Platform Targets
+- **Steam Deck (SteamOS, x86_64)** - primary, distributed as AppImage
+- **macOS 11+ (Apple Silicon + Intel via universal binary)** - dev workstation, distributed as DMG
+- **Linux desktop (Arch / Debian / Ubuntu)** - dev workstation, build via `pnpm tauri build` or `./build-steamdeck.sh`
+
+### Workspace Structure
+- `apps/frontend` - Vite + React UI **and** the Tauri shell under `src-tauri/`
+- `packages/ui` - shared component library (placeholder for now)
+- `packages/eslint-config`, `packages/tsconfig` - shared lint / TS configs
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
-## Naming Patterns
-- kebab-case for all files: `button-group.tsx`, `utils.test.ts`, `eslint.config.ts`
-- Component files use `.tsx` extension
-- Test files use `.test.ts` or `.spec.ts` suffix
-- camelCase for all functions: `mergeProps()`, `useRender()`, `cn()`
-- React components use PascalCase: `ButtonGroup`, `Tabs`, `Card`
-- camelCase for all variable declarations: `buttonGroupVariants`, `className`, `orientation`
-- Exported constants use camelCase: `node` (ESLint config), `react` (ESLint config)
-- PascalCase for all types: `VariantProps`, `ComponentProps`
-- Import types using `import type` syntax: `import type { VariantProps } from "class-variance-authority"`
-- Generic type parameters prefixed with `T`: `TItem` (though rarely used in this codebase)
-## Code Style
-- Prettier with configuration: `{ "semi": false, "printWidth": 120 }`
-- No semicolons at end of statements
-- 120 character line width
-- Config file: `.prettierrc`
-- ESLint with flat config (v9+)
-- Separate configs for Node and React:
-- Config files: `eslint.config.ts` (not `.eslintrc.json`)
-- `@typescript-eslint/consistent-type-imports`: error — enforces `import type` for type-only imports
-- `perfectionist/sort-imports`: error — alphabetically sorts imports
-- `prettier/prettier`: warn — integration with Prettier
-- React-specific rules:
-## Import Organization
-- `@ui` — maps to `packages/ui/src` (used in tests)
-- `@monorepo-template/ui` — package export name (used in apps)
-- `@` — maps to `src` root in app projects (e.g., `@/components/example`)
-## Error Handling
-- No explicit try-catch patterns found in codebase
-- Functions do not use Result types
-- Components assume props are valid; no runtime validation
-- React components rely on TypeScript for type safety
-## Logging
-- No logging calls found in component code
-- Logging reserved for development/debugging only
-## Comments
-- JSDoc comments for complex Playwright test suites (describe blocks)
-- Comments explaining configuration choices (e.g., `export default defineConfig` comment in `playwright.config.ts`)
-- Minimal inline comments — code is expected to be self-documenting
-- Rarely used — code clarity prioritized over inline documentation
-- Example from `playwright.config.ts`:
-## Function Design
-- Prefer smaller, focused functions
-- Components typically 10-50 lines (including JSX)
-- Utility functions very concise (e.g., `cn()` is 3 lines)
-- Accept React.ComponentProps spreads for flexibility: `React.ComponentProps<"div">`, `TabsPrimitive.List.Props`
-- Use destructuring with rest operator: `{ className, orientation, ...props }`
-- Props grouped at end of parameters: `...props`
-- JSX components return single JSX element
-- Utility functions return typed values: `cn()` returns `string`
-- No explicit return type annotations on React components
-## Module Design
-- Named exports only (no default exports per project guidelines)
-- Multiple related functions exported together: `export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants }`
-- Path aliases used for clean imports
-- Index files re-export from components: `export { Button } from "./button"`
-- Allows `import { Button } from "@monorepo-template/ui/components/button"`
-## Type Patterns
-- Not heavily used in this codebase
-- Test suites use clear, single-responsibility functions
-- Prefer `prop?: Type` over `prop: Type | undefined`
-- Example: `className?: string`, `orientation?: "horizontal" | "vertical"`
-- Used extensively for component variants
-- Pattern: `const variantName = cva("base classes", { variants: { ... } })`
-- Variant props destructured from `VariantProps<typeof variantName>`
+### TypeScript / React
+- Files: kebab-case (`use-bluetooth.ts`, `control-pad.tsx`)
+- Components: PascalCase (`ControlPad`, `StatusBar`)
+- Functions / vars: camelCase
+- Types / interfaces: PascalCase, generic params prefixed with `T` (`TItem`)
+- Type-only imports always `import type` (enforced by `@typescript-eslint/consistent-type-imports`)
+- No default exports (except where a framework requires it)
+- Prettier: no semicolons, 120-char width
+- See `.agents/rules/typescript.md` for the full rule set (Result types, no `any`, discriminated unions, etc.)
+
+### Rust
+- Standard `cargo fmt` formatting
+- Modules organised by feature: `src/ble/mod.rs`, `src/gamepad/mod.rs`
+- Tauri commands return `Result<T, String>` so the frontend gets a serialisable error
+- Shared state lives behind `tokio::sync::Mutex` inside a `tauri::State`-managed struct
+
+### Commits
+- Conventional Commits enforced via commitlint (`commitlint.config.ts`) and a Husky `commit-msg` hook
+- Scope examples: `feat(tauri): ...`, `feat(steam-deck): ...`, `fix(ble): ...`, `docs(running): ...`
+
+### GSD planning artefacts
+- Phase work lives under `.planning/phases/<NN>-...`
+- Quick tasks (this is one of them) live under `.planning/quick/<DATE>-<slug>/`
+- Each quick task has a `PLAN.md`, then a `SUMMARY.md` once complete; `STATE.md` at the planning root tracks the current commit hash
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
-## Pattern Overview
-- Workspace-based monorepo (pnpm) with two main workspaces: `/apps` and `/packages`
-- Centralized UI component library (`@monorepo-template/ui`) providing reusable React components
-- Showcase application (`apps/showcase`) demonstrates all UI components
-- Build pipeline orchestrated through Turbo with task dependencies and caching
-- Strict TypeScript with `noUncheckedIndexedAccess` enabled across all packages
-- Component styling via Tailwind CSS + CVA (Class Variance Authority) for variants
-## Layers
-- Purpose: Orchestrate builds, linting, and testing across all workspaces
-- Location: `/Users/pauvelascogarrofe/Documents/base-monorepo-template`
-- Contains: Root `package.json`, Turbo configuration, TypeScript base config, shared tooling
-- Depends on: pnpm workspaces, Turbo, shared dev dependencies
-- Used by: All workspace packages through npm/pnpm resolution
-- Purpose: Shared, reusable code and configurations
-- Location: `/packages`
-- Contains: UI component library, ESLint config, TypeScript configs
-- Depends on: React, Tailwind CSS, @base-ui/react
-- Used by: Apps and other packages via workspace dependencies
-- Purpose: Centralized collection of accessible React UI components
-- Location: `/packages/ui/src`
-- Contains: 50+ components, custom hooks, utility functions
-- Depends on: @base-ui/react (headless components), class-variance-authority, clsx, tailwind-merge
-- Used by: `apps/showcase` and external consumers via npm exports
-- Purpose: End-user applications that consume packages
-- Location: `/apps`
-- Contains: Showcase application
-- Depends on: @monorepo-template/ui, React, Vite, Tailwind CSS
-- Used by: End users and developers
-- Purpose: Interactive demonstration and testing environment for all UI components
-- Location: `/apps/showcase/src`
-- Contains: Component category pages, example compositions, Vite/React entry points
-- Depends on: @monorepo-template/ui, @base-ui/react, Vite, Playwright (E2E)
-- Used by: Developers, designers, and QA for component validation
-## Data Flow
-- No centralized state management; components are presentational
-- Props passed down from showcase category files to component instances
-- Each component fully controlled by parent (showcase category pages)
-- Test examples use `useCallback`, `useState` for demonstration
-## Key Abstractions
-- Purpose: Styled wrapper around headless primitives from @base-ui/react
-- Examples: `packages/ui/src/components/button.tsx`, `packages/ui/src/components/accordion.tsx`
-- Pattern: Named exports of sub-components (e.g., `Button`, `ButtonGroup` with multiple exports)
-- Implementation example (Button):
-- Purpose: Type-safe, maintainable component variants
-- Examples: `buttonVariants` in `packages/ui/src/components/button.tsx`
-- Pattern: `cva()` defines base classes and variant combinations
-- Extracts variant and size from props, generates optimized Tailwind classes
-- Purpose: Shared helper functions across components
-- Location: `packages/ui/src/lib/utils.ts`
-- Key function: `cn()` merges class names with Tailwind deduplication
-- Pattern: Wraps `clsx` + `tailwind-merge` for safe class composition
-- Purpose: Reusable React logic
-- Location: `packages/ui/src/hooks/`
-- Key hook: `useIsMobile()` - detects viewport size via media query
-- Pattern: Returns boolean state synced with window resize/media query changes
-- Purpose: Cleaner imports and API surface
-- Location: `packages/ui/src/index.ts`
-- Pattern: Re-exports all components and utilities in one file
-- Allows: `import { Button } from '@monorepo-template/ui'`
-## Entry Points
-- Location: `turbo.json`
-- Triggers: `pnpm dev` spawns Vite + watch processes for each workspace
-- Responsibilities: Coordinate workspace development builds
-- Location: `apps/showcase/src/main.tsx`
-- Triggers: Vite bundler creates development server on dev command
-- Responsibilities: Initialize React app, render App component with StrictMode
-- Code: Imports global styles, mounts App to DOM
-- Location: `apps/showcase/src/app.tsx`
-- Triggers: Called from main.tsx
-- Responsibilities: Render ComponentExample (the showcase page)
-- Code: Single-line component returning ComponentExample instance
-- Location: `apps/showcase/src/components/component-example.tsx`
-- Triggers: Called from App
-- Responsibilities: Render tabbed interface with 6 component category sections
-- Pattern: Tabs control which category examples display; each category is imported separately
-- Location: `packages/ui/src/index.ts`
-- Triggers: Build process exports this as library entry point
-- Responsibilities: Re-export all public components, hooks, utilities
-- Exports handled through `exports` field in `packages/ui/package.json` with subpath exports
-## Error Handling
-- Test files use `expect()` assertions from Vitest to validate expected behavior
-- Components assume valid props; no runtime validation (TypeScript provides compile-time safety)
-- Event handlers wrapped in async `userEvent.setup()` during testing for proper async handling
-## Cross-Cutting Concerns
-- `tailwind.config.ts` (if present) or inherited from Tailwind defaults
-- CSS reset and custom variables in `packages/ui/src/styles/globals.css`
-- Component-level utility: `cn()` function for safe class merging
+### Pattern Overview
+- Single Tauri v2 process. Rust owns the long-lived hardware handles (BLE peripheral, gamepad event loop). The React UI is a thin presentation layer that issues commands and subscribes to events.
+- Frontend ↔ Rust contract is the Tauri IPC: `invoke('ble_connect')` etc. for command-style calls, `listen('ble-state-changed')` etc. for event streams.
+- No HTTP server, no WebSocket, no separate backend process. The previous `apps/backend` Fastify server was removed in the v2.0 Tauri migration (Phase 6).
+
+### Data Flow
+
+```
+React (Vite, in Tauri WebView)
+        │ invoke()        ▲ listen()
+        ▼                 │
+Rust (Tokio runtime, src-tauri/src)
+   ├── ble/    btleplug   ──BLE──▶ BT24 (DX-BT24 module)  ──UART──▶ Arduino sketch
+   └── gamepad/ gilrs     ──evdev/IOKit──▶ Steam Deck / Mac controller
+```
+
+- BLE write payload is a single ASCII char (`F`/`B`/`L`/`R`/`S`) over the BT24's notify/write characteristic.
+- Gamepad left stick is sampled in a dedicated tokio task; deadzone is `0.15` (`apps/frontend/src-tauri/src/gamepad/mod.rs`). Direction changes are coalesced and re-emitted as `gamepad-direction` events.
+
+### Key Files
+| Concern | File |
+|---------|------|
+| BLE scan / connect / write | `apps/frontend/src-tauri/src/ble/mod.rs` |
+| Gamepad → Direction | `apps/frontend/src-tauri/src/gamepad/mod.rs` |
+| Tauri command registration | `apps/frontend/src-tauri/src/lib.rs` |
+| React entry | `apps/frontend/src/main.tsx` → `app.tsx` |
+| BLE hook (frontend) | `apps/frontend/src/hooks/use-bluetooth.ts` |
+| Gamepad hook (frontend) | `apps/frontend/src/hooks/use-gamepad.ts` |
+| Window / bundle config | `apps/frontend/src-tauri/tauri.conf.json` |
+| macOS BLE permission | `apps/frontend/src-tauri/Info.plist` |
+
+### Steam Deck Specifics
+- The Rust shell sets `WEBKIT_DISABLE_COMPOSITING_MODE=1` before `tauri::Builder` runs, working around a Gamescope + WebKitGTK compositing bug that otherwise crashes the window in Gaming Mode.
+- AppImage is built with `bundleMediaFramework: false` (keeps the artifact small — no GStreamer needed).
+- End-user install: `install-on-steamdeck.sh` downloads the AppImage from the latest GitHub Release, drops it in `~/Applications/`, registers a `.desktop` entry, and tells the user to "Add a Non-Steam Game" in Steam.
+- On-device source build (rare): `./build-steamdeck.sh` toggles `steamos-readonly`, installs `webkit2gtk-4.1` + `librsvg` + `patchelf` via pacman, then runs `pnpm tauri build`.
+
+### Mac Dev Parity
+- `pnpm dev` (= `pnpm --filter @ks0555/frontend tauri:dev`) runs the same Tauri shell on macOS.
+- `btleplug` switches to CoreBluetooth automatically; the first BLE scan triggers macOS's Bluetooth permission prompt (driven by `NSBluetoothAlwaysUsageDescription`).
+- CI also publishes `RobotController-universal.dmg` (Intel + Apple Silicon) on every tagged release so non-developers don't need a Rust toolchain.
+
+### Entry Points
+| Entry | Triggered by | Responsibility |
+|-------|--------------|----------------|
+| `apps/frontend/src-tauri/src/lib.rs::run()` | Tauri runtime / `tauri:dev` / packaged binary | Configure plugins, register commands, spawn BLE + gamepad tasks |
+| `apps/frontend/src/main.tsx` | Vite dev server / built bundle inside Tauri WebView | Mount React app |
+| `.github/workflows/build.yml` | git tag `v*` or `workflow_dispatch` | Build x64 AppImage, arm64 AppImage, universal macOS DMG; attach to Release |
+| `install-on-steamdeck.sh` | End user via `curl \| bash` in Konsole | Download latest AppImage, register desktop entry |
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->
