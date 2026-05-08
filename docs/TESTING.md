@@ -11,6 +11,7 @@ This document covers automated testing infrastructure and manual test procedures
 The frontend uses **Vitest 4.1.4** for unit and component tests, configured in `apps/frontend/vitest.config.ts`. The test environment is jsdom (browser-like DOM simulation).
 
 **Required setup:**
+
 - `pnpm install` must be run once to install devDependencies (@testing-library/react, @testing-library/jest-dom, jsdom)
 
 ### Backend (Rust)
@@ -18,6 +19,7 @@ The frontend uses **Vitest 4.1.4** for unit and component tests, configured in `
 The Rust backend has **integration tests** in `apps/frontend/src-tauri/tests/` but no unit test framework configured. Tests are cargo integration tests (a Rust standard library feature). A few `#[test]` marked functions exist for isolated checks, but most hardware-dependent code (BLE peripheral, gamepad event loop) is tested manually.
 
 **Key test files:**
+
 - `tauri_shell_test.rs` — Verifies Cargo.toml and tauri.conf.json configuration
 - `ble_*.rs` (6 files) — Integration tests for BLE state machine, connect, disconnect, send, event handling, and Linux peripheral filter
 - `validation_test.rs` — Combined validation of configuration and dependencies
@@ -80,11 +82,13 @@ cargo test -- --nocapture
 **File naming convention:** `*.test.ts` or `*.test.tsx` (colocated with the component/hook being tested)
 
 **Test location examples:**
+
 - Hook tests: `src/hooks/use-bluetooth.test.ts`
 - Component tests: `src/components/control-pad.test.tsx`
 - Module tests: `src/App.test.tsx`
 
 **Test setup:**
+
 - Use `describe()` and `it()` from vitest
 - Mock Tauri IPC with `vi.mock("@tauri-apps/api/...")` (see `use-bluetooth.test.ts` for patterns)
 - Use React Testing Library's `render()`, `renderHook()`, and `screen` for DOM testing
@@ -119,10 +123,10 @@ describe("useMyHook", () => {
 fn test_my_feature() {
     // Arrange
     let some_value = setup();
-    
+
     // Act
     let result = some_function(some_value);
-    
+
     // Assert
     assert_eq!(result, expected_value);
 }
@@ -135,6 +139,7 @@ fn test_my_feature() {
 No automated code coverage thresholds are configured. Coverage measurement is not enforced in CI.
 
 **Current coverage status:** Limited. Automated tests cover:
+
 - React component rendering and interaction (App, ControlPad, StatusBar)
 - React hooks (useBluetooth, useGamepad) with mocked Tauri IPC
 - Tauri shell configuration validation
@@ -163,11 +168,13 @@ Automated tests do not cover hardware interaction (BLE pairing, real gamepad inp
 ### Steam Deck BLE Testing
 
 **Prerequisites:**
+
 - Steam Deck in developer mode
 - DX-BT24 module in pairing mode (LED flashing)
 - Arduino sketch running on the robot
 
 **Procedure:**
+
 1. Launch the app from the desktop or Steam Library
 2. Observe "Scanning..." state in the UI
 3. Verify BLE scan discovers the DX-BT24 device
@@ -186,10 +193,12 @@ Automated tests do not cover hardware interaction (BLE pairing, real gamepad inp
 ### macOS BLE Testing (Development)
 
 **Prerequisites:**
+
 - Mac with Bluetooth enabled
 - Arduino robot with DX-BT24 module in pairing mode
 
 **Procedure:**
+
 1. Run `pnpm dev` from the project root
 2. Tauri dev window opens and prompts for Bluetooth permission (first run only)
 3. Grant the permission in System Preferences > Security & Privacy > Bluetooth
@@ -199,10 +208,12 @@ Automated tests do not cover hardware interaction (BLE pairing, real gamepad inp
 ### Gamepad Input Testing
 
 **Prerequisites:**
+
 - Steam Deck controller or USB controller connected
 - App running (either Tauri dev or built binary)
 
 **Procedure:**
+
 1. Verify gamepad detection in "Gamepad Status" section
 2. Move left stick in all four cardinal directions
 3. Verify direction changes displayed in "Current direction" field
@@ -213,11 +224,13 @@ Automated tests do not cover hardware interaction (BLE pairing, real gamepad inp
 ### End-to-End Robot Control
 
 **Prerequisites:**
+
 - Arduino robot with DX-BT24 BLE module and sketch installed
 - Robot powered on
 - Steam Deck or Mac running the app
 
 **Procedure:**
+
 1. Establish BLE connection (see Steam Deck or macOS BLE testing above)
 2. Verify gamepad is detected and connected
 3. Move the left stick forward — robot should move forward

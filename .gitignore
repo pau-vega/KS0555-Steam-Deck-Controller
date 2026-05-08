@@ -40,3 +40,9 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Claude
+.claude/scheduled_tasks.lock
+
+# OpenCode
+tui.json

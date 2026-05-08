@@ -1,4 +1,5 @@
 <!-- generated-by: gsd-doc-writer -->
+
 # @ks0555/tsconfig
 
 Shared TypeScript compiler configuration for the KS0555 Steam Deck Robot Controller monorepo.
@@ -66,15 +67,15 @@ Or for a React component library:
 
 ## Configuration Details
 
-| Setting | Base | Node | React | Purpose |
-|---------|------|------|-------|---------|
-| `target` | ES2022 | ES2022 | ES2022 | Compile to modern JavaScript |
-| `module` | ESNext | ESNext | ESNext | Support tree-shaking in bundlers |
-| `moduleResolution` | bundler | bundler | bundler | Resolve modules the way bundlers do |
-| `strict` | true | true | true | Enable all strict type checks |
-| `noUncheckedIndexedAccess` | true | true | true | Require index access guard checks |
-| `jsx` | — | — | react-jsx | JSX support (React 17+) |
-| `lib` | — | ES2022 | ES2022, DOM, DOM.Iterable | Include type definitions |
+| Setting                    | Base    | Node    | React                     | Purpose                             |
+| -------------------------- | ------- | ------- | ------------------------- | ----------------------------------- |
+| `target`                   | ES2022  | ES2022  | ES2022                    | Compile to modern JavaScript        |
+| `module`                   | ESNext  | ESNext  | ESNext                    | Support tree-shaking in bundlers    |
+| `moduleResolution`         | bundler | bundler | bundler                   | Resolve modules the way bundlers do |
+| `strict`                   | true    | true    | true                      | Enable all strict type checks       |
+| `noUncheckedIndexedAccess` | true    | true    | true                      | Require index access guard checks   |
+| `jsx`                      | —       | —       | react-jsx                 | JSX support (React 17+)             |
+| `lib`                      | —       | ES2022  | ES2022, DOM, DOM.Iterable | Include type definitions            |
 
 ## Rules & Conventions
 

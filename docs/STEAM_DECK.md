@@ -44,19 +44,20 @@ build-steam-deck:
 ### Steam Deck Gamepad Detection
 
 The app auto-detects Steam Deck via `use-gamepad.ts`:
+
 - Vendor ID: `057e` (Valve)
 - Product ID: `2009` (Steam Deck controller)
 - Fallback: matches "steam deck" or "galileo" in gamepad ID string
 
 ### Steam Input Best Practices (Verified Requirements)
 
-| Requirement | Implementation |
-|-------------|-----------------|
+| Requirement                     | Implementation                                         |
+| ------------------------------- | ------------------------------------------------------ |
 | Default controller config works | `use-gamepad.ts` maps all D-pad/joystick to directions |
-| On-screen keyboard | Tauri webview handles text inputs natively |
-| 1280×800 resolution | `tauri.conf.json` sets window to 1280×800 |
-| No launcher | Tauri is the launcher — app opens directly |
-| Cloud saves | Use Steam Cloud or `@tauri-apps/plugin-store` |
+| On-screen keyboard              | Tauri webview handles text inputs natively             |
+| 1280×800 resolution             | `tauri.conf.json` sets window to 1280×800              |
+| No launcher                     | Tauri is the launcher — app opens directly             |
+| Cloud saves                     | Use Steam Cloud or `@tauri-apps/plugin-store`          |
 
 ### Gyro/Trackpad Support
 

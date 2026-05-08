@@ -71,13 +71,13 @@ The app connects to your Steam Deck or Arduino robot via Bluetooth. On macOS, th
 
 All build tasks are orchestrated by Turbo and run across the workspace:
 
-| Command | Description |
-|---------|-------------|
-| `pnpm build` | Build the production bundle: TypeScript compilation, React minification, Rust release binary, Tauri bundle (DMG on macOS, AppImage on Linux) |
-| `pnpm typecheck` | Run TypeScript type checking across all packages without building |
-| `pnpm lint` | Run ESLint on all TypeScript and TSX files |
-| `pnpm format:check` | Check code formatting with Prettier (use `prettier --write .` to auto-fix) |
-| `pnpm test` | Run Vitest unit tests for the frontend |
+| Command             | Description                                                                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`        | Build the production bundle: TypeScript compilation, React minification, Rust release binary, Tauri bundle (DMG on macOS, AppImage on Linux) |
+| `pnpm typecheck`    | Run TypeScript type checking across all packages without building                                                                            |
+| `pnpm lint`         | Run ESLint on all TypeScript and TSX files                                                                                                   |
+| `pnpm format:check` | Check code formatting with Prettier (use `prettier --write .` to auto-fix)                                                                   |
+| `pnpm test`         | Run Vitest unit tests for the frontend                                                                                                       |
 
 ### Frontend-Specific Commands
 
@@ -110,12 +110,14 @@ src/
 ```
 
 **Naming Conventions:**
+
 - Files: `kebab-case` (`use-bluetooth.ts`, `control-pad.tsx`)
 - Components: `PascalCase` (`ControlPad`, `StatusBar`)
 - Functions & variables: `camelCase`
 - Types & interfaces: `PascalCase`
 
 **Framework Requirements:**
+
 - React components and custom hooks do not require explicit return type annotations
 - All other functions must have explicit return types
 - Use `import type` for type-only imports (enforced by ESLint)
@@ -136,6 +138,7 @@ src-tauri/src/
 ```
 
 **Rust Conventions:**
+
 - Use `cargo fmt` for formatting (enforced by Rust toolchain)
 - Modules organized by feature (`ble/`, `gamepad/`)
 - Tauri commands return `Result<T, String>` so errors serialize to the frontend
@@ -150,7 +153,7 @@ Communication between React and Rust follows the Tauri IPC pattern:
 
 ```typescript
 // Frontend
-const result = await invoke('ble_connect', { address: '00:11:22:33:44:55' });
+const result = await invoke("ble_connect", { address: "00:11:22:33:44:55" })
 ```
 
 Registered in `main.rs`:
@@ -168,9 +171,9 @@ app.emit("ble-state-changed", BleStateChange { ... })?;
 
 ```typescript
 // Frontend hook
-const unlisten = await listen('ble-state-changed', (event) => {
-  console.log(event.payload);
-});
+const unlisten = await listen("ble-state-changed", (event) => {
+  console.log(event.payload)
+})
 ```
 
 ## Code Style
@@ -192,6 +195,7 @@ pnpm lint
 Config file: `packages/eslint-config/src/react.ts` (applied to `apps/frontend/` via `.eslintrc` or `eslint.config.ts`).
 
 Key rules enforced:
+
 - `@typescript-eslint/consistent-type-imports` — always use `import type`
 - `import/no-default-exports` — no default exports
 - `perfectionist/sort-imports` — alphabetize imports
@@ -203,7 +207,7 @@ Key rules enforced:
 
 ```typescript
 // Avoid
-type C = A & B;
+type C = A & B
 
 // Prefer
 interface C extends A, B {}
@@ -214,15 +218,12 @@ interface C extends A, B {}
 ```typescript
 // Avoid — allows { status: "idle", data: someValue }
 type State<TData> = {
-  status: "idle" | "loading" | "success" | "error";
-  data?: TData;
-};
+  status: "idle" | "loading" | "success" | "error"
+  data?: TData
+}
 
 // Prefer — each status carries exactly the right fields
-type State<TData> =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "success"; data: TData };
+type State<TData> = { status: "idle" } | { status: "loading" } | { status: "success"; data: TData }
 ```
 
 - **Avoid `any`** — use generics or `unknown`

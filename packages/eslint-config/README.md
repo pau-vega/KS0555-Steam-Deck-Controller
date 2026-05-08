@@ -23,12 +23,13 @@ This package exports two configuration objects: `node` (for TypeScript/Node targ
 Use this in non-React TypeScript files:
 
 ```js
-import nodeConfig from "@ks0555/eslint-config/dist/node.js";
+import nodeConfig from "@ks0555/eslint-config/dist/node.js"
 
-export default [...nodeConfig];
+export default [...nodeConfig]
 ```
 
 **Includes:**
+
 - TypeScript file parsing via `@typescript-eslint/parser`
 - Import sorting via `eslint-plugin-perfectionist`
 - Project-based type checking (reads `tsconfig.json`)
@@ -39,12 +40,13 @@ export default [...nodeConfig];
 Use this in React + TypeScript projects:
 
 ```js
-import reactConfig from "@ks0555/eslint-config/dist/react.js";
+import reactConfig from "@ks0555/eslint-config/dist/react.js"
 
-export default [...reactConfig];
+export default [...reactConfig]
 ```
 
 **Includes:**
+
 - All node configuration rules
 - React and React Hooks rules via `eslint-plugin-react` and `eslint-plugin-react-hooks`
 - Global ignores for build artifacts (`dist/`, `target/`), minified files, and log files
@@ -56,6 +58,7 @@ Both configurations export arrays of ESLint flat config objects (compatible with
 ### node
 
 TypeScript linting rules for backend code, CLI utilities, or non-UI code. Configures:
+
 - Parser: `@typescript-eslint/parser` with TypeScript project loading
 - Plugins: `eslint-plugin-perfectionist` for import sorting
 - Rules: `perfectionist/sort-imports: error`
@@ -63,6 +66,7 @@ TypeScript linting rules for backend code, CLI utilities, or non-UI code. Config
 ### react
 
 Extends node rules with React-specific linting. Configures:
+
 - All node rules
 - Plugins: `eslint-plugin-react`, `eslint-plugin-react-hooks`, `eslint-plugin-perfectionist`
 - Global ignores: build output, minified files, and log files

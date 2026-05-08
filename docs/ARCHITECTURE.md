@@ -57,20 +57,20 @@ The frontend and Rust shell communicate via Tauri's IPC bridge. All communicatio
 
 ### Commands (Frontend → Rust)
 
-| Command | Invocation | Signature | Returns | Purpose |
-|---------|-----------|-----------|---------|---------|
-| `ble_connect` | `await invoke('ble_connect')` | `() → Result<(), String>` | Success or error message | Scan for BT24 device, connect, store peripheral in state |
-| `ble_disconnect` | `await invoke('ble_disconnect')` | `() → Result<(), String>` | Success or error message | Disconnect from peripheral, clear state |
-| `ble_send` | `await invoke('ble_send', { command: 'F' })` | `(command: String) → Result<(), String>` | Success or error message | Write single-char command (F/B/L/R/S) to BT24 characteristic |
+| Command          | Invocation                                   | Signature                                | Returns                  | Purpose                                                      |
+| ---------------- | -------------------------------------------- | ---------------------------------------- | ------------------------ | ------------------------------------------------------------ |
+| `ble_connect`    | `await invoke('ble_connect')`                | `() → Result<(), String>`                | Success or error message | Scan for BT24 device, connect, store peripheral in state     |
+| `ble_disconnect` | `await invoke('ble_disconnect')`             | `() → Result<(), String>`                | Success or error message | Disconnect from peripheral, clear state                      |
+| `ble_send`       | `await invoke('ble_send', { command: 'F' })` | `(command: String) → Result<(), String>` | Success or error message | Write single-char command (F/B/L/R/S) to BT24 characteristic |
 
 ### Events (Rust → Frontend)
 
-| Event | Payload | Emitted By | Frequency | Purpose |
-|-------|---------|-----------|-----------|---------|
-| `ble-state-changed` | `"connecting"` \| `"connected"` \| `"disconnected"` | BLE command handlers + event listener | Per state change | Track BLE connection state |
-| `gamepad-direction` | `{ direction: "F" \| "B" \| "L" \| "R" \| "S" }` | Gamepad monitor thread | Per direction change (coalesced) | Emit filtered left-stick direction |
-| `gamepad-connected` | `{ name: string }` | Gamepad monitor thread | Once on connect | Signal gamepad available |
-| `gamepad-disconnected` | `{ name: string }` | Gamepad monitor thread | Once on disconnect | Signal gamepad unavailable |
+| Event                  | Payload                                             | Emitted By                            | Frequency                        | Purpose                            |
+| ---------------------- | --------------------------------------------------- | ------------------------------------- | -------------------------------- | ---------------------------------- |
+| `ble-state-changed`    | `"connecting"` \| `"connected"` \| `"disconnected"` | BLE command handlers + event listener | Per state change                 | Track BLE connection state         |
+| `gamepad-direction`    | `{ direction: "F" \| "B" \| "L" \| "R" \| "S" }`    | Gamepad monitor thread                | Per direction change (coalesced) | Emit filtered left-stick direction |
+| `gamepad-connected`    | `{ name: string }`                                  | Gamepad monitor thread                | Once on connect                  | Signal gamepad available           |
+| `gamepad-disconnected` | `{ name: string }`                                  | Gamepad monitor thread                | Once on disconnect               | Signal gamepad unavailable         |
 
 ## BLE Data Flow
 
@@ -198,7 +198,7 @@ The left-stick input is mapped to five directions with a **0.15 deadzone**:
   L ──┼── R   (left/right, x < -0.15 or x > 0.15)
       │
       B (backward, y > 0.15)
-      
+
 S (stop) when |x| < 0.15 AND |y| < 0.15
 ```
 
@@ -247,10 +247,11 @@ const {
 ### Steam Deck (SteamOS)
 
 **Environment setup** (src/main.rs):
+
 ```rust
 // Set DBUS_SYSTEM_BUS_ADDRESS if running under SteamOS
 if std::path::Path::new("/run/host/run/dbus/system_bus_socket").exists() {
-    std::env::set_var("DBUS_SYSTEM_BUS_ADDRESS", 
+    std::env::set_var("DBUS_SYSTEM_BUS_ADDRESS",
         "unix:path=/run/host/run/dbus/system_bus_socket");
 }
 
@@ -264,12 +265,14 @@ if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
 - **Gamescope + WebKitGTK**: Compositing mode crashes when Gamescope is running. The flag forces CPU-only rendering.
 
 **AppImage distribution**:
+
 - Built with `bundleMediaFramework: false` to minimize artifact size (no GStreamer bundled).
 - End-user install via `install-on-steamdeck.sh` downloads from GitHub Release, registers a `.desktop` entry, and instructs the user to add it as a Non-Steam Game in Steam.
 
 ### macOS
 
 **Permissions** (apps/frontend/src-tauri/Info.plist):
+
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
 <string>This app needs Bluetooth access to control the robot.</string>
@@ -279,6 +282,7 @@ if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
 - `btleplug` uses CoreBluetooth automatically.
 
 **Distribution**:
+
 - `pnpm tauri build` produces a DMG for Intel Macs.
 - CI builds a universal (Intel + Apple Silicon) DMG on tagged releases and attaches it to the GitHub Release.
 
@@ -290,18 +294,18 @@ if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
 
 ## Key Files
 
-| Concern | File | Responsibility |
-|---------|------|---|
-| Rust entry point | `apps/frontend/src-tauri/src/main.rs` | Initialize Tauri, set env vars, spawn BLE/gamepad tasks, register commands |
-| BLE state | `apps/frontend/src-tauri/src/ble/state.rs` | Arc<Mutex<Option<Peripheral>>> wrapper |
-| BLE commands | `apps/frontend/src-tauri/src/ble/mod.rs` | ble_connect, ble_disconnect, ble_send, connection loop, device discovery |
-| Gamepad monitor | `apps/frontend/src-tauri/src/gamepad/mod.rs` | std::thread gamepad event loop, direction logic, direction coalescing |
-| Tauri config | `apps/frontend/src-tauri/tauri.conf.json` | Window size (1280×800), bundle settings, app metadata |
-| macOS plist | `apps/frontend/src-tauri/Info.plist` | NSBluetoothAlwaysUsageDescription for Bluetooth permission |
-| React entry | `apps/frontend/src/main.tsx` | Root React render, error boundary |
-| React app | `apps/frontend/src/app.tsx` | Main UI component, BLE/gamepad hook usage, command dispatch |
-| BLE hook | `apps/frontend/src/hooks/use-bluetooth.ts` | useBluetooth() — event subscriptions, command invocation |
-| Gamepad hook | `apps/frontend/src/hooks/use-gamepad.ts` | useGamepad() — event subscriptions, Steam Deck detection |
+| Concern          | File                                         | Responsibility                                                             |
+| ---------------- | -------------------------------------------- | -------------------------------------------------------------------------- |
+| Rust entry point | `apps/frontend/src-tauri/src/main.rs`        | Initialize Tauri, set env vars, spawn BLE/gamepad tasks, register commands |
+| BLE state        | `apps/frontend/src-tauri/src/ble/state.rs`   | Arc<Mutex<Option<Peripheral>>> wrapper                                     |
+| BLE commands     | `apps/frontend/src-tauri/src/ble/mod.rs`     | ble_connect, ble_disconnect, ble_send, connection loop, device discovery   |
+| Gamepad monitor  | `apps/frontend/src-tauri/src/gamepad/mod.rs` | std::thread gamepad event loop, direction logic, direction coalescing      |
+| Tauri config     | `apps/frontend/src-tauri/tauri.conf.json`    | Window size (1280×800), bundle settings, app metadata                      |
+| macOS plist      | `apps/frontend/src-tauri/Info.plist`         | NSBluetoothAlwaysUsageDescription for Bluetooth permission                 |
+| React entry      | `apps/frontend/src/main.tsx`                 | Root React render, error boundary                                          |
+| React app        | `apps/frontend/src/app.tsx`                  | Main UI component, BLE/gamepad hook usage, command dispatch                |
+| BLE hook         | `apps/frontend/src/hooks/use-bluetooth.ts`   | useBluetooth() — event subscriptions, command invocation                   |
+| Gamepad hook     | `apps/frontend/src/hooks/use-gamepad.ts`     | useGamepad() — event subscriptions, Steam Deck detection                   |
 
 ## Directory Structure
 
@@ -330,21 +334,22 @@ apps/frontend/
 
 ## Entry Points
 
-| Entry | Triggered By | Responsibility |
-|-------|--------------|---|
-| `src-tauri/src/main.rs::main()` | Tauri runtime (dev or packaged binary) | Set env vars (SteamOS D-Bus, compositing), initialize Tauri builder, spawn BLE + gamepad background tasks, register IPC commands, enter event loop |
-| `src/main.tsx` | Vite dev server or WebView bundle | Mount React app into DOM, wrap with StrictMode and ErrorBoundary |
-| `app.tsx` | React root | Instantiate useBluetooth() and useGamepad() hooks, render UI, wire direction events to ble_send command |
-| `setup_gamepad_monitor()` | Called in Tauri setup hook | Spawn std::thread gamepad monitor, initialize gilrs, enter event loop |
-| `setup_event_listener()` | Called in Tauri setup hook | Spawn async task to listen for BLE device disconnect events |
-| `.github/workflows/build.yml` | Git tag `v*` push or `workflow_dispatch` | Build x86_64 AppImage, aarch64 AppImage, universal macOS DMG; attach to Release |
-| `install-on-steamdeck.sh` | End user in Konsole | Download latest AppImage, register `.desktop` entry, prompt for Non-Steam Game addition |
+| Entry                           | Triggered By                             | Responsibility                                                                                                                                     |
+| ------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src-tauri/src/main.rs::main()` | Tauri runtime (dev or packaged binary)   | Set env vars (SteamOS D-Bus, compositing), initialize Tauri builder, spawn BLE + gamepad background tasks, register IPC commands, enter event loop |
+| `src/main.tsx`                  | Vite dev server or WebView bundle        | Mount React app into DOM, wrap with StrictMode and ErrorBoundary                                                                                   |
+| `app.tsx`                       | React root                               | Instantiate useBluetooth() and useGamepad() hooks, render UI, wire direction events to ble_send command                                            |
+| `setup_gamepad_monitor()`       | Called in Tauri setup hook               | Spawn std::thread gamepad monitor, initialize gilrs, enter event loop                                                                              |
+| `setup_event_listener()`        | Called in Tauri setup hook               | Spawn async task to listen for BLE device disconnect events                                                                                        |
+| `.github/workflows/build.yml`   | Git tag `v*` push or `workflow_dispatch` | Build x86_64 AppImage, aarch64 AppImage, universal macOS DMG; attach to Release                                                                    |
+| `install-on-steamdeck.sh`       | End user in Konsole                      | Download latest AppImage, register `.desktop` entry, prompt for Non-Steam Game addition                                                            |
 
 ## Design Rationale
 
 ### Single Rust Process
 
 A monolithic Tauri process eliminates:
+
 - Inter-process communication overhead (vs separate backend + frontend)
 - Separate deployments (one binary per platform)
 - Complexity of maintaining sync between services
@@ -362,6 +367,7 @@ Gamepad sticks are noisy and produce many redundant AxisChanged events. By track
 ### Arc<Mutex> for BLE Peripheral
 
 The peripheral must be:
+
 - Shared across multiple command handlers (connect, disconnect, send)
 - Protected from concurrent access (Rust's ownership rules)
 - Cloneable for IPC callback threads

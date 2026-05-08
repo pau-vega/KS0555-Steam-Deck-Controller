@@ -3,11 +3,5 @@
   "identifier": "main-capability",
   "description": "Grant BLE and gamepad permissions to main window",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "ble-connect",
-    "ble-disconnect",
-    "ble-send",
-    "ble-state-changed"
-  ]
+  "permissions": ["core:default", "ble-connect", "ble-disconnect", "ble-send", "ble-state-changed"]
 }

@@ -6,7 +6,7 @@ The `&` (intersection) operator has poor performance in the TypeScript compiler.
 
 ```ts
 // Avoid
-type C = A & B;
+type C = A & B
 
 // Prefer
 interface C extends A, B {}
@@ -21,17 +21,17 @@ Model data that can be in different shapes with a shared discriminant field. Thi
 ```ts
 // Avoid — allows { status: "idle", data: someValue }
 type FetchingState<TData> = {
-  status: "idle" | "loading" | "success" | "error";
-  data?: TData;
-  error?: Error;
-};
+  status: "idle" | "loading" | "success" | "error"
+  data?: TData
+  error?: Error
+}
 
 // Prefer — each status carries exactly the right fields
 type FetchingState<TData> =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success"; data: TData }
-  | { status: "error"; error: Error };
+  | { status: "error"; error: Error }
 ```
 
 Handle discriminated unions with `switch` statements:
@@ -40,13 +40,13 @@ Handle discriminated unions with `switch` statements:
 const handleEvent = (event: Event) => {
   switch (event.type) {
     case "user.created":
-      console.log(event.data.email);
-      break;
+      console.log(event.data.email)
+      break
     case "user.deleted":
-      console.log(event.data.id);
-      break;
+      console.log(event.data.id)
+      break
   }
-};
+}
 ```
 
 ### Avoid `readonly` unless strictly needed
@@ -56,9 +56,9 @@ Do not add `readonly` to properties by default. Only use it when immutability is
 ```ts
 // Default — no readonly
 type User = {
-  id: string;
-  name: string;
-};
+  id: string
+  name: string
+}
 ```
 
 ### Prefer optional properties over `T | undefined`
@@ -68,13 +68,13 @@ Use `prop?: T` for optional properties — it's more concise and idiomatic.
 ```ts
 // Avoid
 type AuthOptions = {
-  userId: string | undefined;
-};
+  userId: string | undefined
+}
 
 // Prefer
 type AuthOptions = {
-  userId?: string;
-};
+  userId?: string
+}
 ```
 
 ### `noUncheckedIndexedAccess` awareness
@@ -82,8 +82,8 @@ type AuthOptions = {
 When this tsconfig option is enabled, indexing into arrays and records returns `T | undefined` instead of `T`. Handle the `undefined` case — don't assume the value exists.
 
 ```ts
-const arr: string[] = [];
-const value = arr[0]; // string | undefined — check before using
+const arr: string[] = []
+const value = arr[0] // string | undefined — check before using
 ```
 
 ### No enums — use `as const` objects
@@ -95,10 +95,10 @@ const SIZE = {
   xs: "EXTRA_SMALL",
   sm: "SMALL",
   md: "MEDIUM",
-} as const;
+} as const
 
-type SizeKey = keyof typeof SIZE; // "xs" | "sm" | "md"
-type SizeValue = (typeof SIZE)[SizeKey]; // "EXTRA_SMALL" | "SMALL" | "MEDIUM"
+type SizeKey = keyof typeof SIZE // "xs" | "sm" | "md"
+type SizeValue = (typeof SIZE)[SizeKey] // "EXTRA_SMALL" | "SMALL" | "MEDIUM"
 ```
 
 Retain existing enums in the codebase — don't convert them unless asked.
@@ -106,7 +106,7 @@ Retain existing enums in the codebase — don't convert them unless asked.
 ### Prefix type parameters with `T`
 
 ```ts
-type RecordOfArrays<TItem> = Record<string, TItem[]>;
+type RecordOfArrays<TItem> = Record<string, TItem[]>
 ```
 
 ## Functions & Error Handling
@@ -135,9 +135,7 @@ const useMyHook = () => {
 Thrown errors require manual try-catch and lose type information. Use a Result type for operations that can fail predictably:
 
 ```ts
-type Result<T, E extends Error> =
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+type Result<T, E extends Error> = { ok: true; value: T } | { ok: false; error: E }
 ```
 
 Throwing is fine when the framework handles it (e.g., inside a request handler that catches errors automatically). Use Result when the caller would need a manual try-catch.
@@ -150,37 +148,35 @@ Throwing is fine when the framework handles it (e.g., inside a request handler t
 
 ```ts
 // Avoid
-const first = (arr: any[]): any => arr[0];
+const first = (arr: any[]): any => arr[0]
 
 // Prefer
-const first = <TItem>(arr: TItem[]): TItem | undefined => arr[0];
+const first = <TItem>(arr: TItem[]): TItem | undefined => arr[0]
 ```
 
 - **`unknown`** when the type is truly unknown — forces the caller to narrow before using:
 
 ```ts
 // Avoid
-const parse = (raw: string): any => JSON.parse(raw);
+const parse = (raw: string): any => JSON.parse(raw)
 
 // Prefer
-const parse = (raw: string): unknown => JSON.parse(raw);
+const parse = (raw: string): unknown => JSON.parse(raw)
 ```
 
 - **Function overloads** when a generic function has conditional return types that TypeScript can't infer:
 
 ```ts
 // Avoid — `as any` inside generic body
-const toggle = <T extends "on" | "off">(
-  input: T,
-): T extends "on" ? "off" : "on" => {
-  return (input === "on" ? "off" : "on") as any;
-};
+const toggle = <T extends "on" | "off">(input: T): T extends "on" ? "off" : "on" => {
+  return (input === "on" ? "off" : "on") as any
+}
 
 // Prefer — overloads with a generic implementation signature
-function toggle(input: "on"): "off";
-function toggle(input: "off"): "on";
+function toggle(input: "on"): "off"
+function toggle(input: "off"): "on"
 function toggle(input: "on" | "off"): "on" | "off" {
-  return input === "on" ? "off" : "on";
+  return input === "on" ? "off" : "on"
 }
 ```
 
@@ -194,10 +190,10 @@ Always use top-level `import type` — not inline `import { type ... }`. Without
 
 ```ts
 // Avoid — may leave behind `import "./user"` after transpilation
-import { type User } from "./user";
+import { type User } from "./user"
 
 // Prefer
-import type { User } from "./user";
+import type { User } from "./user"
 ```
 
 ### No default exports
@@ -216,13 +212,13 @@ Exception: frameworks that require default exports (e.g., Next.js pages).
 
 ## Naming & Style
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | kebab-case | `my-component.ts` |
-| Variables & functions | camelCase | `myVariable`, `myFunction()` |
-| Classes, types, interfaces | PascalCase | `MyClass`, `MyInterface` |
-| Constants & enum values | ALL_CAPS | `MAX_COUNT`, `Color.RED` |
-| Type parameters | T-prefixed | `TKey`, `TValue` |
+| Element                    | Convention | Example                      |
+| -------------------------- | ---------- | ---------------------------- |
+| Files                      | kebab-case | `my-component.ts`            |
+| Variables & functions      | camelCase  | `myVariable`, `myFunction()` |
+| Classes, types, interfaces | PascalCase | `MyClass`, `MyInterface`     |
+| Constants & enum values    | ALL_CAPS   | `MAX_COUNT`, `Color.RED`     |
+| Type parameters            | T-prefixed | `TKey`, `TValue`             |
 
 ### JSDoc comments
 
@@ -230,10 +226,10 @@ Add JSDoc only when the function's behavior isn't self-evident. Be concise. Use 
 
 ```ts
 /** Subtracts two numbers */
-const subtract = (a: number, b: number) => a - b;
+const subtract = (a: number, b: number) => a - b
 
 /** Does the opposite of {@link subtract} */
-const add = (a: number, b: number) => a + b;
+const add = (a: number, b: number) => a + b
 ```
 
 ## Dependencies

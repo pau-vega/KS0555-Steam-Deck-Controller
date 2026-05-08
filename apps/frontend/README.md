@@ -1,4 +1,5 @@
 <!-- generated-by: gsd-doc-writer -->
+
 # @ks0555/frontend
 
 Vite + React UI **and** Tauri shell for the Steam Deck Robot Controller. This package bundles both the TypeScript/React frontend (Vite dev server) and the Rust backend (Tauri v2 IPC shell). A single binary wraps everything — BLE via `btleplug`, gamepad input via `gilrs`, React UI in the WebView.
@@ -7,15 +8,15 @@ Vite + React UI **and** Tauri shell for the Steam Deck Robot Controller. This pa
 
 ## Package Contents
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/` | React components, hooks, types, and Vite entry point (`main.tsx`) |
-| `src-tauri/` | Rust shell: Tauri commands, BLE module, gamepad module, bundle config |
-| `src-tauri/src/ble/` | Bluetooth communication via `btleplug` |
-| `src-tauri/src/gamepad/` | Steam Deck gamepad input via `gilrs` |
-| `src-tauri/src/main.rs` | Tauri command registration and state setup |
-| `src-tauri/tauri.conf.json` | Window dimensions (1280×800), bundle targets, app metadata |
-| `src-tauri/Info.plist` | macOS Bluetooth permission declaration |
+| Directory                   | Purpose                                                               |
+| --------------------------- | --------------------------------------------------------------------- |
+| `src/`                      | React components, hooks, types, and Vite entry point (`main.tsx`)     |
+| `src-tauri/`                | Rust shell: Tauri commands, BLE module, gamepad module, bundle config |
+| `src-tauri/src/ble/`        | Bluetooth communication via `btleplug`                                |
+| `src-tauri/src/gamepad/`    | Steam Deck gamepad input via `gilrs`                                  |
+| `src-tauri/src/main.rs`     | Tauri command registration and state setup                            |
+| `src-tauri/tauri.conf.json` | Window dimensions (1280×800), bundle targets, app metadata            |
+| `src-tauri/Info.plist`      | macOS Bluetooth permission declaration                                |
 
 ## Running Locally
 
@@ -37,16 +38,16 @@ pnpm tauri:dev
 
 ## Build Scripts
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm dev` | Vite dev server (React only; used by `tauri:dev` as the frontend dev command) |
-| `pnpm build` | TypeScript check (`tsc -b`) + Vite production build → `dist/` |
-| `pnpm tauri:dev` | Launch Tauri dev shell with hot-reload (run from monorepo root) |
-| `pnpm tauri:build` | Build release binary + AppImage/DMG (macOS / Linux) |
-| `pnpm typecheck` | Run `tsc --noEmit` without emitting artifacts |
-| `pnpm lint` | ESLint check using `@ks0555/eslint-config` |
-| `pnpm test` | Run Vitest unit tests (`vitest run`) |
-| `pnpm preview` | Preview built Vite output (production bundle) |
+| Command            | Purpose                                                                       |
+| ------------------ | ----------------------------------------------------------------------------- |
+| `pnpm dev`         | Vite dev server (React only; used by `tauri:dev` as the frontend dev command) |
+| `pnpm build`       | TypeScript check (`tsc -b`) + Vite production build → `dist/`                 |
+| `pnpm tauri:dev`   | Launch Tauri dev shell with hot-reload (run from monorepo root)               |
+| `pnpm tauri:build` | Build release binary + AppImage/DMG (macOS / Linux)                           |
+| `pnpm typecheck`   | Run `tsc --noEmit` without emitting artifacts                                 |
+| `pnpm lint`        | ESLint check using `@ks0555/eslint-config`                                    |
+| `pnpm test`        | Run Vitest unit tests (`vitest run`)                                          |
+| `pnpm preview`     | Preview built Vite output (production bundle)                                 |
 
 ## Frontend Layer
 
@@ -71,21 +72,21 @@ pnpm tauri:dev
 
 The React UI invokes these Tauri commands via `invoke()`:
 
-| Command | Payload | Returns |
-|---------|---------|---------|
-| `ble_scan` | `{}` | `{ devices: [{ address, name }, ...] }` |
-| `ble_connect` | `{ address: string }` | `{}` (on success) or error |
-| `ble_write` | `{ data: string }` | `{}` |
-| `ble_disconnect` | `{}` | `{}` |
+| Command          | Payload               | Returns                                 |
+| ---------------- | --------------------- | --------------------------------------- |
+| `ble_scan`       | `{}`                  | `{ devices: [{ address, name }, ...] }` |
+| `ble_connect`    | `{ address: string }` | `{}` (on success) or error              |
+| `ble_write`      | `{ data: string }`    | `{}`                                    |
+| `ble_disconnect` | `{}`                  | `{}`                                    |
 
 ### Events
 
 The Rust side emits these events via `listen()`:
 
-| Event | Payload | When |
-|-------|---------|------|
-| `ble-state-changed` | `{ status: "idle" \| "scanning" \| "connecting" \| "connected" \| "error", error?: string }` | Whenever BLE state changes |
-| `gamepad-direction` | `{ direction: "up" \| "down" \| "left" \| "right" \| "neutral" }` | When left stick moves past deadzone |
+| Event               | Payload                                                                                      | When                                |
+| ------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `ble-state-changed` | `{ status: "idle" \| "scanning" \| "connecting" \| "connected" \| "error", error?: string }` | Whenever BLE state changes          |
+| `gamepad-direction` | `{ direction: "up" \| "down" \| "left" \| "right" \| "neutral" }`                            | When left stick moves past deadzone |
 
 ### BLE Module (`src-tauri/src/ble/mod.rs`)
 
@@ -120,14 +121,14 @@ src-tauri/src/main.rs (command registry)
 
 ## Key Configuration
 
-| File | Setting | Why |
-|------|---------|-----|
-| `vite.config.ts` | `port: 5173` | Tauri dev server connects here; must match `tauri.conf.json` `devUrl` |
-| `vite.config.ts` | `watch.ignored: ['**/src-tauri/**']` | Rust changes don't reload the Vite dev server |
-| `tauri.conf.json` | `window.width: 1280, height: 800` | Steam Deck portrait layout (rotated landscape) |
-| `tauri.conf.json` | `bundle.linux.appimage.bundleMediaFramework: false` | Keeps AppImage under 100 MB (no GStreamer) |
-| `tauri.conf.json` | `bundle.macOS.minimumSystemVersion: "11.0"` | Supports older Intel Macs for dev |
-| `src-tauri/Info.plist` | `NSBluetoothAlwaysUsageDescription` | macOS Bluetooth permission text |
+| File                   | Setting                                             | Why                                                                   |
+| ---------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| `vite.config.ts`       | `port: 5173`                                        | Tauri dev server connects here; must match `tauri.conf.json` `devUrl` |
+| `vite.config.ts`       | `watch.ignored: ['**/src-tauri/**']`                | Rust changes don't reload the Vite dev server                         |
+| `tauri.conf.json`      | `window.width: 1280, height: 800`                   | Steam Deck portrait layout (rotated landscape)                        |
+| `tauri.conf.json`      | `bundle.linux.appimage.bundleMediaFramework: false` | Keeps AppImage under 100 MB (no GStreamer)                            |
+| `tauri.conf.json`      | `bundle.macOS.minimumSystemVersion: "11.0"`         | Supports older Intel Macs for dev                                     |
+| `src-tauri/Info.plist` | `NSBluetoothAlwaysUsageDescription`                 | macOS Bluetooth permission text                                       |
 
 ## Testing
 
@@ -144,14 +145,14 @@ Runs Vitest on `*.test.ts` and `*.test.tsx` files:
 
 ## Dependencies
 
-| Package | Role |
-|---------|------|
-| `@tauri-apps/api` | Frontend → Rust IPC (`invoke`, `listen`) |
-| `react`, `react-dom` | UI framework |
-| `@vitejs/plugin-react` | JSX transformation |
-| `@tailwindcss/vite` | Tailwind CSS integration |
-| `typescript` | Type checking |
-| `vitest` | Unit test runner |
+| Package                | Role                                     |
+| ---------------------- | ---------------------------------------- |
+| `@tauri-apps/api`      | Frontend → Rust IPC (`invoke`, `listen`) |
+| `react`, `react-dom`   | UI framework                             |
+| `@vitejs/plugin-react` | JSX transformation                       |
+| `@tailwindcss/vite`    | Tailwind CSS integration                 |
+| `typescript`           | Type checking                            |
+| `vitest`               | Unit test runner                         |
 
 **Rust dependencies** are in `src-tauri/Cargo.toml`:
 
