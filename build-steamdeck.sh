@@ -69,9 +69,14 @@ else
   exit 1
 fi
 
-# --- Ensure linuxdeploy can run (FUSE fallback) ---
+# --- Ensure linuxdeploy can run ---
 # linuxdeploy is itself an AppImage; it needs FUSE or APPIMAGE_EXTRACT_AND_RUN=1
 export APPIMAGE_EXTRACT_AND_RUN=1
+# Steam Deck mounts /tmp with noexec — linuxdeploy extracts there then fails to exec.
+# Point TMPDIR to a directory that allows execution.
+TMPDIR="$(mktemp -d "${HOME:-/home/deck}/.tmp-linuxdeploy-XXXXXX")"
+export TMPDIR
+trap 'rm -rf "$TMPDIR"' EXIT
 
 # --- Build ---
 echo ""
