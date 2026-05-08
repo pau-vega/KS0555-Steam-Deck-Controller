@@ -10,7 +10,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "format:check": "prettier --check .",
-    "build:steamdeck": "./build-steamdeck.sh"
+    "build:steamdeck": "./build-steamdeck.sh",
+    "install:steamdeck": "./install-on-steamdeck.sh"
   },
   "engines": {
     "node": ">=18.0.0"
