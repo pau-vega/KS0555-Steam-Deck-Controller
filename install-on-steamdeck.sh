@@ -86,6 +86,9 @@ fi
 rm -rf "${EXTRACT_DIR}"
 trap - EXIT
 
+# --- Ensure AppImages can run without FUSE (SteamOS lacks libfuse2) -------
+export APPIMAGE_EXTRACT_AND_RUN=1
+
 # --- Write .desktop entry ---------------------------------------------------
 mkdir -p "${DESKTOP_DIR}"
 {
@@ -93,7 +96,7 @@ mkdir -p "${DESKTOP_DIR}"
   echo "Type=Application"
   echo "Name=${DISPLAY_NAME}"
   echo "Comment=Bluetooth gamepad controller for the BT24 Arduino robot"
-  echo "Exec=${APPIMAGE_PATH}"
+  echo "Exec=env APPIMAGE_EXTRACT_AND_RUN=1 ${APPIMAGE_PATH}"
   [ -n "${ICON_PATH}" ] && echo "Icon=${ICON_PATH}"
   echo "Terminal=false"
   echo "Categories=Utility;Game;"
