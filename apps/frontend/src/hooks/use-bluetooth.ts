@@ -26,6 +26,8 @@ export function useBluetooth() {
     let cancelled = false
 
     const setup = async () => {
+      if (!window.__TAURI_INTERNALS__) return
+
       const unlisten = await listen<string>("ble-state-changed", (event) => {
         if (cancelled) return
         const payload = event.payload as "connecting" | "connected" | "disconnected"

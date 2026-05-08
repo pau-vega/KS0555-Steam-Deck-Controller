@@ -25,6 +25,8 @@ export function useGamepad() {
     let cancelled = false
 
     const setup = async () => {
+      if (!window.__TAURI_INTERNALS__) return
+
       const unlistenDirection = await listen<{ direction: Direction }>("gamepad-direction", (event) => {
         if (cancelled) return
         setDirection(event.payload.direction)
