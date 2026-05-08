@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:steamdeck": "./build-steamdeck.sh",
-    "install:steamdeck": "./install-on-steamdeck.sh"
+    "install:steamdeck": "./install-on-steamdeck.sh",
+    "prepare": "lefthook install"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -25,6 +26,7 @@
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^10.3.0",
+    "lefthook": "^2.1.6",
     "prettier": "^3.8.3",
     "turbo": "^2.9.10"
   }
