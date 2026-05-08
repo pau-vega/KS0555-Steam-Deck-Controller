@@ -39,8 +39,9 @@ describe("useGamepad", () => {
     expect(result.current.gamepadConnected).toBe(false)
   })
 
-  it("gamepad-direction event updates direction", () => {
+  it("gamepad-direction event updates direction", async () => {
     const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
 
     act(() => {
       listenerCallbacks["gamepad-direction"]!({ direction: "F" })
@@ -88,8 +89,9 @@ describe("useGamepad", () => {
     expect(mockUnlistenDisconnected).toHaveBeenCalled()
   })
 
-  it("multiple direction changes work", () => {
+  it("multiple direction changes work", async () => {
     const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
 
     act(() => {
       listenerCallbacks["gamepad-direction"]!({ direction: "F" })

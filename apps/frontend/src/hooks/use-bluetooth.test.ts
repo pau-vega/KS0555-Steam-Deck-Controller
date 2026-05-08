@@ -70,8 +70,9 @@ describe("useBluetooth", () => {
     expect(mockInvoke).toHaveBeenCalledWith("ble_send", { command: "F" })
   })
 
-  it("listener updates state from ble-state-changed payload", () => {
+  it("listener updates state from ble-state-changed payload", async () => {
     const { result } = renderHook(() => useBluetooth())
+    await act(async () => {})
 
     act(() => {
       getBleStateCallback()!("connected")
