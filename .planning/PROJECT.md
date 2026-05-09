@@ -55,7 +55,7 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 ### Active
 
-- [ ] Flatpak bundle build target replaces AppImage in CI
+- [ ] Deb bundle target feeds flatpak-builder; Flatpak bundle is the release artifact
 - [ ] Flatpak manifest with BLE (`org.bluez`) and gamepad/evdev finish-args
 - [ ] Sideload install + "Add as Non-Steam Game" docs for Steam Deck Gaming Mode
 - [ ] Auto-update workflow (`flatpak update`) documented or scripted
@@ -112,6 +112,7 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 | Deprecate apps/backend | Fastify + WebSocket no longer needed, Tauri Rust backend replaces it | ✓ Deprecated Phase 6 |
 | Switch from AppImage to Flatpak | Better SteamOS integration, sandboxed permissions, easier auto-update on read-only filesystem | Pending v2.1 |
 | Sideload-only distribution | No Flathub overhead, single-user device, faster iteration | Pending v2.1 |
+| Flatpak runtime | `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` | Smaller (~300 MB), no GNOME deps, ships WebKitGTK-6 for Tauri v2. Extension: `org.freedesktop.Platform.GL.default` for GPU rendering. EOL Aug 2027. | Phase 11 |
 
 ## Evolution
 

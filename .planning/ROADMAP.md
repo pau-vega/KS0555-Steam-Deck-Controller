@@ -118,7 +118,7 @@ Plans:
 **Dependencies:** v2.0 phases 6–10 complete (Tauri shell + BLE + gamepad shipped)
 **Notable contradictions resolved:**
 - "Auto-update workflow" (PROJECT.md Active) is reframed as **manual upgrade workflow** (`flatpak install --user --reinstall`) plus **optional** GitHub Releases polling launcher script. True `flatpak update` requires a self-hosted OSTree repo, which is explicitly Out of Scope. DECK-05 + DOCS-01 carry this resolution.
-- Runtime choice (`org.freedesktop.Platform//24.08` vs `org.gnome.Platform//46`) is decided in Phase 11 (PKG-04) and locked into both manifest (Phase 12) and CI container image (Phase 15).
+- Runtime choice `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and GL extension `org.freedesktop.Platform.GL.default` locked in PROJECT.md Key Decisions (PKG-04) — consumed by manifest (Phase 12) and CI container image (Phase 15).
 
 ---
 
@@ -128,7 +128,7 @@ Plans:
 **Requirements**: PKG-01, PKG-02, PKG-03, PKG-04
 **Success Criteria** (what must be TRUE):
   1. `apps/frontend/src-tauri/tauri.conf.json` has `bundle.targets: ["deb"]` (replacing `["appimage"]`); `cargo tauri build --bundles deb` succeeds locally and produces `target/release/bundle/deb/robot-controller_<version>_amd64.deb`
-  2. The custom `feat/truly-portable-appimage` tauri-cli fork is removed from local install scripts and CI; `cargo install tauri-cli` (stock) is the only source
+  2. The custom tauri-cli fork is removed from local install scripts and CI; `cargo install tauri-cli` (stock) is the only source
   3. `dpkg -c` on the produced `.deb` is recorded (binary path, .desktop filename, hicolor icon paths) for use by Phase 12's manifest authoring
   4. Flatpak runtime `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and extension `org.freedesktop.Platform.GL.default` is committed to PROJECT.md Key Decisions table and referenced in Phase 12 manifest plan
 **Plans**: 3 plans
@@ -181,7 +181,7 @@ Plans:
 **Depends on**: Phase 14
 **Requirements**: CI-01, CI-02, CI-03, CI-04
 **Success Criteria** (what must be TRUE):
-  1. `.github/workflows/build.yml` includes a `build-flatpak-x64` job using `flatpak/flatpak-github-actions/flatpak-builder@v6.7` with the Flathub container image matching PKG-04 (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08` or `:gnome-46`)
+  1. `.github/workflows/build.yml` includes a `build-flatpak-x64` job using `flatpak/flatpak-github-actions/flatpak-builder@v6.7` with the Flathub container image matching PKG-04 (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08`)
   2. Tagged release CI uploads `RobotController-x86_64.flatpak` as a release asset alongside the existing AppImage; at least one tagged release ships both artifacts (parallel-run window) before AppImage is removed in Phase 16
   3. The `build-arm64` job is removed from `.github/workflows/build.yml` (Steam Deck is x86_64 only); macOS DMG job is untouched
   4. OSTree cache is enabled (`cache: true`) on the flatpak-builder action — runtime download (~1 GB) is reused across runs; warm-cache CI run completes within an acceptable budget (documented in commit message)
