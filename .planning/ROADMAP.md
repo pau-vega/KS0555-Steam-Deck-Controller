@@ -180,7 +180,10 @@ Plans:
   3. "Add a Non-Steam Game" picker in Steam Desktop Mode finds `com.ks0555.robotcontroller.desktop` exported by Flatpak under `~/.local/share/flatpak/exports/share/applications/`; the resulting Steam shortcut launches via `/usr/bin/flatpak run com.ks0555.robotcontroller`
   4. Switching to Steam Gaming Mode and launching the shortcut renders the app without black/white screen (Gamescope + WebKitGTK), the gamepad still drives the BT24 robot, and a Steam Input controller template (if needed) is documented
   5. End-to-end test artifacts captured (journalctl + RUST_LOG=debug log snippets) showing successful BLE connect, gamepad-direction events, and ble_send writes during a Gaming Mode session
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 14-01-PLAN.md — Validation checklist, report template, and README update (DECK-01, DECK-02, DECK-03, DECK-04, VAL-09)
 **UI hint**: yes
 
 ### Phase 15: CI Migration (Parallel-Run)
@@ -221,7 +224,7 @@ Plans:
 | 11. Bundle Pipeline Restructure | 3/3 | Complete | 2026-05-09 |
 | 12. Manifest + AppStream + Local Build | 2/2 | Complete | 2026-05-09 |
 | 13. Sandbox Permissions for BLE + Gamepad | 1/1 | Complete | 2026-05-09 |
-| 14. Steam Deck On-Device Validation | 0/0 | Not started | - |
+| 14. Steam Deck On-Device Validation | 0/1 | Planned    |  |
 | 15. CI Migration (Parallel-Run) | 0/0 | Not started | - |
 | 16. AppImage Decommission + Upgrade Workflow Docs | 0/0 | Not started | - |
 

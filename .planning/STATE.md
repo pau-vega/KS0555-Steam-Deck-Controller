@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.1
-milestone_name: Flatpak Packaging
-status: in_progress
-last_updated: "2026-05-09T20:00:00.000Z"
-last_activity: 2026-05-09 - Phase 14 context gathered
+milestone_name: — Flatpak Packaging
+status: executing
+stopped_at: Phase 14 context gathered
+last_updated: "2026-05-09T20:18:50.836Z"
+last_activity: 2026-05-09 -- Phase 14 planning complete
 progress:
-  total_phases: 14
-  completed_phases: 7
-  total_plans: 20
-  completed_plans: 15
-  percent: 64
+  total_phases: 11
+  completed_phases: 8
+  total_plans: 19
+  completed_plans: 18
+  percent: 95
 ---
 
 # STATE.md
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-09)
 
 Phase: 14 — Steam Deck On-Device Validation
 Plan: Not yet planned
-Status: Context gathered
-Last activity: 2026-05-09 — Phase 14 context gathered (validation checklist, log scope, Gaming Mode protocol, failure fallbacks)
+Status: Ready to execute
+Last activity: 2026-05-09 -- Phase 14 planning complete
 
 ## Progress
 
@@ -56,6 +57,7 @@ Plans: 15/15 complete (12 v2.0 + 3 v2.1).
 (carried from v2.0 — see PROJECT.md Key Decisions table)
 
 **v2.1 decisions (validated in completed phases):**
+
 - **Flatpak runtime choice (PKG-04):** Resolved in Phase 11 — `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and extension `org.freedesktop.Platform.GL.default`. Committed to PROJECT.md Key Decisions.
 - **Auto-update reframed (DECK-05 / DOCS-01):** PROJECT.md "Active" requirement amended to "Manual upgrade workflow (`flatpak install --user --reinstall`) documented; optional GitHub Releases polling launcher script". True `flatpak update` deferred to v2.2+ (`FLAT-PUB-01`).
 - **D-01 (Phase 13):** Belt-and-suspenders Flatpak detection via FLATPAK_ID + /.flatpak-info
