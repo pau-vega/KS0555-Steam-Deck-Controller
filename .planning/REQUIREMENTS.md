@@ -48,14 +48,70 @@ Requirements for Tauri v2 migration milestone. Each maps to roadmap phases.
 - [x] **VAL-03**: BLE connect/send works through Rust btleplug without using navigator.bluetooth
 - [x] **VAL-04**: app.tsx is unchanged after migration (verify with git diff)
 
-## v2.1 Requirements (Deferred)
+## v2.1 Requirements (Flatpak Packaging)
 
-### Enhanced Features
+Sideload-only Flatpak distribution for Steam Deck. Replaces AppImage. BLE + gamepad must work inside the Flatpak sandbox; "Add as Non-Steam Game" must launch in Gaming Mode.
 
-- **MTRS-01**: Motor speed control (u<number>#, v<number># commands) — adds protocol complexity, not needed for MVP
-- **MTRS-02**: Multiple robot profiles — save/load BT24 device mappings for different robots
-- **RECN-01**: Auto-reconnect on BLE disconnect with exponential backoff — nice-to-have, not core to MVP
-- **FLAT-01**: Flatpak packaging — AppImage works for Steam Deck distribution, Flatpak deferred
+### Packaging (PKG)
+
+- [ ] **PKG-01**: Switch `apps/frontend/src-tauri/tauri.conf.json` `bundle.targets` from `["appimage"]` to `["deb"]` so flatpak-builder has a deb input artifact
+- [ ] **PKG-02**: Drop the custom `feat/truly-portable-appimage` tauri-cli fork from local install scripts and CI; use stock `cargo install tauri-cli`
+- [ ] **PKG-03**: Verify `cargo tauri build --bundles deb` produces a working `.deb` locally; record `dpkg -c` internal layout (binary path, .desktop name, icon paths) for manifest authoring
+- [ ] **PKG-04**: Pick Flatpak runtime — `org.freedesktop.Platform//24.08` (preferred) or `org.gnome.Platform//46` (fallback); record decision in PROJECT.md Key Decisions
+- [ ] **PKG-05**: Author `flatpak/com.ks0555.robotcontroller.yaml` Flatpak manifest at repo root: app-id matches Tauri identifier, runtime/SDK from PKG-04, `command: robot-controller`, deb-extract pattern (`type: file` source + `ar -x` + `tar -xf` + install into `/app/`)
+- [ ] **PKG-06**: Author `flatpak/com.ks0555.robotcontroller.metainfo.xml` AppStream metainfo (id, name, summary, description, license, developer, screenshot URL placeholder, releases stub) — required by flatpak-builder, not optional
+- [ ] **PKG-07**: Manifest `build-commands` rename `robot-controller.desktop` → `com.ks0555.robotcontroller.desktop` and `sed` `Icon=` to match Flatpak ID; install hicolor icons (32, 128, 256@2) extracted from deb
+- [ ] **PKG-08**: Add `flatpak/build.sh` wrapping `flatpak-builder --user --install --force-clean build-dir manifest` + `flatpak build-bundle` to produce single-file `.flatpak`
+- [ ] **PKG-09**: Add `flatpak/README.md` documenting local build prerequisites (flatpak, flatpak-builder, Flathub remote) and `build.sh` usage
+
+### Sandbox Permissions (SBX)
+
+- [ ] **SBX-01**: Manifest `finish-args` for BLE: `--system-talk-name=org.bluez`, `--system-talk-name=org.bluez.*`, `--allow=bluetooth`, `--share=network` (last one needed for AF_BLUETOOTH per Flatpak docs)
+- [ ] **SBX-02**: Manifest `finish-args` for gamepad/evdev: `--device=input` (Flatpak ≥1.15.6) with `--device=all` documented as fallback comment for older SteamOS Flatpak versions
+- [ ] **SBX-03**: Manifest `finish-args` for display: `--socket=wayland`, `--socket=fallback-x11`, `--share=ipc`, `--device=dri`
+- [ ] **SBX-04**: Manifest `finish-args` adds `--env=WEBKIT_DISABLE_COMPOSITING_MODE=1` (belt-and-suspenders alongside existing Rust `set_var` in lib.rs) to prevent Gamescope/WebKit black-screen
+- [ ] **SBX-05**: Gate the existing `lib.rs` `DBUS_SYSTEM_BUS_ADDRESS=/run/host/run/dbus/system_bus_socket` rewrite on `!in_flatpak` (detect via `/.flatpak-info` or `FLATPAK_ID` env var) — inside Flatpak the runtime proxies the system bus correctly and the rewrite would silently break BLE
+- [ ] **SBX-06**: Verify finish-args list contains NO anti-features: no `--filesystem=home`, no `--device=bluetooth` (wrong stack), no `--talk-name=org.bluez` (wrong bus), no tray-icon args, no `org.freedesktop.Flatpak` portal grant
+
+### Steam Deck Integration (DECK)
+
+- [ ] **DECK-01**: Sideload install on real Steam Deck with `flatpak install --user RobotController-x86_64.flatpak` succeeds; Flathub remote auto-fetches missing runtime
+- [ ] **DECK-02**: Launching `flatpak run com.ks0555.robotcontroller` from Desktop Mode opens the app, scans BT24, connects, and accepts gamepad input
+- [ ] **DECK-03**: "Add a Non-Steam Game" picker in Steam Desktop Mode finds `com.ks0555.robotcontroller.desktop` exported by Flatpak under `~/.local/share/flatpak/exports/share/applications/`
+- [ ] **DECK-04**: App launches from Steam Gaming Mode without black screen; gamepad input drives the BT24 robot; document Steam Input controller template if needed
+- [ ] **DECK-05**: Document upgrade workflow: `flatpak install --user --reinstall RobotController-x86_64.flatpak` (sideload `.flatpak` cannot use `flatpak update`); optional GitHub Releases polling launcher script
+
+### CI/CD (CI)
+
+- [ ] **CI-01**: Add `build-flatpak-x64` job to `.github/workflows/build.yml` using `flatpak/flatpak-github-actions/flatpak-builder@v6.7` with the Flathub container image (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08` or `:gnome-46` matching PKG-04)
+- [ ] **CI-02**: CI uploads `RobotController-x86_64.flatpak` as a release asset alongside the existing AppImage (parallel-run window — at least one transition release)
+- [ ] **CI-03**: Drop `build-arm64` job from `.github/workflows/build.yml` (Steam Deck is x86_64 only)
+- [ ] **CI-04**: Enable OSTree cache in flatpak-builder action (`cache: true`) — runtime is ~1 GB, cold builds are slow without it
+- [ ] **CI-05**: Remove AppImage `build-x64` job and AppImage release asset (separate PR after at least one parallel-run release with verified Flatpak)
+
+### Documentation (DOCS)
+
+- [ ] **DOCS-01**: Update root README install section: `flatpak install --user` walkthrough for Steam Deck, "Add as Non-Steam Game" steps, screenshots-or-text walkthrough for Gaming Mode launch
+- [ ] **DOCS-02**: Update `apps/frontend/src-tauri/README.md` (or root) to document the deb-extract Flatpak architecture and the `lib.rs` `!in_flatpak` D-Bus gate
+- [ ] **DOCS-03**: `flatpak/README.md` contributor guide covers local build, install, and run loop; reproduces sandbox finish-args rationale
+- [ ] **DOCS-04**: `justfile` adds recipes: `flatpak-build`, `flatpak-install`, `flatpak-run`, `flatpak-deploy` (scp + ssh install on Deck) — optional but useful
+
+### Validation (VAL)
+
+- [ ] **VAL-05**: Manifest `flatpak-builder --user --install --force-clean` succeeds on a Linux dev box (Ubuntu 24.04 or matching) without sandbox-escape warnings
+- [ ] **VAL-06**: Local `flatpak run` connects to BT24 robot via BLE; verify with `dbus-monitor --system` that btleplug talks to `org.bluez` through the proxy
+- [ ] **VAL-07**: Local `flatpak run` reads gamepad input via gilrs; verify `/dev/input/event*` accessible from inside the sandbox
+- [ ] **VAL-08**: `app.tsx`, `control-pad.tsx`, `status-bar.tsx` unchanged after milestone (CI git diff lock holds for v2.1 same as v2.0)
+- [ ] **VAL-09**: Real-Deck end-to-end: install single-file `.flatpak`, launch from Steam Gaming Mode, BLE+gamepad work, robot moves; capture log artifacts
+
+## v2.2+ Deferred
+
+- **MTRS-01**: Motor speed control (u<number>#, v<number># commands) — protocol complexity, not core MVP
+- **MTRS-02**: Multiple robot profiles — save/load BT24 device mappings
+- **RECN-01**: Auto-reconnect on BLE disconnect with exponential backoff
+- **FLAT-PUB-01**: Self-hosted OSTree repo + true `flatpak update` auto-update — sideload works for v2.1
+- **FLAT-PUB-02**: Flathub submission — public distribution out of v2.1 scope
+- **SIGN-01**: Signed `.flatpak` bundles — optional for sideload-only, revisit if surfaced
 
 ## Out of Scope
 
@@ -63,11 +119,12 @@ Requirements for Tauri v2 migration milestone. Each maps to roadmap phases.
 |---------|--------|
 | Windows/macOS builds | Target is Linux/SteamOS only |
 | apps/backend (Fastify + WebSocket) | Replaced by Tauri Rust backend, no longer needed |
-| Motor speed control (u/v commands) | Deferred to v2.1, not needed for MVP |
-| Multiple robot support | Single BT24 device is the use case |
-| Flatpak packaging | AppImage sufficient for Steam Deck |
+| AppImage long-term support | Replaced by Flatpak in v2.1; one-release parallel-run only |
+| Self-hosted OSTree repo | Sideload-only for v2.1, deferred |
+| Flathub submission | Sideload-only for v2.1, deferred |
+| ARM64 / Snap / AUR packaging | Steam Deck is x86_64; out of scope for v2.1 |
 | Production-grade authentication | Single-user local device |
-| New UI components | Only infrastructure changes, no UI modifications |
+| New UI components | Only packaging/distribution changes, no UI modifications |
 
 ## Traceability
 
@@ -102,13 +159,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VAL-03 | Phase 10 | Complete |
 | VAL-04 | Phase 10 | Complete |
 
-**Coverage:**
+**Coverage (v2.0):**
 - v2.0 requirements: 26 total
 - Mapped to phases: 26 ✓
 - Unmapped: 0 ✓
 - Phase range: Phase 6 through Phase 10
 - All requirements complete: 26/26 ✓
 
+**Coverage (v2.1):**
+- v2.1 requirements: 28 total (PKG: 9, SBX: 6, DECK: 5, CI: 5, DOCS: 4 — minus DOCS-04 optional, VAL: 5)
+- Phase mapping populated by roadmapper
+
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after Phase 10 completion*
+*Last updated: 2026-05-09 — added v2.1 Flatpak Packaging requirements*
