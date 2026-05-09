@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Flatpak Packaging
-status: planned
-last_updated: "2026-05-09T15:01:00.000Z"
-last_activity: 2026-05-09 - Phase 11 planned (3 plans), ready to execute
+status: in_progress
+last_updated: "2026-05-09T15:32:00.000Z"
+last_activity: 2026-05-09 - Phase 11 executing (3 plans, Wave 1)
 progress:
   total_phases: 11
   completed_phases: 5
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-09)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** v2.1 Flatpak Packaging — roadmap drafted, ready for `/gsd-plan-phase 11`
+**Current focus:** Phase 11 executing — deb config, CI rewrite, cleanup + runtime lock
 
 ## Current Position
 
-Phase: 11 — Bundle Pipeline Restructure (planned, 3 plans ready)
-Plan: N/A (phase planned, not yet executed)
-Status: Phase planned — 11-01-PLAN.md (deb config), 11-02-PLAN.md (CI rewrite), 11-03-PLAN.md (cleanup + runtime lock)
-Last activity: 2026-05-09 — Phase 11 plans created (3 plans in 1 wave)
+Phase: 11 — Bundle Pipeline Restructure (executing)
+Plan: Wave 1 — 11-01 (deb config), 11-02 (CI rewrite), 11-03 (cleanup + runtime lock)
+Status: Phase executing — 3 plans in Wave 1, all autonomous
+Last activity: 2026-05-09 — Phase 11 execution started
 
 ## Progress
 
@@ -42,7 +42,7 @@ Last activity: 2026-05-09 — Phase 11 plans created (3 plans in 1 wave)
 | 8. Gamepad Monitoring with gilrs | Complete |
 | 9. Hook Rewrites | Complete |
 | 10. Build and Test on SteamOS | Complete |
-| 11. Bundle Pipeline Restructure | Planned |
+| 11. Bundle Pipeline Restructure | Executing |
 | 12. Manifest + AppStream + Local Build | Not started |
 | 13. Sandbox Permissions for BLE + Gamepad | Not started |
 | 14. Steam Deck On-Device Validation | Not started |
