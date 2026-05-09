@@ -55,8 +55,7 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 ### Active
 
-- [ ] Deb bundle feeds flatpak-builder; Flatpak bundle is the release artifact (Phases 12-15)
-- [ ] Flatpak manifest with BLE (`org.bluez`) and gamepad/evdev finish-args
+- [ ] Flatpak manifest with BLE (`org.bluez`) and gamepad/evdev finish-args (Phase 13)
 - [ ] Sideload install + "Add as Non-Steam Game" docs for Steam Deck Gaming Mode
 - [ ] Auto-upgrade workflow (`flatpak update`) documented or scripted
 
@@ -68,6 +67,11 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 - ✓ Rewrite build.yml to single deb job with stock tauri-cli — Phase 11 (PKG-02, PKG-03)
 - ✓ Delete build-steamdeck.sh, lock Flatpak runtime in PROJECT.md — Phase 11 (PKG-04)
 - ✓ Legacy appimage test updated to deb target — Phase 11 (test fix)
+- ✓ Flatpak manifest with deb-extract pattern, display-only finish-args, and 5 type:file sources — Phase 12 (PKG-05)
+- ✓ AppStream metainfo with all required AppStream fields (id, name, summary, description, licenses, developer, categories, launchable, releases) — Phase 12 (PKG-06)
+- ✓ Manifest build-commands rename desktop, sed Icon=, install hicolor icons (32, 128, 512) — Phase 12 (PKG-07)
+- ✓ build.sh wrapping flatpak-builder with macOS structural validation and Linux full build — Phase 12 (PKG-08)
+- ✓ flatpak/README.md documenting prerequisites, build steps, icon regeneration, and architecture — Phase 12 (PKG-09)
 
 ### Out of Scope
 
@@ -137,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — Phase 11 complete, v2.1 milestone 1/6*
+*Last updated: 2026-05-09 — Phase 12 complete, v2.1 milestone 2/6*

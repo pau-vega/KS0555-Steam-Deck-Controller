@@ -151,8 +151,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Icons, AppStream metainfo, and developer README (PKG-06, PKG-07, PKG-09)
-- [ ] 12-02-PLAN.md — Flatpak manifest and build.sh script (PKG-05, PKG-07, PKG-08, VAL-05)
+- [x] 12-01-PLAN.md — Icons, AppStream metainfo, and developer README (PKG-06, PKG-07, PKG-09)
+- [x] 12-02-PLAN.md — Flatpak manifest and build.sh script (PKG-05, PKG-07, PKG-08, VAL-05)
 **UI hint**: yes
 
 ### Phase 13: Sandbox Permissions for BLE + Gamepad
@@ -216,7 +216,7 @@ Plans:
 | 9. Hook Rewrites | 2/2 | Complete | 2026-05-06 |
 | 10. Build and Test on SteamOS | 2/2 | Complete | 2026-05-06 |
 | 11. Bundle Pipeline Restructure | 3/3 | Complete | 2026-05-09 |
-| 12. Manifest + AppStream + Local Build | 0/2 | Not started | - |
+| 12. Manifest + AppStream + Local Build | 2/2 | Complete | 2026-05-09 |
 | 13. Sandbox Permissions for BLE + Gamepad | 0/0 | Not started | - |
 | 14. Steam Deck On-Device Validation | 0/0 | Not started | - |
 | 15. CI Migration (Parallel-Run) | 0/0 | Not started | - |

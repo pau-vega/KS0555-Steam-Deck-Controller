@@ -4,13 +4,13 @@ milestone: v2.1
 milestone_name: Flatpak Packaging
 status: in_progress
 last_updated: "2026-05-09T18:00:00.000Z"
-last_activity: 2026-05-09 - Phase 12 planned (2 plans, 1 wave)
+last_activity: 2026-05-09 - Phase 12 complete (2/2 plans executed, 1 wave)
 progress:
-  total_phases: 11
-  completed_phases: 5
-  total_plans: 17
-  completed_plans: 12
-  percent: 52
+  total_phases: 12
+  completed_phases: 6
+  total_plans: 19
+  completed_plans: 14
+  percent: 58
 ---
 
 # STATE.md
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-09)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 11 complete — ready for Phase 12
+**Current focus:** Phase 12 complete — ready for Phase 13
 
 ## Current Position
 
-Phase: 12 — Manifest + AppStream + Local Build (planned)
-Plan: 2 plans in 1 wave
-Status: Planned — ready for execution
-Last activity: 2026-05-09 — Phase 12 plans created
+Phase: 12 — Manifest + AppStream + Local Build (complete)
+Plan: 2/2 plans executed
+Status: Complete
+Last activity: 2026-05-09 — Phase 12 executed (icons, metainfo, README, manifest, build.sh)
 
 ## Progress
 
@@ -43,7 +43,7 @@ Last activity: 2026-05-09 — Phase 12 plans created
 | 9. Hook Rewrites | Complete |
 | 10. Build and Test on SteamOS | Complete |
 | 11. Bundle Pipeline Restructure | Complete |
-| 12. Manifest + AppStream + Local Build | Not started |
+| 12. Manifest + AppStream + Local Build | Complete |
 | 13. Sandbox Permissions for BLE + Gamepad | Not started |
 | 14. Steam Deck On-Device Validation | Not started |
 | 15. CI Migration (Parallel-Run) | Not started |
