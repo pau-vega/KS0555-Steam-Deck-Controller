@@ -158,6 +158,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VAL-02 | Phase 10 | Complete |
 | VAL-03 | Phase 10 | Complete |
 | VAL-04 | Phase 10 | Complete |
+| PKG-01 | Phase 11 | Pending |
+| PKG-02 | Phase 11 | Pending |
+| PKG-03 | Phase 11 | Pending |
+| PKG-04 | Phase 11 | Pending |
+| PKG-05 | Phase 12 | Pending |
+| PKG-06 | Phase 12 | Pending |
+| PKG-07 | Phase 12 | Pending |
+| PKG-08 | Phase 12 | Pending |
+| PKG-09 | Phase 12 | Pending |
+| VAL-05 | Phase 12 | Pending |
+| SBX-01 | Phase 13 | Pending |
+| SBX-02 | Phase 13 | Pending |
+| SBX-03 | Phase 13 | Pending |
+| SBX-04 | Phase 13 | Pending |
+| SBX-05 | Phase 13 | Pending |
+| SBX-06 | Phase 13 | Pending |
+| VAL-06 | Phase 13 | Pending |
+| VAL-07 | Phase 13 | Pending |
+| DECK-01 | Phase 14 | Pending |
+| DECK-02 | Phase 14 | Pending |
+| DECK-03 | Phase 14 | Pending |
+| DECK-04 | Phase 14 | Pending |
+| VAL-09 | Phase 14 | Pending |
+| CI-01 | Phase 15 | Pending |
+| CI-02 | Phase 15 | Pending |
+| CI-03 | Phase 15 | Pending |
+| CI-04 | Phase 15 | Pending |
+| CI-05 | Phase 16 | Pending |
+| DECK-05 | Phase 16 | Pending |
+| DOCS-01 | Phase 16 | Pending |
+| DOCS-02 | Phase 16 | Pending |
+| DOCS-03 | Phase 16 | Pending |
+| DOCS-04 | Phase 16 | Pending |
+| VAL-08 | Phase 16 | Pending |
 
 **Coverage (v2.0):**
 - v2.0 requirements: 26 total
@@ -167,9 +201,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 - All requirements complete: 26/26 ✓
 
 **Coverage (v2.1):**
-- v2.1 requirements: 28 total (PKG: 9, SBX: 6, DECK: 5, CI: 5, DOCS: 4 — minus DOCS-04 optional, VAL: 5)
-- Phase mapping populated by roadmapper
+- v2.1 requirements: 28 total (PKG: 9, SBX: 6, DECK: 5, CI: 5, DOCS: 4, VAL: 5 = 33 entries listed; PKG=9, SBX=6, DECK=5, CI=5, DOCS=4, VAL=5 sums to 34 — but VAL-05/06/07/08/09 = 5 v2.1 VAL items only, total = 9+6+5+5+4+5 = 34… wait, recount below)
+- Recount: PKG-01..09 (9) + SBX-01..06 (6) + DECK-01..05 (5) + CI-01..05 (5) + DOCS-01..04 (4) + VAL-05..09 (5) = **34 line items** in the requirements blocks above
+- However, the milestone scope per orchestrator instruction says **28 total v2.1 REQ-IDs to map**: PKG-01..09 (9) + SBX-01..06 (6) + DECK-01..05 (5) + CI-01..05 (5) + DOCS-01..04 (4) + VAL-05..09 (5) — that arithmetic is 9+6+5+5+4+5 = 34, not 28. The orchestrator's "28 total" undercount (likely subtracting optional DOCS-04 and over-collapsing VAL) is reconciled by mapping every listed REQ-ID anyway: **all 34 v2.1 REQ-IDs are mapped to exactly one phase**, no orphans, no duplicates.
+- Mapped to phases: 34/34 ✓
+- Unmapped: 0 ✓
+- Phase range: Phase 11 through Phase 16
+- Status: all Pending — milestone in planning
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-09 — added v2.1 Flatpak Packaging requirements*
+*Last updated: 2026-05-09 — v2.1 traceability populated by roadmapper (Phases 11-16)*
