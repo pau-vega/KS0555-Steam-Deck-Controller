@@ -84,3 +84,48 @@ See the root [README](../README.md) for full usage documentation.
 
 BLE (`org.bluez`) and gamepad (`--device=input`) finish-args are added in a
 later phase and are not present in the initial manifest.
+
+## Validation
+
+Before tagging a release, validate the Flatpak bundle on a real Steam Deck using
+the on-device validation checklist.
+
+### Quick Start
+
+1. Build the `.flatpak` bundle:
+   ```bash
+   ./flatpak/build.sh apps/frontend/src-tauri/target/release/bundle/deb/robot-controller_*.deb
+   ```
+
+2. Transfer to your Steam Deck (via USB, scp, or KDE Connect).
+
+3. On the Steam Deck:
+   ```bash
+   flatpak install --user RobotController-x86_64.flatpak
+   flatpak run com.ks0555.robotcontroller
+   ```
+
+4. Run through the checklist:
+   - Copy `flatpak/VALIDATION-CHECKLIST.md` and fill it out
+   - Save results as `flatpak/validation-reports/YYYY-MM-DD-REPORT.md`
+   - Capture logs: `flatpak run --env=RUST_LOG=debug com.ks0555.robotcontroller 2> flatpak/validation-logs/YYYY-MM-DD-app.log`
+
+5. Verify env: `flatpak run --command=env com.ks0555.robotcontroller | grep WEBKIT`
+
+### Checklist Coverage
+
+The checklist validates:
+- **DECK-01:** Sideload install with auto-fetched runtime
+- **DECK-02:** Desktop Mode — BLE connect to BT24, gamepad input (F/B/L/R/S)
+- **DECK-03:** "Add as Non-Steam Game" — .desktop found, shortcut launches
+- **DECK-04:** Gaming Mode — window renders (no black screen), gamepad + BLE work
+- **VAL-09:** End-to-end logged session with log artifacts captured
+
+### Validation Artifacts
+
+| File | Purpose |
+|------|---------|
+| `flatpak/VALIDATION-CHECKLIST.md` | Reusable pass/fail checklist (run on every release) |
+| `flatpak/validation-reports/REPORT-TEMPLATE.md` | Template for dated validation reports |
+| `flatpak/validation-reports/` | Directory for filled reports (git-ignored except template) |
+| `flatpak/validation-logs/` | Directory for captured log files (git-ignored except .gitkeep) |
