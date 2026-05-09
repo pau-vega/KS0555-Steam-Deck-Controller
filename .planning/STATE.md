@@ -1,73 +1,93 @@
+---
+gsd_state_version: 1.0
+milestone: v2.1
+milestone_name: Flatpak Packaging
+status: planned
+last_updated: "2026-05-09T15:01:00.000Z"
+last_activity: 2026-05-09 - Phase 11 planned (3 plans), ready to execute
+progress:
+  total_phases: 11
+  completed_phases: 5
+  total_plans: 15
+  completed_plans: 12
+  percent: 47
+---
+
 # STATE.md
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-05)
+See: .planning/PROJECT.md (updated 2026-05-09)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Milestone v1.1 — TypeScript Migration
+**Current focus:** v2.1 Flatpak Packaging — roadmap drafted, ready for `/gsd-plan-phase 11`
 
 ## Current Position
 
-Phase: Phase 5 — ESLint Config TypeScript Conversion
-Plan: 05-03 (Complete)
-Status: Phase Complete
-Last activity: 2026-05-05 - Completed quick task 260505-nxp: delete 15 leftover .js files from TS migration
+Phase: 11 — Bundle Pipeline Restructure (planned, 3 plans ready)
+Plan: N/A (phase planned, not yet executed)
+Status: Phase planned — 11-01-PLAN.md (deb config), 11-02-PLAN.md (CI rewrite), 11-03-PLAN.md (cleanup + runtime lock)
+Last activity: 2026-05-09 — Phase 11 plans created (3 plans in 1 wave)
 
 ## Progress
 
-| Phase | Status | Plans | Progress |
-|-------|--------|-------|----------|
-| v1.0 Phase 1 | ✅ | 4/4 | 100% |
-| v1.0 Phase 2 | ✅ | 2/2 | 100% |
-| v1.0 Phase 3 | ✅ | 3/3 | 100% |
-| v1.1 Phase 4 | ✅ | 4/4 | 100% |
-| v1.1 Phase 5 | ✅ | 3/3 | 100% |
+**Total roadmap (v2.0 + v2.1):** 11 phases
+**v2.0 complete:** Phases 6-10 (5/5)
+**v2.1 active:** Phases 11-16 (0/6)
+
+| Phase | Status |
+|-------|--------|
+| 6. Tauri Shell Setup | Complete |
+| 7. BLE Commands with btleplug | Complete |
+| 8. Gamepad Monitoring with gilrs | Complete |
+| 9. Hook Rewrites | Complete |
+| 10. Build and Test on SteamOS | Complete |
+| 11. Bundle Pipeline Restructure | Planned |
+| 12. Manifest + AppStream + Local Build | Not started |
+| 13. Sandbox Permissions for BLE + Gamepad | Not started |
+| 14. Steam Deck On-Device Validation | Not started |
+| 15. CI Migration (Parallel-Run) | Not started |
+| 16. AppImage Decommission + Upgrade Workflow Docs | Not started |
+
+Plans: 12/12 complete (all v2.0). v2.1 plans not yet decomposed (TBD per phase).
 
 ## Decisions Made
 
-- D-02: Backend extends @ks0555/tsconfig/tsconfig.node.json
-- D-07: Backend ESLint uses packages/eslint-config/src/node.js
-- D-10: Frontend extends @ks0555/tsconfig/tsconfig.react.json
-- D-12: Frontend ESLint uses packages/eslint-config/src/react.js
-- D-13: Use factory functions (createMockGamepad) instead of Partial<T> for complex DOM mock types
-- D-14: Use non-null assertions (!) for mock instances guaranteed by beforeEach setup
-- D-15: Added @typescript-eslint/parser to react.js ESLint config for TypeScript parsing
-- D-16: Set tsconfigRootDir to process.cwd() in node.js ESLint config for correct tsconfig resolution
-- D-17: Add ESLint overrides for *.config.ts files to exclude from type-aware linting
-- D-18: (Phase 5) Use ESM export default [...] for eslint-config (not CommonJS module.exports)
-- D-19: (Phase 5) Use "type": "module" in packages/eslint-config/package.json
-- D-20: (Phase 5) Use import type {...} for plugin types, import() for runtime plugin loading
-- D-21: (Phase 5) Use tsup to compile .ts → .js + .d.ts (ESM format)
-- D-22: (Phase 5) Rename node.js → node.ts, react.js → react.ts in packages/eslint-config/src/
-- D-23: (Phase 5) Disable dts in tsup.config.ts (eslint-plugin-perfectionist has no Plugin export)
-- D-24: (Phase 5) Add tsconfig.json with relative path to @ks0555/tsconfig (not package reference)
+(carried from v2.0 — see PROJECT.md Key Decisions table)
+
+**v2.1 decisions pending (must land during phase work):**
+- **Flatpak runtime choice (PKG-04):** `org.freedesktop.Platform//24.08` recommended (smaller, no GNOME deps); `org.gnome.Platform//46` fallback if missing-library issue surfaces. Decide and commit to PROJECT.md in Phase 11.
+- **Auto-update reframed (DECK-05 / DOCS-01):** PROJECT.md "Active" requirement amended to "Manual upgrade workflow (`flatpak install --user --reinstall`) documented; optional GitHub Releases polling launcher script". True `flatpak update` deferred to v2.2+ (`FLAT-PUB-01`).
 
 ## Accumulated Context
 
-### Phase 4 Notes
-- 13 leftover `.js` files deleted from `apps/frontend/src/` (Phase 4 Plan 04-01)
-- TS anti-patterns eliminated: `any` types (0 remaining), `import type` syntax fixed, return types confirmed (Phase 4 Plan 04-02)
-- Plan 04-03 complete: validation gates pass (build ✅, typecheck ✅, lint ✅)
-- Plan 04-04 complete: gap closure — TS6059 fixed, react.js tsconfigRootDir added, ESLint override for config files
-- Zero TypeScript suppressions (`@ts-ignore`, `@ts-nocheck`, `@ts-expect-error`) in codebase
-- ESLint configs fixed: react.js now has @typescript-eslint/parser + tsconfigRootDir, node.js has override for *config.ts
-- All 51 tests pass (39 frontend + 12 backend)
-- Phase 4 COMPLETE — ready for Phase 5 (eslint-config TypeScript conversion)
+### v2.0 Recap (Validated)
 
-### Phase 5 Notes
-- Phase 5 COMPLETE — ESLint config converted to TypeScript ESM
-- `node.js` → `node.ts`, `react.js` → `react.ts` (ESM export default)
-- Added `tsup.config.ts` for ESM build (dist/ output)
-- Updated `package.json` with `"type": "module"`, `"main": "dist/node.js"`, `"types": "dist/node.d.ts"`
-- Both apps' lint scripts updated to reference `.ts` config files
-- `pnpm build`, `pnpm typecheck`, `pnpm lint` all pass with zero errors
-- Auto-fixes: installed tsup, @types/node; added tsconfig.json; disabled dts (eslint-plugin-perfectionist has no Plugin export)
-- Known issue resolved by quick task 260505-nxp: 15 leftover `.js` files in `apps/frontend/` deleted (all had .ts/.tsx counterparts)
+- Phases 1-10 shipped: monorepo, backend (deprecated), React UI, TS hardening, ESLint TS conversion, Tauri shell, BLE via btleplug, gamepad via gilrs, hook rewrites, SteamOS build/test
+- AppImage CI build operational (`.github/workflows/build.yml`) — to be replaced by Flatpak in v2.1
+- 43+ tests passing, app.tsx untouched
+- Recent quick tasks: Tauri v2 best practices (lib.rs extraction), Steam Deck WEBKIT_DISABLE_COMPOSITING_MODE, Mac dev support, doc updates
 
-### Quick Tasks Completed
+### v2.1 Goals & Phase Map
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260505-nhk | fix ts-review findings | 2026-05-05 | 7a6b3a8 | [260505-nhk-fix-ts-review-findings](./quick/260505-nhk-fix-ts-review-findings/) |
-| 260505-nxp | delete 15 leftover .js files from TS migration | 2026-05-05 | 9332916 | [260505-nxp-make-sure-there-are-no-js-files-after-th](./quick/260505-nxp-make-sure-there-are-no-js-files-after-th/) |
+- Phase 11: switch `bundle.targets` to `["deb"]`; drop custom tauri-cli fork; pick runtime
+- Phase 12: write `flatpak/` directory (manifest + metainfo + build.sh); first local `flatpak run` opens window
+- Phase 13: sandbox finish-args for BLE D-Bus + evdev gamepad; `lib.rs` `!in_flatpak` gate
+- Phase 14: real-Deck validation in Desktop + Gaming Mode
+- Phase 15: CI parallel-run (Flatpak + AppImage shipped together for one transition release)
+- Phase 16: AppImage decommission + upgrade workflow docs
+
+### Critical Risks (from research/PITFALLS.md)
+
+- BLE silently fails without `--system-talk-name=org.bluez` (Pitfall #2) — Phase 13
+- `lib.rs` D-Bus rewrite incompatible with Flatpak (Pitfall #13) — Phase 13, paired with finish-args in same PR
+- `--device=input` requires Flatpak ≥ 1.15.6 — empirical test on real Deck (Pitfall #4) — Phase 14
+- Sideload bundles do NOT auto-update (Pitfall #7) — resolve in Phase 16 docs
+- Removing AppImage in same PR as Flatpak adoption — keep parallel-run for ≥1 release (Pitfall #11) — Phase 15 → 16 split
+
+## Session Continuity
+
+Last session: 2026-05-09 (roadmapper run)
+Stopped at: Roadmap v2.1 created, plans not yet decomposed
+Resume file: None
+Next action: `/gsd-plan-phase 11` to decompose Phase 11 (Bundle Pipeline Restructure) into executable plans

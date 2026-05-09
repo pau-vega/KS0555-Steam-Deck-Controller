@@ -1,96 +1,301 @@
 # Roadmap: Steam Deck Robot Controller
 
+This roadmap is append-only across milestones. v2.0 phases (6–10) are complete and frozen. v2.1 phases (11–16) extend it for the Flatpak Packaging milestone.
+
+---
+
+## Milestone v2.0 — Tauri Migration (Complete)
+
+**Goal:** Migrate apps/frontend from browser-based React+Vite to a Tauri v2 desktop app, replacing broken Web Bluetooth and Gamepad APIs with native Rust alternatives.
+**Granularity:** Coarse (5 phases)
+
+---
+
 ## Phases
 
-- [x] **Phase 1: Monorepo Foundation** - pnpm workspaces, TypeScript, dev scripts
-- [x] **Phase 2: Backend — WebSocket + Bluetooth Serial** - Node.js backend bridging WebSocket to Bluetooth serial
-- [x] **Phase 3: Frontend — React UI + Gamepad Control** - React UI with manual buttons, gamepad, auto-reconnect
-- [x] **Phase 4: TypeScript Quality Hardening** - Delete leftover JS files and enforce TS best practices across codebase
-- [x] **Phase 5: ESLint Config TypeScript Conversion** - Convert eslint-config package from JS to TypeScript ESM
+- [x] **Phase 6: Tauri Shell Setup** - Initialize Tauri v2 project with Cargo.toml, tauri.conf.json, Vite integration
+- [x] **Phase 7: BLE Commands with btleplug** - Implement Rust BLE module for BT24 robot communication via Tauri commands (completed 2026-05-06)
+- [x] **Phase 8: Gamepad Monitoring with gilrs** - Background thread polling gilrs and emitting gamepad events
+- [x] **Phase 9: Hook Rewrites** - Rewrite use-bluetooth.ts and use-gamepad.ts to use Tauri IPC with stable interfaces (completed 2026-05-06)
+- [x] **Phase 10: Build and Test on SteamOS** - Validate full stack on target platform with production AppImage (completed 2026-05-06)
+- [ ] **Phase 11: Bundle Pipeline Restructure** - Switch tauri.conf.json bundle.targets from appimage to deb; drop custom tauri-cli fork; pick Flatpak runtime
+- [ ] **Phase 12: Manifest + AppStream + Local Build** - Author Flatpak manifest, AppStream metainfo, build.sh; first local `flatpak run` opens the window
+- [ ] **Phase 13: Sandbox Permissions for BLE + Gamepad** - finish-args for org.bluez D-Bus, evdev /dev/input, WebKit env vars; gate lib.rs D-Bus rewrite on !in_flatpak
+- [ ] **Phase 14: Steam Deck On-Device Validation** - Sideload .flatpak on real Deck; verify BLE+gamepad in Desktop and Gaming Mode; "Add as Non-Steam Game" workflow tested
+- [ ] **Phase 15: CI Migration (Parallel-Run)** - Add build-flatpak-x64 GitHub Actions job using flathub-infra container with OSTree cache; drop arm64; keep AppImage for one transition release
+- [ ] **Phase 16: AppImage Decommission + Upgrade Workflow Docs** - Remove AppImage CI job; document manual upgrade workflow (`flatpak install --user --reinstall`); optional GitHub Releases polling launcher
+
+---
 
 ## Phase Details
 
-### Phase 1: Monorepo Foundation
-**Goal**: Set up pnpm workspaces monorepo with frontend and backend apps, TypeScript configured, and working dev scripts.
-**Depends on**: Nothing (first phase)
-**Requirements**: MONO-01, MONO-02, MONO-03, MONO-04
+### Phase 6: Tauri Shell Setup
+**Goal**: Tauri v2 project initialized and configured inside apps/frontend/ with proper IPC setup
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: TAUR-01, TAUR-02, TAUR-03, TAUR-04, TAUR-05
 **Success Criteria** (what must be TRUE):
-  1. `pnpm install` from root installs all dependencies without errors
-  2. `pnpm dev` starts both frontend and backend development servers
-  3. Both apps have TypeScript configured with strict mode
-  4. Workspace structure has `apps/frontend`, `apps/backend`, and empty `packages/` directory
-**Plans**: 01-01-PLAN.md, 01-02-PLAN.md, 01-03-PLAN.md, 01-04-PLAN.md
-
-### Phase 2: Backend — WebSocket + Bluetooth Serial
-**Goal**: Build Node.js backend that connects to DX-BT24 via serial port and bridges WebSocket commands to Bluetooth serial.
-**Depends on**: Phase 1
-**Requirements**: BACK-01, BACK-02, BACK-03, BACK-04, BACK-05, BACK-06, SAFE-01, SAFE-02
-**Success Criteria** (what must be TRUE):
-  1. WebSocket server starts and accepts connections on a configurable port
-  2. Serial connection to `/dev/rfcomm0` at 9600 baud establishes successfully
-  3. Sending "F" via WebSocket results in "F" written to serial port
-  4. Serial disconnection triggers auto-reconnect with backoff
-  5. WebSocket client disconnect triggers "S" written to serial port
-  6. Console logs show command receipt and serial status changes
-**Plans**: 02-01-PLAN.md, 02-02-PLAN.md
-
-### Phase 3: Frontend — React UI + Gamepad Control
-**Goal**: Build React UI with connection status, manual buttons, gamepad support, and WebSocket communication.
-**Depends on**: Phase 2
-**Requirements**: FRONT-01, FRONT-02, FRONT-03, FRONT-04, FRONT-05, FRONT-06, FRONT-07, FRONT-08
-**Success Criteria** (what must be TRUE):
-  1. UI displays connection status that updates when WebSocket connects/disconnects
-  2. Manual buttons (F, B, L, R, S) send commands via WebSocket when clicked
-  3. Last sent command is displayed on screen
-  4. Gamepad stick input maps to correct robot commands with visible feedback
-  5. Analog stick deadzone prevents jitter from triggering commands
-  6. Commands only sent on direction change, not continuously
-  7. WebSocket auto-reconnects if backend restarts
-**Plans**: 03-01-PLAN.md, 03-02-PLAN.md, 03-03-PLAN.md
-**UI hint**: yes
-
-### Phase 4: TypeScript Quality Hardening
-**Goal**: Remove all leftover JS files from the frontend and eliminate TypeScript anti-patterns (any, missing return types, missing import type) so the entire codebase is strictly typed and lint-clean.
-**Depends on**: Phase 3
-**Requirements**: CLEAN-01, TS-01, TS-02, TS-03, VAL-01, VAL-02, VAL-03, VAL-04
-**Success Criteria** (what must be TRUE):
-  1. All 13 leftover `.js` files in `apps/frontend/src/` are deleted and no JS file remains alongside a `.ts`/`.tsx` equivalent
-  2. `grep -r "any" apps/ packages/` returns zero hits in `.ts`/`.tsx` files
-  3. Every top-level non-hook/non-component function in `.ts`/`.tsx` files has an explicit return type annotation
-  4. All type-only imports across the monorepo use `import type` syntax
-  5. `pnpm build`, `pnpm typecheck`, and `pnpm lint` all complete with zero errors
-**Plans**: 5 plans
+  1. `apps/frontend/src-tauri/` directory exists with Cargo.toml, tauri.conf.json, and main.rs entrypoint
+  2. `pnpm --filter @ks0555/frontend tauri dev` starts without errors and loads the Vite frontend at http://localhost:5173
+  3. tauri.conf.json configured with productName "Robot Controller", identifier "com.ks0555.robotcontroller", devUrl "http://localhost:5173", and AppImage bundle target for Linux
+  4. Vite config has Tauri integration: clearScreen false, strictPort true, port 5173, watch ignore for src-tauri/
+   5. Cargo.toml includes btleplug@0.12.0, gilrs@0.11.1, serde, and tokio with Rust edition 2021
+**Plans**: 2 plans
 
 Plans:
-- [x] 04-01-PLAN.md — Delete 13 leftover JS files from apps/frontend/src/
-- [x] 04-02-PLAN.md — Fix TS anti-patterns (any, import type, return types)
-- [x] 04-03-PLAN.md — Validation gate (build, typecheck, lint, TS rules)
-- [x] 04-04-PLAN.md — Gap closure: fix TS6059 and add tsconfigRootDir to react.js
-- [ ] 04-05-PLAN.md — Gap closure: delete untracked JS files remaining on disk
+- [x] 06-01-PLAN.md — Initialize Tauri v2 project with Cargo.toml, tauri.conf.json, main.rs, and update frontend package.json with Tauri dependencies
+- [x] 06-02-PLAN.md — Configure Vite for Tauri integration (clearScreen, strictPort, port 5173, watch ignore)
 
-### Phase 5: ESLint Config TypeScript Conversion
-**Goal**: Convert the shared eslint-config package from plain JavaScript to TypeScript ESM so the package itself is type-safe and consistent with the rest of the monorepo.
-**Depends on**: Phase 4
-**Requirements**: CLEAN-02, CLEAN-03, CLEAN-04
+### Phase 7: BLE Commands with btleplug
+**Goal**: Rust BLE module implemented with Tauri commands for BT24 robot communication
+**Depends on**: Phase 6
+**Requirements**: BLE-01, BLE-02, BLE-03, BLE-04, BLE-05, BLE-06
 **Success Criteria** (what must be TRUE):
-  1. `packages/eslint-config/src/node.js` no longer exists — replaced by a `.ts` module exporting the same config
-  2. `packages/eslint-config/src/react.js` no longer exists — replaced by a `.ts` module exporting the same config
-  3. Both `apps/frontend` and `apps/backend` import from eslint-config without any import errors or type errors
-  4. `pnpm build`, `pnpm typecheck`, and `pnpm lint` all complete with zero errors after the conversion
-  5. ts-reviewer agent passes on the converted eslint-config package
+  1. `invoke('ble_connect')` scans for BT24 device (filter by name "BT24", service UUID 0000ffe0-0000-1000-8000-00805f9b34fb), connects, and emits "ble-state-changed" with "connecting" then "connected"
+  2. `invoke('ble_send', { command: 'F' })` writes command string to BT24 characteristic UUID 0000ffe1-0000-1000-8000-00805f9b34fb using WriteType::WithoutResponse
+  3. `invoke('ble_disconnect')` disconnects from BT24 peripheral and emits "ble-state-changed" with "disconnected"
+  4. Connected Peripheral stored in Tauri managed state (app.manage()) for access across commands
+  5. Unexpected disconnections (CentralEvent::DeviceDisconnected) auto-emit "ble-state-changed" with "disconnected"
 **Plans**: 3 plans
 
 Plans:
-- [x] 05-01-PLAN.md — Convert node.js and react.js to TypeScript ESM modules
-- [x] 05-02-PLAN.md — Add tsup config and update package.json with ESM + types
-- [x] 05-03-PLAN.md — Update lint scripts and validate conversion with build/typecheck/lint
- 
-## Progress Table
- 
+- [x] 07-01-PLAN.md — BLE Connection Command with State Management (BLE-01, BLE-04, BLE-05)
+- [x] 07-02-PLAN.md — BLE Send and Disconnect Commands (BLE-02, BLE-03)
+- [x] 07-03-PLAN.md — Tauri Permissions and Linux Filtering (BLE-06)
+
+### Phase 8: Gamepad Monitoring with gilrs
+**Goal**: Background thread polls gilrs and emits gamepad events to frontend
+**Depends on**: Phase 6
+**Requirements**: GPAD-01, GPAD-02, GPAD-03, GPAD-04, GPAD-05, GPAD-06
+**Success Criteria** (what must be TRUE):
+  1. Steam Deck built-in controller detected by checking gamepad.name() contains "Steam", emits "gamepad-connected" event on EventType::Connected
+  2. Gamepad direction changes (F/B/L/R/S with 0.15 deadzone on LeftStickX/Y) emit "gamepad-direction" events only when direction actually changes (direction change guard)
+  3. Controller disconnect emits "gamepad-disconnected" event on EventType::Disconnected
+  4. Background thread uses std::thread::spawn or tauri::async_runtime::spawn with cloned AppHandle (not Window) for cross-thread event emitting
+  5. Scan results post-filtered by device name "BT24" on Linux since BlueZ merges discovery filters across all D-Bus clients
+**Plans**: 3 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Create gamepad module with gilrs thread spawn and main.rs integration
+- [x] 08-02-PLAN.md — Add Steam Deck gamepad discovery and connect/disconnect events
+- [x] 08-03-PLAN.md — Add direction detection with deadzone and change guard
+
+### Phase 9: Hook Rewrites
+**Goal**: Frontend hooks rewritten to use Tauri IPC instead of Web APIs while preserving interfaces
+**Depends on**: Phase 7, Phase 8
+**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04, HOOK-05
+**Success Criteria** (what must be TRUE):
+  1. `useBluetooth()` returns identical shape `{ connected, connecting, unsupported, connect, send }` — uses invoke("ble_connect"), invoke("ble_disconnect"), invoke("ble_send"), and listen("ble-state-changed")
+  2. `useGamepad()` returns identical shape `{ direction, gamepadConnected }` — uses listen("gamepad-direction"), listen("gamepad-connected"), listen("gamepad-disconnected")
+  3. app.tsx, control-pad.tsx, status-bar.tsx work unchanged (verified: git diff shows no changes to these files after migration)
+  4. @types/web-bluetooth removed from apps/frontend dependencies (no longer needed after Tauri migration)
+**Plans**: 2 plans
+
+Plans:
+- [x] 09-01-PLAN.md — Rewrite use-bluetooth.ts to Tauri IPC, rewrite tests, remove @types/web-bluetooth
+- [x] 09-02-PLAN.md — Rewrite use-gamepad.ts to Tauri event listeners, rewrite tests
+
+### Phase 10: Build and Test on SteamOS
+**Goal**: Full stack validated on target platform with production build
+**Depends on**: Phase 9
+**Requirements**: VAL-01, VAL-02, VAL-03, VAL-04
+**Success Criteria** (what must be TRUE):
+  1. `pnpm --filter @ks0555/frontend tauri dev` starts without errors on Linux/SteamOS
+  2. Gamepad events flow through Rust gilrs → Tauri event → React without using navigator.getGamepads()
+  3. BLE connect/send works through Rust btleplug without using navigator.bluetooth
+  4. app.tsx is unchanged after migration (verified with git diff)
+**Plans**: 2 plans
+
+Plans:
+- [x] 10-01-PLAN.md — CI Pipeline + AppIcon + Tauri Build Config (VAL-01)
+- [x] 10-02-PLAN.md — Rust Integration Tests + Validation + CI app.tsx Check (VAL-02, VAL-03, VAL-04)
+
+---
+
+## Milestone v2.1 — Flatpak Packaging
+
+**Goal:** Replace AppImage distribution with a sideloaded Flatpak bundle for Steam Deck. BLE + gamepad must work inside the Flatpak sandbox; "Add as Non-Steam Game" must launch in Gaming Mode without regression.
+**Granularity:** Coarse (6 phases)
+**Dependencies:** v2.0 phases 6–10 complete (Tauri shell + BLE + gamepad shipped)
+**Notable contradictions resolved:**
+- "Auto-update workflow" (PROJECT.md Active) is reframed as **manual upgrade workflow** (`flatpak install --user --reinstall`) plus **optional** GitHub Releases polling launcher script. True `flatpak update` requires a self-hosted OSTree repo, which is explicitly Out of Scope. DECK-05 + DOCS-01 carry this resolution.
+- Runtime choice (`org.freedesktop.Platform//24.08` vs `org.gnome.Platform//46`) is decided in Phase 11 (PKG-04) and locked into both manifest (Phase 12) and CI container image (Phase 15).
+
+---
+
+### Phase 11: Bundle Pipeline Restructure
+**Goal**: Tauri produces a working `.deb` (the input artifact for `flatpak-builder`); custom AppImage tauri-cli fork is dropped; the Flatpak runtime decision is locked in
+**Depends on**: Phase 10 (v2.0 shipped)
+**Requirements**: PKG-01, PKG-02, PKG-03, PKG-04
+**Success Criteria** (what must be TRUE):
+  1. `apps/frontend/src-tauri/tauri.conf.json` has `bundle.targets: ["deb"]` (replacing `["appimage"]`); `cargo tauri build --bundles deb` succeeds locally and produces `target/release/bundle/deb/robot-controller_<version>_amd64.deb`
+  2. The custom `feat/truly-portable-appimage` tauri-cli fork is removed from local install scripts and CI; `cargo install tauri-cli` (stock) is the only source
+  3. `dpkg -c` on the produced `.deb` is recorded (binary path, .desktop filename, hicolor icon paths) for use by Phase 12's manifest authoring
+  4. Flatpak runtime `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and extension `org.freedesktop.Platform.GL.default` is committed to PROJECT.md Key Decisions table and referenced in Phase 12 manifest plan
+**Plans**: 3 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Switch tauri.conf.json bundle.targets to ["deb"] with deb metadata (PKG-01)
+- [ ] 11-02-PLAN.md — Rewrite build.yml to single deb job with stock tauri-cli (PKG-02, PKG-03)
+- [ ] 11-03-PLAN.md — Delete build-steamdeck.sh, lock Flatpak runtime in PROJECT.md (PKG-04)
+
+### Phase 12: Manifest + AppStream + Local Build
+**Goal**: A `flatpak/` directory exists at repo root with a working manifest, AppStream metainfo, and build script; `flatpak run com.ks0555.robotcontroller` opens the app window on a Linux dev box
+**Depends on**: Phase 11
+**Requirements**: PKG-05, PKG-06, PKG-07, PKG-08, PKG-09, VAL-05
+**Success Criteria** (what must be TRUE):
+  1. `flatpak/com.ks0555.robotcontroller.yaml` manifest exists with `id`, runtime/SDK from PKG-04, `command: robot-controller`, deb-extract `build-commands` (`ar -x` + `tar -xf`), and a `type: file` source pointing to the locally built `.deb`
+  2. `flatpak/com.ks0555.robotcontroller.metainfo.xml` AppStream metainfo exists (id, name, summary, description, license, releases stub) and validates against `appstream-util validate`
+  3. Manifest `build-commands` rename `robot-controller.desktop` → `com.ks0555.robotcontroller.desktop`, `sed` `Icon=` to `com.ks0555.robotcontroller`, and install hicolor icons (32, 128, 256@2) to `/app/share/icons/hicolor/.../apps/`
+  4. `flatpak/build.sh` produces a single-file `.flatpak` via `flatpak-builder --user --install --force-clean` followed by `flatpak build-bundle`; `flatpak/README.md` documents prerequisites (flatpak, flatpak-builder, Flathub remote) and `build.sh` usage
+  5. Local `flatpak run com.ks0555.robotcontroller` opens a window on a Linux dev box (Ubuntu 24.04 or matching), with no sandbox-escape warnings from `flatpak-builder`
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 13: Sandbox Permissions for BLE + Gamepad
+**Goal**: Manifest finish-args grant BlueZ system-bus access, evdev gamepad access, display sockets, and WebKit env vars; the existing `lib.rs` D-Bus address rewrite is gated on `!in_flatpak` so it does not silently break BLE inside the sandbox
+**Depends on**: Phase 12
+**Requirements**: SBX-01, SBX-02, SBX-03, SBX-04, SBX-05, SBX-06, VAL-06, VAL-07
+**Success Criteria** (what must be TRUE):
+  1. Locally, `flatpak run com.ks0555.robotcontroller` connects to a real BT24 robot via BLE; `dbus-monitor --system` from a host shell shows btleplug talking to `org.bluez` through the Flatpak D-Bus proxy; `busctl --system list` from inside `flatpak run --command=sh` lists `org.bluez`
+  2. Locally, `flatpak run` reads gamepad input via gilrs; `flatpak run --command=ls com.ks0555.robotcontroller /dev/input` lists `event*` nodes; the Steam-named controller emits `gamepad-direction` events
+  3. Manifest `finish-args` includes BLE flags (`--system-talk-name=org.bluez`, `--system-talk-name=org.bluez.*`, `--allow=bluetooth`, `--share=network`), gamepad flags (`--device=input` with `--device=all` documented as fallback comment), display flags (`--socket=wayland`, `--socket=fallback-x11`, `--share=ipc`, `--device=dri`), and `--env=WEBKIT_DISABLE_COMPOSITING_MODE=1`
+  4. `apps/frontend/src-tauri/src/lib.rs` `DBUS_SYSTEM_BUS_ADDRESS=/run/host/run/dbus/system_bus_socket` rewrite is gated behind a Flatpak detection check (`/.flatpak-info` exists or `FLATPAK_ID` env var set); inside Flatpak the rewrite is a no-op and a comment explains why
+  5. Manifest contains NO anti-features: no `--filesystem=home`, no `--device=bluetooth` (wrong stack — AF_BLUETOOTH not D-Bus), no `--talk-name=org.bluez` (wrong bus — session not system), no tray-icon args, no `org.freedesktop.Flatpak` portal grant — verified by manual review checklist comment in the manifest
+**Plans**: TBD
+
+### Phase 14: Steam Deck On-Device Validation
+**Goal**: The single-file `.flatpak` installs and runs on a real Steam Deck in both Desktop Mode and Gaming Mode, with BLE + gamepad working end-to-end
+**Depends on**: Phase 13
+**Requirements**: DECK-01, DECK-02, DECK-03, DECK-04, VAL-09
+**Success Criteria** (what must be TRUE):
+  1. On a real Steam Deck, `flatpak install --user RobotController-x86_64.flatpak` succeeds; the Flathub remote auto-fetches the missing runtime decided in PKG-04
+  2. Launching `flatpak run com.ks0555.robotcontroller` from Steam Desktop Mode opens the app window, scans and connects to the BT24 robot, and the Steam Deck built-in gamepad drives the robot (F/B/L/R/S commands reach the Arduino)
+  3. "Add a Non-Steam Game" picker in Steam Desktop Mode finds `com.ks0555.robotcontroller.desktop` exported by Flatpak under `~/.local/share/flatpak/exports/share/applications/`; the resulting Steam shortcut launches via `/usr/bin/flatpak run com.ks0555.robotcontroller`
+  4. Switching to Steam Gaming Mode and launching the shortcut renders the app without black/white screen (Gamescope + WebKitGTK), the gamepad still drives the BT24 robot, and a Steam Input controller template (if needed) is documented
+  5. End-to-end test artifacts captured (journalctl + RUST_LOG=debug log snippets) showing successful BLE connect, gamepad-direction events, and ble_send writes during a Gaming Mode session
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 15: CI Migration (Parallel-Run)
+**Goal**: GitHub Actions builds and publishes a `.flatpak` artifact alongside the existing AppImage during a transition window; arm64 is dropped; OSTree runtime cache keeps build time bounded
+**Depends on**: Phase 14
+**Requirements**: CI-01, CI-02, CI-03, CI-04
+**Success Criteria** (what must be TRUE):
+  1. `.github/workflows/build.yml` includes a `build-flatpak-x64` job using `flatpak/flatpak-github-actions/flatpak-builder@v6.7` with the Flathub container image matching PKG-04 (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08` or `:gnome-46`)
+  2. Tagged release CI uploads `RobotController-x86_64.flatpak` as a release asset alongside the existing AppImage; at least one tagged release ships both artifacts (parallel-run window) before AppImage is removed in Phase 16
+  3. The `build-arm64` job is removed from `.github/workflows/build.yml` (Steam Deck is x86_64 only); macOS DMG job is untouched
+  4. OSTree cache is enabled (`cache: true`) on the flatpak-builder action — runtime download (~1 GB) is reused across runs; warm-cache CI run completes within an acceptable budget (documented in commit message)
+  5. `app.tsx`, `control-pad.tsx`, `status-bar.tsx` remain unchanged after the CI migration — the existing `git diff --exit-code` lock check in CI passes (covers VAL-08 spanning v2.1)
+**Plans**: TBD
+
+### Phase 16: AppImage Decommission + Upgrade Workflow Docs
+**Goal**: AppImage CI artifact is removed; the manual upgrade workflow is documented honestly; root README walks Steam Deck users through install + Gaming Mode launch
+**Depends on**: Phase 15 (one transition release shipped with both artifacts)
+**Requirements**: CI-05, DECK-05, DOCS-01, DOCS-02, DOCS-03, DOCS-04, VAL-08
+**Success Criteria** (what must be TRUE):
+  1. AppImage `build-x64` job and AppImage release asset are removed from `.github/workflows/build.yml` in a separate PR landed only after Phase 15 has shipped at least one tagged release with both artifacts; the parallel-run window is closed
+  2. Root README install section walks a Steam Deck user through `flatpak install --user RobotController-x86_64.flatpak`, "Add as Non-Steam Game" steps, and Gaming Mode launch (text walkthrough; screenshots optional)
+  3. Documentation accurately describes the upgrade path: `flatpak install --user --reinstall RobotController-x86_64.flatpak` (sideload bundles cannot use `flatpak update`); an optional GitHub Releases polling launcher script is provided or explicitly marked deferred
+  4. `apps/frontend/src-tauri/README.md` (or root) documents the deb-extract Flatpak architecture and the `lib.rs` `!in_flatpak` D-Bus gate; `flatpak/README.md` contributor guide reproduces the sandbox finish-args rationale; `justfile` adds `flatpak-build`, `flatpak-install`, `flatpak-run`, `flatpak-deploy` recipes (DOCS-04 optional but useful)
+  5. Final CI run on `main` confirms `app.tsx`, `control-pad.tsx`, `status-bar.tsx` unchanged across the entire v2.1 milestone (`git diff --exit-code` lock check holds end-to-end — VAL-08 satisfied)
+**Plans**: TBD
+
+---
+
+## Progress
+
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Monorepo Foundation | 4/4 | Done | 2026-05-05 |
-| 2. Backend — WebSocket + Bluetooth Serial | 2/2 | Done | 2026-05-05 |
-| 3. Frontend — React UI + Gamepad Control | 3/3 | Done | 2026-05-05 |
-| 4. TypeScript Quality Hardening | 4/4 | Done | 2026-05-05 |
-| 5. ESLint Config TypeScript Conversion | 3/3 | Done | 2026-05-05 |
+| 6. Tauri Shell Setup | 2/2 | Complete | ✓ |
+| 7. BLE Commands with btleplug | 3/3 | Complete    | 2026-05-06 |
+| 8. Gamepad Monitoring with gilrs | 3/3 | Complete | 2026-05-06 |
+| 9. Hook Rewrites | 2/2 | Complete | 2026-05-06 |
+| 10. Build and Test on SteamOS | 2/2 | Complete | 2026-05-06 |
+| 11. Bundle Pipeline Restructure | 0/3 | Planned | - |
+| 12. Manifest + AppStream + Local Build | 0/0 | Not started | - |
+| 13. Sandbox Permissions for BLE + Gamepad | 0/0 | Not started | - |
+| 14. Steam Deck On-Device Validation | 0/0 | Not started | - |
+| 15. CI Migration (Parallel-Run) | 0/0 | Not started | - |
+| 16. AppImage Decommission + Upgrade Workflow Docs | 0/0 | Not started | - |
+
+---
+
+## Coverage Summary
+
+**v2.0 requirements:** 26 total — 26/26 mapped ✓ — all complete
+
+| Requirement | Phase |
+|-------------|-------|
+| TAUR-01 | Phase 6 |
+| TAUR-02 | Phase 6 |
+| TAUR-03 | Phase 6 |
+| TAUR-04 | Phase 6 |
+| TAUR-05 | Phase 6 |
+| BLE-01 | Phase 7 |
+| BLE-02 | Phase 7 |
+| BLE-03 | Phase 7 |
+| BLE-04 | Phase 7 |
+| BLE-05 | Phase 7 |
+| BLE-06 | Phase 7 |
+| GPAD-01 | Phase 8 |
+| GPAD-02 | Phase 8 |
+| GPAD-03 | Phase 8 |
+| GPAD-04 | Phase 8 |
+| GPAD-05 | Phase 8 |
+| GPAD-06 | Phase 8 |
+| HOOK-01 | Phase 9 |
+| HOOK-02 | Phase 9 |
+| HOOK-03 | Phase 9 |
+| HOOK-04 | Phase 9 |
+| HOOK-05 | Phase 9 |
+| VAL-01 | Phase 10 |
+| VAL-02 | Phase 10 |
+| VAL-03 | Phase 10 |
+| VAL-04 | Phase 10 |
+
+**v2.1 requirements:** 28 total — 28/28 mapped ✓
+
+| Requirement | Phase |
+|-------------|-------|
+| PKG-01 | Phase 11 |
+| PKG-02 | Phase 11 |
+| PKG-03 | Phase 11 |
+| PKG-04 | Phase 11 |
+| PKG-05 | Phase 12 |
+| PKG-06 | Phase 12 |
+| PKG-07 | Phase 12 |
+| PKG-08 | Phase 12 |
+| PKG-09 | Phase 12 |
+| VAL-05 | Phase 12 |
+| SBX-01 | Phase 13 |
+| SBX-02 | Phase 13 |
+| SBX-03 | Phase 13 |
+| SBX-04 | Phase 13 |
+| SBX-05 | Phase 13 |
+| SBX-06 | Phase 13 |
+| VAL-06 | Phase 13 |
+| VAL-07 | Phase 13 |
+| DECK-01 | Phase 14 |
+| DECK-02 | Phase 14 |
+| DECK-03 | Phase 14 |
+| DECK-04 | Phase 14 |
+| VAL-09 | Phase 14 |
+| CI-01 | Phase 15 |
+| CI-02 | Phase 15 |
+| CI-03 | Phase 15 |
+| CI-04 | Phase 15 |
+| CI-05 | Phase 16 |
+| DECK-05 | Phase 16 |
+| DOCS-01 | Phase 16 |
+| DOCS-02 | Phase 16 |
+| DOCS-03 | Phase 16 |
+| DOCS-04 | Phase 16 |
+| VAL-08 | Phase 16 |
+
+Note: VAL-08 (`app.tsx` lock holds across v2.1) is **logically continuous** through every phase — the CI `git diff --exit-code` check enforces it on every commit. It is *primarily mapped* to Phase 16 (final milestone-end verification) so each requirement maps to exactly one phase, and is *touched-and-verified* in Phase 15 success criterion 5 as well. No requirement is duplicated; VAL-08's primary phase is 16.
+
+---
+
+*Roadmap created: 2026-05-05*
+*Milestone v2.0 frozen: 2026-05-06*
+*Milestone v2.1 appended: 2026-05-09 — Flatpak Packaging*
