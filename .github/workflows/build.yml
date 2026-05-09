@@ -77,3 +77,7 @@ jobs:
         with:
           name: robot-controller-deb
           path: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
+
+      - name: verify app.tsx lock (VAL-08)
+        run: |
+          git diff --exit-code -- apps/frontend/src/app.tsx apps/frontend/src/components/control-pad.tsx apps/frontend/src/components/status-bar.tsx
