@@ -47,18 +47,15 @@ If piping to bash isn't your style:
 
 ### Building from source on the Deck
 
-Only do this if you can't reach a tagged release (offline / pre-release work):
+Source builds are handled by GitHub Actions CI (see `.github/workflows/build.yml`).
+For local development on a Linux desktop, use the standard Tauri build:
 
 ```bash
-# In Desktop Mode, Konsole.
-sudo steamos-readonly disable    # SteamOS only
 git clone https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2.git
 cd KS0555-Steam-Deck-Controller-2
-./build-steamdeck.sh             # installs deps via pacman, then `tauri build`
-sudo steamos-readonly enable
+pnpm install
+pnpm --filter @ks0555/frontend tauri:build
 ```
-
-Output: `apps/frontend/src-tauri/target/release/bundle/appimage/*.AppImage`. Same install flow afterwards.
 
 ---
 
@@ -139,11 +136,9 @@ sudo usermod -aG input "$USER"
 # log out + back in
 ```
 
-### Build a local AppImage
+### Build locally
 
 ```bash
-./build-steamdeck.sh
-# or:
 pnpm --filter @ks0555/frontend tauri:build
 ```
 

@@ -98,10 +98,8 @@ Prereqs: Node ≥ 18 (`.nvmrc` pins exact version), pnpm ≥ 10, Rust stable.
 ```bash
 pnpm install
 pnpm --filter @ks0555/frontend tauri:build  # macOS / Linux dev box
-./build-steamdeck.sh                        # SteamOS / Arch self-build (optional)
-```
 
-`build-steamdeck.sh` exists for offline / on-device source builds — usually you don't need it; the GitHub Actions workflow at `.github/workflows/build.yml` produces the AppImage attached to each tagged release.
+The GitHub Actions workflow at `.github/workflows/build.yml` produces the deb attached to each tagged release.
 
 ## Project Layout
 
@@ -112,7 +110,6 @@ pnpm --filter @ks0555/frontend tauri:build  # macOS / Linux dev box
 | `apps/frontend/src-tauri/Info.plist`          | macOS Bluetooth usage description                        |
 | `packages/eslint-config`, `packages/tsconfig` | Shared lint / TS configs                                 |
 | `install-on-steamdeck.sh`                     | One-shot installer for end users                         |
-| `build-steamdeck.sh`                          | On-device source build (SteamOS / Arch / Debian)         |
 | `docs/RUNNING.md`                             | Per-device detailed run instructions and troubleshooting |
 | `docs/STEAM_DECK.md`                          | Steam Deck verification notes                            |
 
@@ -126,7 +123,6 @@ pnpm --filter @ks0555/frontend tauri:build  # macOS / Linux dev box
 | `pnpm typecheck`       | TypeScript type check across all packages                                   |
 | `pnpm format:check`    | Check code formatting with Prettier                                         |
 | `pnpm test`            | Run tests via Vitest                                                        |
-| `pnpm build:steamdeck` | Build AppImage for SteamOS                                                  |
 
 ## Technology Stack
 
