@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: — Flatpak Packaging
 status: executing
-stopped_at: Phase 14 context gathered
-last_updated: "2026-05-09T22:30:00.000Z"
-last_activity: 2026-05-09 -- Phase 14 execution complete
+stopped_at: Phase 15 context gathered
+last_updated: "2026-05-09T23:59:00.000Z"
+last_activity: 2026-05-09 -- Phase 15 context gathered
 progress:
   total_phases: 11
   completed_phases: 8
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-09)
 
 ## Current Position
 
-Phase: 14 — Steam Deck On-Device Validation
-Plan: 14-01 — Complete ✓
-Status: Complete
-Last activity: 2026-05-09 -- Phase 14 execution complete
+Phase: 15 — CI Migration (Parallel-Run)
+Plan: None yet
+Status: Context gathered — ready for planning
+Last activity: 2026-05-09 -- Phase 15 context gathered
 
 ## Progress
 
@@ -47,7 +47,7 @@ Last activity: 2026-05-09 -- Phase 14 execution complete
 | 12. Manifest + AppStream + Local Build | Complete |
 | 13. Sandbox Permissions for BLE + Gamepad | Complete |
 | 14. Steam Deck On-Device Validation | Complete ✓ |
-| 15. CI Migration (Parallel-Run) | Not started |
+| 15. CI Migration (Parallel-Run) | Context gathered |
 | 16. AppImage Decommission + Upgrade Workflow Docs | Not started |
 
 Plans: 16/19 complete (12 v2.0 + 3 v2.1 + 1/1 Phase 14 + 0/0 Phase 15 + 0/0 Phase 16).
@@ -93,7 +93,7 @@ Plans: 16/19 complete (12 v2.0 + 3 v2.1 + 1/1 Phase 14 + 0/0 Phase 15 + 0/0 Phas
 
 ## Session Continuity
 
-Last session: 2026-05-09 (Phase 14 context)
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-steam-deck-on-device-validation/14-CONTEXT.md
-Next action: `/gsd-plan-phase 14` to plan Steam Deck On-Device Validation
+Last session: 2026-05-09 (Phase 15 context)
+Stopped at: Phase 15 context gathered
+Resume file: .planning/phases/15-ci-migration-parallel-run/15-CONTEXT.md
+Next action: `/gsd-plan-phase 15` to plan CI Migration (Parallel-Run)
