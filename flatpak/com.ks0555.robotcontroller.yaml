@@ -1,0 +1,38 @@
+id: com.ks0555.robotcontroller
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Platform.GL.default
+command: robot-controller
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
+modules:
+  - name: robot-controller
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/bin /app/share/applications /app/share/icons/hicolor/32x32/apps /app/share/icons/hicolor/128x128/apps /app/share/icons/hicolor/256x256@2/apps /app/share/metainfo
+      - ar -x robot-controller.deb
+      - tar -xf data.tar.*
+      - install -Dm755 usr/bin/robot-controller /app/bin/robot-controller
+      - install -Dm644 usr/share/applications/robot-controller.desktop /app/share/applications/com.ks0555.robotcontroller.desktop
+      - sed -i 's/^Icon=.*/Icon=com.ks0555.robotcontroller/' /app/share/applications/com.ks0555.robotcontroller.desktop
+      - install -Dm644 icons/32x32/com.ks0555.robotcontroller.png /app/share/icons/hicolor/32x32/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 icons/128x128/com.ks0555.robotcontroller.png /app/share/icons/hicolor/128x128/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 icons/256x256@2/com.ks0555.robotcontroller.png /app/share/icons/hicolor/256x256@2/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 com.ks0555.robotcontroller.metainfo.xml /app/share/metainfo/com.ks0555.robotcontroller.metainfo.xml
+    sources:
+      - type: file
+        path: robot-controller.deb
+      - type: file
+        path: icons/32x32/com.ks0555.robotcontroller.png
+      - type: file
+        path: icons/128x128/com.ks0555.robotcontroller.png
+      - type: file
+        path: icons/256x256@2/com.ks0555.robotcontroller.png
+      - type: file
+        path: com.ks0555.robotcontroller.metainfo.xml
