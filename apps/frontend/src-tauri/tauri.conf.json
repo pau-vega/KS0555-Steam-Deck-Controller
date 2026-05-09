@@ -1,6 +1,6 @@
 {
   "productName": "Robot Controller",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "identifier": "com.ks0555.robotcontroller",
   "build": {
     "beforeDevCommand": "pnpm dev",
