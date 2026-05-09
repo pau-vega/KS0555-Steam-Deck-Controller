@@ -55,15 +55,19 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 ### Active
 
-- [ ] Deb bundle target feeds flatpak-builder; Flatpak bundle is the release artifact
+- [ ] Deb bundle feeds flatpak-builder; Flatpak bundle is the release artifact (Phases 12-15)
 - [ ] Flatpak manifest with BLE (`org.bluez`) and gamepad/evdev finish-args
 - [ ] Sideload install + "Add as Non-Steam Game" docs for Steam Deck Gaming Mode
-- [ ] Auto-update workflow (`flatpak update`) documented or scripted
+- [ ] Auto-upgrade workflow (`flatpak update`) documented or scripted
 
-### Validated (v2.0)
+### Validated
 
 - ✓ Build and test on SteamOS target — Docker cross-compile via tauri-action — Phase 10
 - ✓ Rust integration tests mocking btleplug/gilrs for event pipeline validation — Phase 10
+- ✓ Switch tauri.conf.json bundle.targets to `["deb"]` with deb metadata — Phase 11 (PKG-01)
+- ✓ Rewrite build.yml to single deb job with stock tauri-cli — Phase 11 (PKG-02, PKG-03)
+- ✓ Delete build-steamdeck.sh, lock Flatpak runtime in PROJECT.md — Phase 11 (PKG-04)
+- ✓ Legacy appimage test updated to deb target — Phase 11 (test fix)
 
 ### Out of Scope
 
@@ -90,7 +94,7 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 ## Constraints
 
 - **Tech Stack**: Tauri v2 + React + Vite + TypeScript frontend, Rust (edition 2021) backend with btleplug + gilrs
-- **Platform**: Steam Deck (SteamOS Linux) — Tauri AppImage target, no Windows/macOS builds
+- **Platform**: Steam Deck (SteamOS Linux) — Tauri deb target (via flatpak-builder for final bundle), no Windows/macOS builds
 - **Robot Firmware**: Cannot modify Arduino code — must work with existing BT24 UART serial protocol (F, B, L, R, S commands)
 - **Bluetooth**: BT24 device — btleplug crate, service UUID 0000ffe0, characteristic UUID 0000ffe1, device name filter "BT24"
 - **Gamepad**: gilrs crate, deadzone 0.15, prefer Steam Deck controller (id contains "Steam"), same axis logic as current use-gamepad.ts
@@ -110,7 +114,8 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 | Keep hook return shapes stable | app.tsx, control-pad.tsx, status-bar.tsx must be unchanged | ✓ Verified Phase 9 |
 | Monorepo preserved | src-tauri lives inside apps/frontend/, pnpm for packages | ✓ Implemented Phase 6 |
 | Deprecate apps/backend | Fastify + WebSocket no longer needed, Tauri Rust backend replaces it | ✓ Deprecated Phase 6 |
-| Switch from AppImage to Flatpak | Better SteamOS integration, sandboxed permissions, easier auto-update on read-only filesystem | Pending v2.1 |
+| Switch from AppImage to deb (Flatpak input) | Better SteamOS integration via Flatpak; deb is the intermediate artifact for flatpak-builder | ✓ Implemented Phase 11 |
+| Flatpak runtime choice | `org.freedesktop.Platform//24.08` with SDK `24.08` and GL extension — smaller, no GNOME deps, ships WebKitGTK for Tauri v2 | ✓ Phase 11 (PKG-04) |
 | Sideload-only distribution | No Flathub overhead, single-user device, faster iteration | Pending v2.1 |
 | Flatpak runtime | `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` | Smaller (~300 MB), no GNOME deps, ships WebKitGTK-6 for Tauri v2. Extension: `org.freedesktop.Platform.GL.default` for GPU rendering. EOL Aug 2027. | Phase 11 |
 
@@ -132,4 +137,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — start v2.1 Flatpak Packaging milestone*
+*Last updated: 2026-05-09 — Phase 11 complete, v2.1 milestone 1/6*
