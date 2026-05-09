@@ -148,7 +148,11 @@ Plans:
   3. Manifest `build-commands` rename `robot-controller.desktop` → `com.ks0555.robotcontroller.desktop`, `sed` `Icon=` to `com.ks0555.robotcontroller`, and install hicolor icons (32, 128, 256@2) to `/app/share/icons/hicolor/.../apps/`
   4. `flatpak/build.sh` produces a single-file `.flatpak` via `flatpak-builder --user --install --force-clean` followed by `flatpak build-bundle`; `flatpak/README.md` documents prerequisites (flatpak, flatpak-builder, Flathub remote) and `build.sh` usage
   5. Local `flatpak run com.ks0555.robotcontroller` opens a window on a Linux dev box (Ubuntu 24.04 or matching), with no sandbox-escape warnings from `flatpak-builder`
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Icons, AppStream metainfo, and developer README (PKG-06, PKG-07, PKG-09)
+- [ ] 12-02-PLAN.md — Flatpak manifest and build.sh script (PKG-05, PKG-07, PKG-08, VAL-05)
 **UI hint**: yes
 
 ### Phase 13: Sandbox Permissions for BLE + Gamepad
@@ -183,7 +187,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `.github/workflows/build.yml` includes a `build-flatpak-x64` job using `flatpak/flatpak-github-actions/flatpak-builder@v6.7` with the Flathub container image matching PKG-04 (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08`)
   2. Tagged release CI uploads `RobotController-x86_64.flatpak` as a release asset alongside the existing AppImage; at least one tagged release ships both artifacts (parallel-run window) before AppImage is removed in Phase 16
-  3. The `build-arm64` job is removed from `.github/workflows/build.yml` (Steam Deck is x86_64 only); macOS DMG job is untouched
+   3. The `build-arm64` job is removed from `.github/workflows/build.yml` (Steam Deck is x86_64 only); the `build-macos` job was already removed in Phase 11 — Phase 15 does not re-add it
   4. OSTree cache is enabled (`cache: true`) on the flatpak-builder action — runtime download (~1 GB) is reused across runs; warm-cache CI run completes within an acceptable budget (documented in commit message)
   5. `app.tsx`, `control-pad.tsx`, `status-bar.tsx` remain unchanged after the CI migration — the existing `git diff --exit-code` lock check in CI passes (covers VAL-08 spanning v2.1)
 **Plans**: TBD
@@ -212,7 +216,7 @@ Plans:
 | 9. Hook Rewrites | 2/2 | Complete | 2026-05-06 |
 | 10. Build and Test on SteamOS | 2/2 | Complete | 2026-05-06 |
 | 11. Bundle Pipeline Restructure | 3/3 | Complete | 2026-05-09 |
-| 12. Manifest + AppStream + Local Build | 0/0 | Not started | - |
+| 12. Manifest + AppStream + Local Build | 0/2 | Not started | - |
 | 13. Sandbox Permissions for BLE + Gamepad | 0/0 | Not started | - |
 | 14. Steam Deck On-Device Validation | 0/0 | Not started | - |
 | 15. CI Migration (Parallel-Run) | 0/0 | Not started | - |
