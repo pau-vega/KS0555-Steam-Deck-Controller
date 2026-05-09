@@ -1,10 +1,12 @@
 pre-commit:
   parallel: true
   commands:
-    format-check:
-      run: pnpm format:check
+    format:
+      run: pnpm format
     lint:
       run: pnpm lint
+    typecheck:
+      run: pnpm typecheck
 
 commit-msg:
   commands:
