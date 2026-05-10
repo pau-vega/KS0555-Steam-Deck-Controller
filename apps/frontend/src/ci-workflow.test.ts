@@ -102,8 +102,9 @@ describe("CI workflow: .github/workflows/build.yml", () => {
     expect(buildYml).not.toMatch(/GITHUB_REF_NAME#v/)
   })
 
-  it("D-06: no upload-artifact or download-artifact steps", () => {
-    expect(buildYml).not.toContain("upload-artifact")
+  it("PKG-03: upload-artifact steps for deb and flatpak (Phase 19)", () => {
+    const uploadCount = (buildYml.match(/upload-artifact/g) || []).length
+    expect(uploadCount).toBe(2)
     expect(buildYml).not.toContain("download-artifact")
   })
 
