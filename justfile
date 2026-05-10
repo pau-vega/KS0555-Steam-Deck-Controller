@@ -168,3 +168,14 @@ flatpak-deploy hostname flatpak_path="RobotController-x86_64.flatpak":
 docker-flatpak-build deb_path="":
     @echo "→ Building Flatpak from deb via Docker..."
     @bash flatpak/docker-build.sh "{{deb_path}}"
+
+# Build .deb + .flatpak entirely in Docker (no local Rust/Tauri required)
+# Works on macOS and Linux — single command, full CI pipeline
+[group('flatpak')]
+docker-build-all:
+    @echo "→ Building .deb + .flatpak in Docker..."
+    docker build -t robot-controller-builder -f flatpak/Dockerfile .
+    @echo "→ Extracting .flatpak from image..."
+    docker run --rm -v $(pwd):/repo robot-controller-builder sh -c "cp /workspace/RobotController-x86_64.flatpak /repo/"
+    @echo ""
+    @echo "✓ Flatpak bundle: RobotController-x86_64.flatpak"
