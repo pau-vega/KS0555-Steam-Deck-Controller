@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: — Flatpak Packaging
-status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-05-10T10:00:00.000Z"
+status: completed
+stopped_at: Phase 16 context gathered
+last_updated: "2026-05-10T08:05:45.657Z"
 last_activity: 2026-05-10 -- Phase 15 complete
 progress:
   total_phases: 11
@@ -93,7 +93,7 @@ Plans: 21/21 complete (12 v2.0 + 7 v2.1 + 2/2 Phase 15 + 0/0 Phase 16).
 
 ## Session Continuity
 
-Last session: 2026-05-09 (Phase 15 context)
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-ci-migration-parallel-run/15-CONTEXT.md
+Last session: 2026-05-10T08:05:45.653Z
+Stopped at: Phase 16 context gathered
+Resume file: .planning/phases/16-appimage-decommission-upgrade-workflow-docs/16-CONTEXT.md
 Next action: `/gsd-plan-phase 15` to plan CI Migration (Parallel-Run)
