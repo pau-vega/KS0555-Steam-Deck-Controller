@@ -67,16 +67,12 @@ describe("packages/eslint-config/src/react.ts", () => {
 // --- Behavioral tests (import built dist output) ---
 
 describe("dist/react.js (built output)", () => {
-  it(
-    "loads and exports a Linter.Config[] array with 2 items (ignores + rules)",
-    async () => {
-      const mod = await import(DIST_PATH)
-      const config = mod.default
-      expect(Array.isArray(config)).toBe(true)
-      expect(config.length).toBe(2)
-    },
-    10_000,
-  )
+  it("loads and exports a Linter.Config[] array with 2 items (ignores + rules)", async () => {
+    const mod = await import(DIST_PATH)
+    const config = mod.default
+    expect(Array.isArray(config)).toBe(true)
+    expect(config.length).toBe(2)
+  }, 10_000)
 
   it("first config is an ignores block for build artifacts", async () => {
     const mod = await import(DIST_PATH)

@@ -56,32 +56,24 @@ describe("dist/react.js content verification", () => {
 
 // Behavioral: can import and get correct structure
 describe("dist/node.js import behavior", () => {
-  it(
-    "imports and exports a valid Linter.Config[]",
-    async () => {
-      const mod = await import(DIST_NODE)
-      expect(mod).toHaveProperty("default")
-      const config = mod.default
-      expect(Array.isArray(config)).toBe(true)
-      expect(config.length).toBeGreaterThanOrEqual(1)
-      expect(config[0]).toHaveProperty("files")
-      expect(config[0]).toHaveProperty("rules")
-    },
-    10_000,
-  )
+  it("imports and exports a valid Linter.Config[]", async () => {
+    const mod = await import(DIST_NODE)
+    expect(mod).toHaveProperty("default")
+    const config = mod.default
+    expect(Array.isArray(config)).toBe(true)
+    expect(config.length).toBeGreaterThanOrEqual(1)
+    expect(config[0]).toHaveProperty("files")
+    expect(config[0]).toHaveProperty("rules")
+  }, 10_000)
 })
 
 describe("dist/react.js import behavior", () => {
-  it(
-    "imports and exports a valid Linter.Config[]",
-    async () => {
-      const mod = await import(DIST_REACT)
-      expect(mod).toHaveProperty("default")
-      const config = mod.default
-      expect(Array.isArray(config)).toBe(true)
-      expect(config.length).toBeGreaterThanOrEqual(1)
-      expect(config[0]).toHaveProperty("ignores")
-    },
-    10_000,
-  )
+  it("imports and exports a valid Linter.Config[]", async () => {
+    const mod = await import(DIST_REACT)
+    expect(mod).toHaveProperty("default")
+    const config = mod.default
+    expect(Array.isArray(config)).toBe(true)
+    expect(config.length).toBeGreaterThanOrEqual(1)
+    expect(config[0]).toHaveProperty("ignores")
+  }, 10_000)
 })

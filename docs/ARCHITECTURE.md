@@ -140,18 +140,21 @@ fn in_flatpak() -> bool {
 ```
 
 Two independent checks:
+
 1. `FLATPAK_ID` environment variable — set by Flatpak to the app ID (`com.ks0555.robotcontroller`)
 2. `/.flatpak-info` file — always present inside a Flatpak sandbox
 
 ### Gate Logic
 
 The entire D-Bus rewrite block (SteamOS detection, Gamescope socket path, `DBUS_SYSTEM_BUS_ADDRESS` override) is gated behind `!in_flatpak()`. When running as a Flatpak:
+
 - Flatpak's D-Bus proxy handles all `org.bluez` communication transparently
 - Setting `DBUS_SYSTEM_BUS_ADDRESS` would break the proxy and cause BLE to fail silently
 
 ### Non-Flatpak Behavior
 
 When NOT in Flatpak (native Linux, macOS):
+
 - SteamOS detection: checks for `DBUS_SYSTEM_BUS_ADDRESS` env var
 - Sets `DBUS_SYSTEM_BUS_ADDRESS` to Gamescope's system bus socket (`/run/host/run/dbus/system_bus_socket`)
 - On macOS: `btleplug` uses CoreBluetooth (no D-Bus), `gilrs` uses IOKit (no evdev)
@@ -352,6 +355,7 @@ const {
 ### Steam Deck (SteamOS)
 
 **Flatpak sandbox**: The app runs inside a Flatpak container with:
+
 - D-Bus proxy for BlueZ BLE access (`--system-talk-name=org.bluez`)
 - evdev device access for gamepad input (`--device=input`)
 - Wayland display for Gamescope compatibility
@@ -424,40 +428,41 @@ packages/
 
 ## Key Files
 
-| Concern          | File                                                     | Responsibility                                                             |
-| ---------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Rust entry       | `apps/frontend/src-tauri/src/main.rs`                    | Initialize Tauri, spawn BLE/gamepad tasks, register commands               |
-| Rust setup       | `apps/frontend/src-tauri/src/lib.rs`                     | Setup hook, in_flatpak() detection, D-Bus gate, env vars                   |
-| BLE logic        | `apps/frontend/src-tauri/src/ble/mod.rs`                 | ble_connect, ble_disconnect, ble_send, connection loop, device discovery   |
-| BLE state        | `apps/frontend/src-tauri/src/ble/state.rs`               | Arc<Mutex<Option<Peripheral>>> wrapper                                     |
-| Gamepad monitor  | `apps/frontend/src-tauri/src/gamepad/mod.rs`             | std::thread gamepad event loop, direction logic, direction coalescing      |
-| Tauri config     | `apps/frontend/src-tauri/tauri.conf.json`                | Window size (1280×800), bundle settings, app metadata                      |
-| macOS plist      | `apps/frontend/src-tauri/Info.plist`                     | NSBluetoothAlwaysUsageDescription for Bluetooth permission                 |
-| React entry      | `apps/frontend/src/main.tsx`                             | Root React render, error boundary                                          |
-| React app        | `apps/frontend/src/app.tsx`                              | Main UI component, BLE/gamepad hook usage, command dispatch (locked)       |
-| BLE hook         | `apps/frontend/src/hooks/use-bluetooth.ts`               | useBluetooth() — event subscriptions, command invocation                   |
-| Gamepad hook     | `apps/frontend/src/hooks/use-gamepad.ts`                 | useGamepad() — event subscriptions, Steam Deck detection                   |
-| Flatpak manifest | `flatpak/com.ks0555.robotcontroller.yaml`                | Flatpak manifest with finish-args, deb-extract build commands              |
-| Flatpak metainfo | `flatpak/com.ks0555.robotcontroller.metainfo.xml`        | AppStream metadata for software centers                                    |
-| Flatpak build    | `flatpak/build.sh`                                       | Local Flatpak builder (structural validation on macOS, full build on Linux)|
-| CI pipeline      | `.github/workflows/build.yml`                            | Single build job: deb → flatpak → release upload                           |
+| Concern          | File                                              | Responsibility                                                              |
+| ---------------- | ------------------------------------------------- | --------------------------------------------------------------------------- |
+| Rust entry       | `apps/frontend/src-tauri/src/main.rs`             | Initialize Tauri, spawn BLE/gamepad tasks, register commands                |
+| Rust setup       | `apps/frontend/src-tauri/src/lib.rs`              | Setup hook, in_flatpak() detection, D-Bus gate, env vars                    |
+| BLE logic        | `apps/frontend/src-tauri/src/ble/mod.rs`          | ble_connect, ble_disconnect, ble_send, connection loop, device discovery    |
+| BLE state        | `apps/frontend/src-tauri/src/ble/state.rs`        | Arc<Mutex<Option<Peripheral>>> wrapper                                      |
+| Gamepad monitor  | `apps/frontend/src-tauri/src/gamepad/mod.rs`      | std::thread gamepad event loop, direction logic, direction coalescing       |
+| Tauri config     | `apps/frontend/src-tauri/tauri.conf.json`         | Window size (1280×800), bundle settings, app metadata                       |
+| macOS plist      | `apps/frontend/src-tauri/Info.plist`              | NSBluetoothAlwaysUsageDescription for Bluetooth permission                  |
+| React entry      | `apps/frontend/src/main.tsx`                      | Root React render, error boundary                                           |
+| React app        | `apps/frontend/src/app.tsx`                       | Main UI component, BLE/gamepad hook usage, command dispatch (locked)        |
+| BLE hook         | `apps/frontend/src/hooks/use-bluetooth.ts`        | useBluetooth() — event subscriptions, command invocation                    |
+| Gamepad hook     | `apps/frontend/src/hooks/use-gamepad.ts`          | useGamepad() — event subscriptions, Steam Deck detection                    |
+| Flatpak manifest | `flatpak/com.ks0555.robotcontroller.yaml`         | Flatpak manifest with finish-args, deb-extract build commands               |
+| Flatpak metainfo | `flatpak/com.ks0555.robotcontroller.metainfo.xml` | AppStream metadata for software centers                                     |
+| Flatpak build    | `flatpak/build.sh`                                | Local Flatpak builder (structural validation on macOS, full build on Linux) |
+| CI pipeline      | `.github/workflows/build.yml`                     | Single build job: deb → flatpak → release upload                            |
 
 ## Entry Points
 
-| Entry                           | Triggered By                             | Responsibility                                                                                                                           |
-| ------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `src-tauri/src/main.rs::main()` | Tauri runtime (dev or packaged binary)   | Initialize Tauri builder, spawn BLE + gamepad background tasks, register IPC commands, enter event loop                                  |
-| `src/main.tsx`                  | Vite dev server or WebView bundle        | Mount React app into DOM, wrap with StrictMode and ErrorBoundary                                                                         |
-| `app.tsx`                       | React root                               | Instantiate useBluetooth() and useGamepad() hooks, render UI, wire direction events to ble_send command                                  |
-| `setup_gamepad_monitor()`       | Called in Tauri setup hook               | Spawn std::thread gamepad monitor, initialize gilrs, enter event loop                                                                    |
-| `setup_event_listener()`        | Called in Tauri setup hook               | Spawn async task to listen for BLE device disconnect events                                                                              |
-| `.github/workflows/build.yml`   | Git tag `v*` push or `workflow_dispatch` | Single `build` job: compile deb, wrap as Flatpak, upload to GitHub Release                                                               |
+| Entry                           | Triggered By                             | Responsibility                                                                                          |
+| ------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `src-tauri/src/main.rs::main()` | Tauri runtime (dev or packaged binary)   | Initialize Tauri builder, spawn BLE + gamepad background tasks, register IPC commands, enter event loop |
+| `src/main.tsx`                  | Vite dev server or WebView bundle        | Mount React app into DOM, wrap with StrictMode and ErrorBoundary                                        |
+| `app.tsx`                       | React root                               | Instantiate useBluetooth() and useGamepad() hooks, render UI, wire direction events to ble_send command |
+| `setup_gamepad_monitor()`       | Called in Tauri setup hook               | Spawn std::thread gamepad monitor, initialize gilrs, enter event loop                                   |
+| `setup_event_listener()`        | Called in Tauri setup hook               | Spawn async task to listen for BLE device disconnect events                                             |
+| `.github/workflows/build.yml`   | Git tag `v*` push or `workflow_dispatch` | Single `build` job: compile deb, wrap as Flatpak, upload to GitHub Release                              |
 
 ## Design Rationale
 
 ### Single Rust Process
 
 A monolithic Tauri process eliminates:
+
 - Inter-process communication overhead (vs separate backend + frontend)
 - Separate deployments (one binary per platform)
 - Complexity of maintaining sync between services
@@ -475,6 +480,7 @@ Gamepad sticks are noisy and produce many redundant AxisChanged events. By track
 ### Arc<Mutex> for BLE Peripheral
 
 The peripheral must be:
+
 - Shared across multiple command handlers (connect, disconnect, send)
 - Protected from concurrent access (Rust's ownership rules)
 - Cloneable for IPC callback threads
@@ -488,6 +494,7 @@ BLE writes can use `WithResponse` (waits for peripheral ACK) or `WithoutResponse
 ### Flatpak Sandboxing
 
 Flatpak provides:
+
 - Fine-grained sandbox permissions (finish-args for BLE, gamepad, display)
 - D-Bus proxy for secure BlueZ access
 - Better Steam Deck integration (Non-Steam Game, Gaming Mode)

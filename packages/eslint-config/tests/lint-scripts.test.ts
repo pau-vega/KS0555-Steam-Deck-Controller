@@ -13,7 +13,7 @@ const FRONTEND_PKG = resolve(__dirname, "../../../apps/frontend/package.json")
 const BACKEND_PKG = resolve(__dirname, "../../../apps/backend/package.json")
 
 describe("apps/frontend/package.json lint script", () => {
-  it('lint script references react.ts (not react.js)', () => {
+  it("lint script references react.ts (not react.js)", () => {
     const pkg = JSON.parse(readFileSync(FRONTEND_PKG, "utf-8"))
     const lintScript: string = pkg.scripts?.lint ?? ""
     expect(lintScript).toMatch(/react\.ts/)

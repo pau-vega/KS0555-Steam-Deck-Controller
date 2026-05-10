@@ -26,6 +26,7 @@ Single Tauri v2 desktop application. Rust backend owns BLE (`btleplug`) and game
 ### Deb-Extract Pattern
 
 The **deb-extract** pattern is how the Flatpak consumes the `.deb` produced by `cargo tauri build --bundles deb`. The manifest uses Flatpak's `buildsystem: simple` with inline shell commands:
+
 - `ar -x robot-controller.deb` — extract the Debian archive
 - `tar -xf data.tar.*` — unpack the filesystem tree
 - `install -Dm755` / `install -Dm644` — place files in Flatpak paths

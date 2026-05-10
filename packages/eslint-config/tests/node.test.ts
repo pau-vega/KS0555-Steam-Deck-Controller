@@ -60,16 +60,12 @@ describe("packages/eslint-config/src/node.ts", () => {
 // --- Behavioral tests (import built dist output) ---
 
 describe("dist/node.js (built output)", () => {
-  it(
-    "loads and exports a Linter.Config[] array with 2 items",
-    async () => {
-      const mod = await import(DIST_PATH)
-      const config = mod.default
-      expect(Array.isArray(config)).toBe(true)
-      expect(config.length).toBe(2)
-    },
-    10_000,
-  )
+  it("loads and exports a Linter.Config[] array with 2 items", async () => {
+    const mod = await import(DIST_PATH)
+    const config = mod.default
+    expect(Array.isArray(config)).toBe(true)
+    expect(config.length).toBe(2)
+  }, 10_000)
 
   it("first config targets **/*.ts with perfectionist sort-imports rule", async () => {
     const mod = await import(DIST_PATH)

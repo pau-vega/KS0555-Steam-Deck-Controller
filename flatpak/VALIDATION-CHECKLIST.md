@@ -4,11 +4,11 @@
 
 ## Preconditions
 
-- [ ] Steam Deck is running SteamOS (record version: _____)
-- [ ] Flatpak version is _____ (`flatpak --version`)
+- [ ] Steam Deck is running SteamOS (record version: **\_**)
+- [ ] Flatpak version is **\_** (`flatpak --version`)
 - [ ] Bluetooth is enabled on the Steam Deck
 - [ ] BT24 robot is powered on, in range, and advertising (blue LED blinking)
-- [ ] RobotController-x86_64.flatpak bundle built from commit _____ (`git rev-parse HEAD`)
+- [ ] RobotController-x86_64.flatpak bundle built from commit **\_** (`git rev-parse HEAD`)
 
 ## 1. Installation (DECK-01)
 
@@ -30,9 +30,9 @@
 - [ ] PASS / [ ] FAIL — 2.9. Right (R) command turns the robot right (verify robot turns)
 - [ ] PASS / [ ] FAIL — 2.10. Stop (S) command stops the robot (center stick / no input -> robot stops)
 - [ ] PASS / [ ] FAIL — 2.11. Rapid direction changes (F->B->L->R sequence) — robot responds to each change
-  - Latency: _____ (immediate / slight lag / noticeable delay)
+  - Latency: **\_** (immediate / slight lag / noticeable delay)
 - [ ] PASS / [ ] FAIL — 2.12. BLE reconnect: disconnect robot (power off BT24), wait 5s, power on — app reconnects or StatusBar updates correctly
-  - Latency: _____ (immediate / slight lag / noticeable delay)
+  - Latency: **\_** (immediate / slight lag / noticeable delay)
 
 ## 3. Non-Steam Game (DECK-03)
 
@@ -48,19 +48,19 @@
   - If black/white screen: try known workarounds (see escalation protocol below)
 - [ ] PASS / [ ] FAIL — 4.3. Steam Deck built-in gamepad registers in Gaming Mode — ControlPad buttons respond
 - [ ] PASS / [ ] FAIL — 4.4. F/B/L/R/S commands reach the BT24 robot (verify robot moves for each direction)
-- [ ] PASS / [ ] FAIL — 4.5. Latency in Gaming Mode: _____ (immediate / slight lag / noticeable delay) — compared to Desktop Mode: _____ (same / worse / better)
+- [ ] PASS / [ ] FAIL — 4.5. Latency in Gaming Mode: **\_** (immediate / slight lag / noticeable delay) — compared to Desktop Mode: **\_** (same / worse / better)
 
 ### Gaming Mode Escalation Protocol (if black/white screen occurs)
 
 If step 4.2 fails, try these in order. Document which (if any) resolves the issue:
 
-1. [ ] Tried: `flatpak run --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 com.ks0555.robotcontroller` — Result: _____
-2. [ ] Tried: X11-only (`flatpak run --nosocket=wayland --socket=fallback-x11 com.ks0555.robotcontroller`) — Result: _____
-3. [ ] Tried: Double env vars (both `WEBKIT_DISABLE_COMPOSITING_MODE=1` and `WEBKIT_DISABLE_DMABUF_RENDERER=1`) — Result: _____
+1. [ ] Tried: `flatpak run --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 com.ks0555.robotcontroller` — Result: **\_**
+2. [ ] Tried: X11-only (`flatpak run --nosocket=wayland --socket=fallback-x11 com.ks0555.robotcontroller`) — Result: **\_**
+3. [ ] Tried: Double env vars (both `WEBKIT_DISABLE_COMPOSITING_MODE=1` and `WEBKIT_DISABLE_DMABUF_RENDERER=1`) — Result: **\_**
 4. [ ] Captured: `flatpak run --command=env com.ks0555.robotcontroller` output — file: `validation-logs/YYYY-MM-DD-env.log`
-5. [ ] Captured: `flatpak run --command=glxinfo com.ks0555.robotcontroller 2>&1` GPU info — file: _____ (if glxinfo available)
+5. [ ] Captured: `flatpak run --command=glxinfo com.ks0555.robotcontroller 2>&1` GPU info — file: **\_** (if glxinfo available)
 
-Working combo (if found): _____
+Working combo (if found): **\_**
 
 ## 5. Steam Input Configuration (D-12, D-13)
 
@@ -68,7 +68,7 @@ Working combo (if found): _____
 - [ ] PASS / [ ] FAIL — 5.2. Steam Input set to "Gamepad with Joystick Trackpad" template: gamepad events reach the app? (Yes / No)
 - [ ] PASS / [ ] FAIL — 5.3. Steam Input set to "Gamepad" (pass-through): gamepad events reach the app? (Yes / No)
 
-**Recommended Steam Input template:** _____ (document which template from 5.1-5.3 works best)
+**Recommended Steam Input template:** **\_** (document which template from 5.1-5.3 works best)
 
 ## 6. Round-Trip (D-14)
 
@@ -93,11 +93,11 @@ Working combo (if found): _____
 ## 9. Edge Cases (D-15, D-16, D-17, D-18)
 
 - [ ] PASS / [ ] FAIL — 9.1. `--device=input` finish-arg is honored (gamepad works) — if not, test `--device=all` fallback
-  - Fallback needed? (Yes / No) — If yes, document Flatpak/SteamOS version: _____
+  - Fallback needed? (Yes / No) — If yes, document Flatpak/SteamOS version: **\_**
 - [ ] PASS / [ ] FAIL — 9.2. BLE works in Gaming Mode (if BLE works in Desktop but not Gaming, document as known limitation per D-16)
   - Known limitation triggered? (Yes / No)
-- [ ] PASS / [ ] FAIL — 9.3. Flatpak install failure — if `flatpak install` fails, retry with `--verbose` and capture error: _____
-  - Error resolved? (Yes / No) — Fix: _____
+- [ ] PASS / [ ] FAIL — 9.3. Flatpak install failure — if `flatpak install` fails, retry with `--verbose` and capture error: **\_**
+  - Error resolved? (Yes / No) — Fix: **\_**
 - [ ] PASS / [ ] FAIL — 9.4. `flatpak run --command=env com.ks0555.robotcontroller` output includes `WEBKIT_DISABLE_COMPOSITING_MODE=1` (belt-and-suspenders env var is active in sandbox — D-10)
 - [ ] PASS / [ ] FAIL — 9.5. `flatpak run --env=RUST_LOG=debug com.ks0555.robotcontroller 2> validation-logs/YYYY-MM-DD-app.log` produces a log file with BLE connect, gamepad-direction events, and ble_send entries (embed key snippets in report per D-08/D-09)
 
@@ -111,11 +111,11 @@ Working combo (if found): _____
 
 **Overall:** PASS / FAIL
 
-**Tester:** _____
+**Tester:** **\_**
 **Date:** YYYY-MM-DD
-**Flatpak build version:** _____ (from `flatpak run --command=sh -c 'echo $FLATPAK_VERSION' com.ks0555.robotcontroller` or build commit hash)
-**SteamOS version:** _____ (`cat /etc/os-release | grep VERSION`)
-**Steam Deck model:** _____ (LCD / OLED)
+**Flatpak build version:** **\_** (from `flatpak run --command=sh -c 'echo $FLATPAK_VERSION' com.ks0555.robotcontroller` or build commit hash)
+**SteamOS version:** **\_** (`cat /etc/os-release | grep VERSION`)
+**Steam Deck model:** **\_** (LCD / OLED)
 
 ## Log Artifacts
 
