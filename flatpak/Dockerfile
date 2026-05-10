@@ -41,7 +41,7 @@ RUN cargo install tauri-cli --version "^2"
 COPY . /workspace
 WORKDIR /workspace
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 RUN pnpm build
 
