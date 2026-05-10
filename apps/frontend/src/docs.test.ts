@@ -180,3 +180,73 @@ describe("Phase 16: install-on-steamdeck.sh deleted (D-08)", () => {
     expect(existsSync(join(repoRoot, "install-on-steamdeck.sh"))).toBe(false)
   })
 })
+
+describe("Phase 18: docs/STEAM_DECK.md (Task 1)", () => {
+  const steamDeckMd = readFileSync(join(repoRoot, "docs/STEAM_DECK.md"), "utf-8")
+
+  it("R1: references Flatpak install procedure (not AppImage)", () => {
+    expect(steamDeckMd).toMatch(/flatpak install --user/)
+    expect(steamDeckMd).toMatch(/Install on Steam Deck/i)
+  })
+
+  it("R2: reflects current build workflow (deb \u2192 flatpak, not AppImage)", () => {
+    expect(steamDeckMd).toContain("cargo tauri build --bundles deb")
+    expect(steamDeckMd).toMatch(/(flatpak|build\.sh).*flatpak|deb.*flatpak/i)
+  })
+
+  it("R5: has zero stale/forbidden references", () => {
+    expect(steamDeckMd).not.toMatch(/[Aa]pp[Ii]mage/)
+    expect(steamDeckMd).not.toContain("install-on-steamdeck")
+    expect(steamDeckMd).not.toContain("build-steamdeck")
+    expect(steamDeckMd).not.toContain("tauri-apps/tauri-action")
+    expect(steamDeckMd).not.toMatch(/aarch64.*AppImage/)
+    expect(steamDeckMd).not.toContain("bundleMediaFramework")
+  })
+
+  it("R7: has at least 60 lines", () => {
+    const lines = steamDeckMd.split("\n").length
+    expect(lines).toBeGreaterThanOrEqual(60)
+  })
+})
+
+describe("Phase 18: docs/ARCHITECTURE.md (Task 2)", () => {
+  const archMd = readFileSync(join(repoRoot, "docs/ARCHITECTURE.md"), "utf-8")
+
+  it("R3: accurately describes final CI pipeline (single Flatpak job)", () => {
+    // Must mention the CI pipeline as a single job producing Flatpak
+    expect(archMd).toContain(".github/workflows/build.yml")
+    expect(archMd).toMatch(/[Ss]ingle.*(build|CI).*job/)
+    expect(archMd).toMatch(/flatpak.*upload|flatpak.*release|deb.*flatpak/i)
+  })
+
+  it("R4: describes D-Bus gate (in_flatpak()) and sandbox model", () => {
+    const inFlatpakMatches = archMd.match(/in_flatpak/g)
+    expect(inFlatpakMatches).toBeTruthy()
+    expect(inFlatpakMatches!.length).toBeGreaterThanOrEqual(2)
+    expect(archMd).toMatch(/[Ss]andbox/)
+    expect(archMd).toContain("finish-args")
+  })
+
+  it("R6: has zero stale/forbidden references", () => {
+    expect(archMd).not.toMatch(/[Aa]pp[Ii]mage/)
+    expect(archMd).not.toContain("install-on-steamdeck")
+    expect(archMd).not.toContain("build-steamdeck")
+    expect(archMd).not.toMatch(/aarch64/)
+    expect(archMd).not.toMatch(/arm64\b/)
+    expect(archMd).not.toContain("tauri-apps/tauri-action")
+    expect(archMd).not.toContain("bundleMediaFramework")
+  })
+
+  it("R9: has at least 250 lines", () => {
+    const lines = archMd.split("\n").length
+    expect(lines).toBeGreaterThanOrEqual(250)
+  })
+
+  it("R10: contains key keywords: Flatpak, in_flatpak, finish-args, deb-extract, org.freedesktop.Platform", () => {
+    expect(archMd).toMatch(/\bFlatpak\b/)
+    expect(archMd).toContain("in_flatpak")
+    expect(archMd).toContain("finish-args")
+    expect(archMd).toMatch(/deb.extract|deb extract|deb-extract/)
+    expect(archMd).toContain("org.freedesktop.Platform")
+  })
+})
