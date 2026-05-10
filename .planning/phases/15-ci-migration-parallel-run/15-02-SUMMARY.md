@@ -111,6 +111,15 @@ No new security-relevant surface introduced beyond what the plan's threat_model 
 - CI-03 (no arm64) trivially satisfied — no arm64 job exists
 - CI-01, CI-02, CI-04 requirements met
 
+## Self-Check: PASSED
+
+- [x] SUMMARY.md exists at `.planning/phases/15-ci-migration-parallel-run/15-02-SUMMARY.md`
+- [x] 3 commits matching `15-02` in git log: Task 1 (db8a206a), Task 2 (958c2109), docs commit (0333c938)
+- [x] `build.yml` YAML valid, both `build-x64` and `build-flatpak-x64` jobs present
+- [x] VAL-08 `git diff --exit-code` check present
+- [x] All 28 applicable D-XX decisions have concrete implementation traces
+- [x] CI-01, CI-02, CI-04 requirements satisfied
+
 ---
 
 *Phase: 15-ci-migration-parallel-run*
