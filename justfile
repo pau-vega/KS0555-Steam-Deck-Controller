@@ -111,3 +111,53 @@ nuke: clean-artifacts
 [default]
 phoenix: nuke
     pnpm install
+
+# --- Flatpak ---
+
+# Build Flatpak bundle from a Tauri .deb
+# Usage: just flatpak-build [path-to-deb]
+# Default: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
+[group('flatpak')]
+flatpak-build deb_path="":
+    @echo "→ Building Flatpak from deb..."
+    @if [ -z "{{deb_path}}" ]; then \
+        deb_path="apps/frontend/src-tauri/target/release/bundle/deb/"*.deb; \
+    fi; \
+    cp "$$deb_path" flatpak/robot-controller.deb
+    @echo "→ Running flatpak-builder..."
+    flatpak-builder --user --install --force-clean build-dir flatpak/com.ks0555.robotcontroller.yaml
+    @echo "→ Creating Flatpak bundle..."
+    mkdir -p repo
+    flatpak build-export repo build-dir
+    flatpak build-bundle repo RobotController-x86_64.flatpak com.ks0555.robotcontroller
+    @rm -rf build-dir repo
+    @echo ""
+    @echo "✓ Flatpak bundle created: RobotController-x86_64.flatpak"
+    @echo "  Install: flatpak install --user RobotController-x86_64.flatpak"
+    @echo "  Run:     flatpak run com.ks0555.robotcontroller"
+
+# Install a Flatpak bundle
+# Usage: just flatpak-install [path-to-flatpak]
+# Default: RobotController-x86_64.flatpak
+[group('flatpak')]
+flatpak-install flatpak_path="RobotController-x86_64.flatpak":
+    @echo "→ Installing {{flatpak_path}}..."
+    flatpak install --user --reinstall "{{flatpak_path}}"
+
+# Run the installed Flatpak app
+[group('flatpak')]
+flatpak-run:
+    flatpak run com.ks0555.robotcontroller
+
+# Deploy Flatpak bundle to a remote host via scp
+# Usage: just flatpak-deploy <hostname> [path-to-flatpak]
+# Example: just flatpak-deploy deck@steamdeck.local
+[group('flatpak')]
+flatpak-deploy hostname flatpak_path="RobotController-x86_64.flatpak":
+    @echo "→ Transferring {{flatpak_path}} to {{hostname}}..."
+    scp "{{flatpak_path}}" "{{hostname}}:~/"
+    @echo ""
+    @echo "✓ Flatpak transferred to {{hostname}}:~/"
+    @echo "  SSH to the host and run:"
+    @echo "    flatpak install --user --reinstall ~/RobotController-x86_64.flatpak"
+    @echo "    flatpak run com.ks0555.robotcontroller"
