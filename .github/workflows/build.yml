@@ -81,3 +81,41 @@ jobs:
       - name: verify app.tsx lock (VAL-08)
         run: |
           git diff --exit-code -- apps/frontend/src/app.tsx apps/frontend/src/components/control-pad.tsx apps/frontend/src/components/status-bar.tsx
+
+  build-flatpak-x64:
+    needs: build-x64
+    if: needs.build-x64.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: download deb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: robot-controller-deb
+
+      - name: copy deb to manifest directory
+        run: |
+          cp *.deb flatpak/robot-controller.deb
+
+      - name: verify flatpak sources
+        run: |
+          test -f flatpak/robot-controller.deb || { echo "Missing robot-controller.deb"; exit 1; }
+          test -f flatpak/com.ks0555.robotcontroller.yaml || { echo "Missing manifest"; exit 1; }
+          test -f flatpak/com.ks0555.robotcontroller.metainfo.xml || { echo "Missing metainfo"; exit 1; }
+          for icon in icons/32x32/com.ks0555.robotcontroller.png icons/128x128/com.ks0555.robotcontroller.png icons/256x256@2/com.ks0555.robotcontroller.png; do
+            test -f "flatpak/$icon" || { echo "Missing $icon"; exit 1; }
+          done
+          echo "All flatpak sources verified"
+
+      - name: extract version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: RobotController-${{ env.VERSION }}-x86_64.flatpak
+          manifest-path: flatpak/com.ks0555.robotcontroller.yaml
+          cache-key: flatpak-${{ runner.os }}-${{ hashFiles('flatpak/com.ks0555.robotcontroller.yaml') }}-freedesktop-2408
+          cache: true
