@@ -53,7 +53,7 @@ jobs:
       - name: install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libudev-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libudev-dev patchelf flatpak flatpak-builder
 
       - name: install stock tauri-cli
         run: cargo install tauri-cli --version "^2"
@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: robot-controller-deb
-          path: apps/frontend/src-tauri/target/release/bundle/deb/robot-controller_${{ env.VERSION }}_amd64.deb
+          path: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 7
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
