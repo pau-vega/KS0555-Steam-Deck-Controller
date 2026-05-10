@@ -64,4 +64,54 @@ describe("CI workflow: .github/workflows/build.yml", () => {
     expect(buildYml).toMatch(/^on:/m)
     expect(buildYml).toMatch(/^jobs:/m)
   })
+
+  // ── Phase 16: AppImage Decommission + CI Consolidation ──
+
+  it("CI-05: build-x64 job removed (grep returns 0)", () => {
+    const matches = buildYml.match(/build-x64/g)
+    expect(matches).toBeNull()
+  })
+
+  it("CI-05: build-flatpak-x64 renamed to build (no build-flatpak-x64)", () => {
+    const matches = buildYml.match(/build-flatpak-x64/g)
+    expect(matches).toBeNull()
+  })
+
+  it("CI-05: single job named 'build' exists", () => {
+    expect(buildYml).toMatch(/^  build:/m)
+  })
+
+  it("CI-05: no concurrency block (cancel-in-progress removed)", () => {
+    expect(buildYml).not.toContain("concurrency")
+  })
+
+  it("CI-05: no cancel-in-progress", () => {
+    expect(buildYml).not.toContain("cancel-in-progress")
+  })
+
+  it("D-09: no AppImage references in build.yml", () => {
+    expect(buildYml).not.toMatch(/[Aa]pp[Ii]mage/)
+  })
+
+  it("D-02: VAL-08 git diff --exit-code dropped from CI", () => {
+    expect(buildYml).not.toContain("git diff --exit-code")
+  })
+
+  it("D-04: version extracted from Cargo.toml (cargo metadata)", () => {
+    expect(buildYml).toContain("cargo metadata")
+    expect(buildYml).not.toMatch(/GITHUB_REF_NAME#v/)
+  })
+
+  it("D-06: no upload-artifact or download-artifact steps", () => {
+    expect(buildYml).not.toContain("upload-artifact")
+    expect(buildYml).not.toContain("download-artifact")
+  })
+
+  it("D-11: top-level permissions are contents: read", () => {
+    const lines = buildYml.split("\n")
+    const permIdx = lines.findIndex((l) => l.trim() === "permissions:")
+    const nextLine = lines[permIdx + 1]
+    expect(nextLine).toBeDefined()
+    expect(nextLine!.trim()).toBe("contents: read")
+  })
 })
