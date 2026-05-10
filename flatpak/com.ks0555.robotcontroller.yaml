@@ -26,8 +26,8 @@ finish-args:
   - --allow=bluetooth
   - --share=network
   # Gamepad — gilrs reads from /dev/input/event* (Pitfall 4)
-  - --device=input
-  # --device=all  # fallback if --device=input not available (Flatpak < 1.15.6 on older SteamOS)
+  # --device requires Flatpak ≥ 1.15.6; fall back to --device=all on older runtimes
+  - --device=all
 modules:
   - name: robot-controller
     buildsystem: simple
