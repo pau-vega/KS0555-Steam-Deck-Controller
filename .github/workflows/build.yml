@@ -111,6 +111,9 @@ jobs:
           path: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 7
 
+      - name: configure flathub remote
+        run: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: RobotController-${{ env.VERSION }}-x86_64.flatpak
