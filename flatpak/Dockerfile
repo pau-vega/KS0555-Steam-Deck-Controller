@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dbus-daemon \
     dbus-user-session \
     git \
+    elfutils \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PNPM_HOME=/pnpm
