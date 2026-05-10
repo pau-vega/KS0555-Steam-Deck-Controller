@@ -1,8 +1,9 @@
-# Dockerfile — build .deb + .flatpak from source (mirrors CI)
-# Usage: docker build -t robot-controller-builder -f flatpak/Dockerfile . && docker run --rm -v $(pwd):/repo robot-controller-builder
+# Dockerfile — build .deb + .flatpak from source
+# Usage: just docker-build-all
 FROM ubuntu:24.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
     curl \
     jq \
     libwebkit2gtk-4.1-dev \
@@ -15,6 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     libssl-dev \
+    dbus-daemon \
+    dbus-user-session \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PNPM_HOME=/pnpm
@@ -22,7 +25,9 @@ ENV PATH=$PNPM_HOME:$PATH
 
 RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$PNPM_HOME" SHELL="$(which bash)" bash -
 
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+RUN apt-get update \
+    && apt-get install -y ca-certificates curl \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g corepack@latest \
@@ -31,9 +36,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 ENV PATH=/root/.cargo/bin:$PATH
 RUN cargo install tauri-cli --version "^2"
-
-RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo \
-    && flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
 COPY . /workspace
 WORKDIR /workspace
@@ -49,9 +51,13 @@ RUN cp /workspace/apps/frontend/src-tauri/target/release/bundle/deb/*.deb /works
 
 WORKDIR /workspace
 
-RUN flatpak-builder --user --install --force-clean --disable-rofiles-fuse build-dir flatpak/com.ks0555.robotcontroller.yaml \
-    && mkdir -p repo \
-    && flatpak build-export repo build-dir \
-    && flatpak build-bundle repo RobotController-x86_64.flatpak com.ks0555.robotcontroller \
-    && cp RobotController-x86_64.flatpak /repo/ \
-    && echo "✓ Flatpak bundle copied to /repo/RobotController-x86_64.flatpak"
+RUN dbus-run-session -- bash -c ' \
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
+    flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 && \
+    flatpak-builder --user --install --force-clean --disable-rofiles-fuse build-dir flatpak/com.ks0555.robotcontroller.yaml && \
+    mkdir -p repo && \
+    flatpak build-export repo build-dir && \
+    flatpak build-bundle repo RobotController-x86_64.flatpak com.ks0555.robotcontroller && \
+    cp RobotController-x86_64.flatpak /repo/ && \
+    echo "✓ Flatpak bundle copied to /repo/RobotController-x86_64.flatpak" \
+    '
