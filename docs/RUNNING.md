@@ -11,13 +11,15 @@ The same Tauri v2 binary runs on three places: a Steam Deck (end-user device), a
 ### Desktop Mode (one-time setup)
 
 1. Switch the Deck to Desktop Mode (Steam → Power → _Switch to Desktop_).
-2. Open Konsole and run:
+2. Open Konsole and download the latest Flatpak bundle:
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/pau-vega/KS0555-Steam-Deck-Controller-2/main/install-on-steamdeck.sh | bash
+   curl -fsSL -o ~/Downloads/RobotController-x86_64.flatpak \
+     https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest/download/RobotController-x86_64.flatpak
+   flatpak install --user ~/Downloads/RobotController-x86_64.flatpak
    ```
 
-   The script downloads `RobotController-x86_64.AppImage` from the latest GitHub Release into `~/Applications/`, makes it executable, and registers a `.desktop` entry so Steam can see it.
+   This installs the app as `com.ks0555.robotcontroller` and registers a `.desktop` entry so Steam can see it.
 
 3. Open Steam (still in Desktop Mode):
    - Library → **+** → **Add a Non-Steam Game**.
@@ -35,15 +37,19 @@ The same Tauri v2 binary runs on three places: a Steam Deck (end-user device), a
 
 ### Updating
 
-Re-run the curl line in Desktop Mode whenever a new release ships. The script overwrites the AppImage in place; the Steam shortcut keeps working.
+Run the upgrade script from the repo root:
 
-### Manual install (no shell script)
+```bash
+./upgrade-robot-controller.sh
+```
 
-If piping to bash isn't your style:
+Or manually: download the latest `.flatpak` from GitHub Releases and run `flatpak install --user --reinstall RobotController-x86_64.flatpak`.
 
-1. Download `RobotController-x86_64.AppImage` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest).
-2. `chmod +x ~/Downloads/RobotController-x86_64.AppImage`.
-3. Steam → Library → **+** → **Add a Non-Steam Game** → _Browse_ → pick the AppImage → _Add Selected Programs_.
+### Manual install (no script)
+
+1. Download `RobotController-x86_64.flatpak` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest).
+2. `flatpak install --user ~/Downloads/RobotController-x86_64.flatpak`
+3. Steam → Library → **+** → **Add a Non-Steam Game** → pick **com.ks0555.robotcontroller** from the list.
 
 ### Building from source on the Deck
 
@@ -106,7 +112,7 @@ If the Mac doesn't see the BT24:
 
 ## Linux (Arch / Debian / Ubuntu) — developer workstation
 
-Same Tauri stack. The AppImage from CI runs on most modern desktops, but for development you want a local toolchain.
+Same Tauri stack. The Flatpak from CI runs on most modern desktops, but for development you want a local toolchain.
 
 ### Prerequisites
 
@@ -150,7 +156,7 @@ pnpm --filter @ks0555/frontend tauri:build
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Connect Bluetooth` spins for 5 s then errors | BT24 not advertising. Power-cycle the Arduino; verify the blue LED blinks.                                                                                                                                                                    |
 | Mac shows "Bluetooth permission denied"       | System Settings → Privacy & Security → Bluetooth → enable Robot Controller → relaunch.                                                                                                                                                        |
-| Steam Deck Gaming Mode opens then closes      | App crashed. In Desktop Mode run the AppImage from Konsole to see the panic. Common cause: missing `webkit2gtk-4.1`.                                                                                                                          |
+| Steam Deck Gaming Mode opens then closes      | App crashed. In Desktop Mode run `flatpak run com.ks0555.robotcontroller` from Konsole to see the panic. Common cause: missing `webkit2gtk-4.1`.                                                                                              |
 | Stick tilts, app shows direction `S`          | Gamepad detected but axes in deadzone. Default deadzone is `0.15`; check stick calibration.                                                                                                                                                   |
 | Stick works, robot does nothing               | BLE write reaching BT24 but Arduino UART not wired. Verify the BT24 TX → Arduino RX pin.                                                                                                                                                      |
 | `cargo check` fails on Mac with linker errors | Re-run `xcode-select --install`. Apple SDK headers go missing after macOS upgrades.                                                                                                                                                           |
@@ -169,5 +175,4 @@ pnpm --filter @ks0555/frontend tauri:build
 | Gamepad hook          | `apps/frontend/src/hooks/use-gamepad.ts`     |
 | Window size, bundle   | `apps/frontend/src-tauri/tauri.conf.json`    |
 | macOS BLE permission  | `apps/frontend/src-tauri/Info.plist`         |
-| Steam Deck installer  | `install-on-steamdeck.sh`                    |
 | CI / release pipeline | `.github/workflows/build.yml`                |
