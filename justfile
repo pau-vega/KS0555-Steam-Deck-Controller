@@ -161,3 +161,10 @@ flatpak-deploy hostname flatpak_path="RobotController-x86_64.flatpak":
     @echo "  SSH to the host and run:"
     @echo "    flatpak install --user --reinstall ~/RobotController-x86_64.flatpak"
     @echo "    flatpak run com.ks0555.robotcontroller"
+
+# Build Flatpak bundle via Docker (for macOS/Linux without flatpak-builder)
+# Default: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
+[group('flatpak')]
+docker-flatpak-build deb_path="":
+    @echo "→ Building Flatpak from deb via Docker..."
+    @bash flatpak/docker-build.sh "{{deb_path}}"
