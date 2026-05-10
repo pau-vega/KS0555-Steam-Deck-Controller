@@ -36,7 +36,7 @@ modules:
       - ar -x robot-controller.deb
       - tar -xf data.tar.*
       - install -Dm755 usr/bin/robot-controller /app/bin/robot-controller
-      - install -Dm644 usr/share/applications/robot-controller.desktop /app/share/applications/com.ks0555.robotcontroller.desktop
+      - DESKTOP_FILE=$(ls usr/share/applications/*.desktop 2>/dev/null | head -1); install -Dm644 "$DESKTOP_FILE" /app/share/applications/com.ks0555.robotcontroller.desktop
       - sed -i 's/^Icon=.*/Icon=com.ks0555.robotcontroller/' /app/share/applications/com.ks0555.robotcontroller.desktop
       - install -Dm644 icons/32x32/com.ks0555.robotcontroller.png /app/share/icons/hicolor/32x32/apps/com.ks0555.robotcontroller.png
       - install -Dm644 icons/128x128/com.ks0555.robotcontroller.png /app/share/icons/hicolor/128x128/apps/com.ks0555.robotcontroller.png
