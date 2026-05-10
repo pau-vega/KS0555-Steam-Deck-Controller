@@ -1,43 +1,73 @@
 # Steam Deck Support
 
-This project targets Steam Deck as a primary platform. The app runs natively on Steam Deck via Linux/AppImage.
+This project targets Steam Deck as a primary platform. The app runs natively
+on Steam Deck via Flatpak distribution.
 
-## Build for Steam Deck
-
-The Steam Deck APU (Van Gogh / Sephiroth on the OLED) is **AMD x86_64**, not ARM. Build a regular Linux x86_64 AppImage.
+## Install on Steam Deck
 
 ### Prerequisites
 
-A stock Rust stable toolchain on any x86_64 Linux box (or via cross-compile from another arch) is enough — no extra `rustup target add` needed.
+- SteamOS 3.6+ (Flatpak ≥ 1.15.8 ships with it)
+- Download the latest `.flatpak` bundle from GitHub Releases
+
+### Install
+
+```bash
+flatpak install --user RobotController-<version>-x86_64.flatpak
+```
+
+### Add as Non-Steam Game (Gaming Mode)
+
+1. Switch to Desktop Mode
+2. Open Steam → "Add a Non-Steam Game" → Browse
+3. Navigate to `~/.local/share/flatpak/exports/bin/com.ks0555.robotcontroller`
+   (or `/var/lib/flatpak/exports/bin/com.ks0555.robotcontroller` for system-wide install)
+4. Select it, add to library
+5. Switch back to Gaming Mode — the app appears in your library
+
+### Upgrade
+
+```bash
+flatpak install --user --reinstall RobotController-<version>-x86_64.flatpak
+```
+
+## Build for Steam Deck
+
+### Prerequisites
+
+- Rust stable toolchain (x86_64)
+- Flatpak + flatpak-builder installed
+- System deps: `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`, etc.
 
 ### Build Commands
 
 ```bash
-# Build AppImage for Steam Deck (x86_64)
-cd apps/frontend
-pnpm tauri build
+# 1. Build the .deb
+cargo tauri build --bundles deb
 
-# Output: src-tauri/target/release/bundle/appimage/
+# 2. Build Flatpak (runs the flatpak/build.sh script)
+cd flatpak && ./build.sh
+
+# Output: RobotController-<version>-x86_64.flatpak
+```
+
+Or use justfile recipes:
+
+```bash
+just flatpak-build   # Run flatpak-builder
+just flatpak-install # Install the built Flatpak
+just flatpak-run     # Run the installed Flatpak
 ```
 
 ### GitHub Actions (CI)
 
-`ubuntu-22.04` is the matching runner. (The repo's `.github/workflows/build.yml` also produces an `aarch64-unknown-linux-gnu` AppImage in parallel — that one targets ARM SBC-class Linux boxes, **not** the Deck.)
+Single CI job (`build`) on `ubuntu-24.04`:
 
-```yaml
-build-steam-deck:
-  runs-on: ubuntu-22.04
-  steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: .nvmrc
-    - uses: dtolnay/rust-toolchain@stable
-    - run: pnpm install --frozen-lockfile
-    - uses: tauri-apps/tauri-action@v0
-      with:
-        projectPath: apps/frontend/src-tauri
-```
+1. Install system deps + stock tauri-cli (no fork)
+2. Build Rust binary + bundle as .deb
+3. Copy .deb to flatpak/ directory
+4. flatpak-builder wraps .deb into .flatpak using the manifest
+5. Upload .flatpak + SHA256 to GitHub Release
 
 ## Controller Mapping
 
@@ -66,8 +96,7 @@ For advanced gyro/gyro-as-mouse, use Steam Input API via FFI or `tauri-plugin-sh
 
 ## Performance Tips
 
-- **Bundle size**: AppImage ~5-10MB (vs Electron's ~120MB)
-- **No `bundleMediaFramework`**: Disabled in `tauri.conf.json` (reduces AppImage size)
+- **Bundle size**: Flatpak ~50-80MB (runtime + app; single .flatpak ~10MB)
 - **Async Rust commands**: Keep UI thread free — use `async fn` in Tauri commands
 - **Proton**: Steam's compatibility layer translates DirectX→Vulkan automatically
 
@@ -75,7 +104,7 @@ For advanced gyro/gyro-as-mouse, use Steam Input API via FFI or `tauri-plugin-sh
 
 1. **Text input in gaming mode**: If on-screen keyboard doesn't appear, ensure Steam Overlay is enabled
 2. **Gamepad detection delay**: Steam Deck gamepad may take ~2s to initialize after app launch
-3. **AppImage launch in Gaming Mode**: if the AppImage fails to start under Gamescope, the Rust shell already sets `WEBKIT_DISABLE_COMPOSITING_MODE=1` to bypass WebKitGTK's broken GPU compositing path. Check the launch log via Konsole in Desktop Mode if it still fails.
+3. **Flatpak launch under Gamescope**: `WEBKIT_DISABLE_COMPOSITING_MODE=1` is set automatically in `lib.rs` to bypass WebKitGTK's broken GPU compositing path under Gamescope
 
 ## Steam Deck Verified Checklist
 
