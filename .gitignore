@@ -40,3 +40,12 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Rust / Cargo
+target/
+
+# Tauri auto-generated schemas
+apps/frontend/src-tauri/gen/schemas/
+
+# OpenCode editor config (local)
+tui.json
