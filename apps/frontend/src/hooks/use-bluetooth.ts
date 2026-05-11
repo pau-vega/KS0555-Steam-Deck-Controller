@@ -1,17 +1,63 @@
-import { useState, useCallback, useRef } from "react"
+import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
+import { useState, useCallback, useEffect, useRef } from "react"
+
+type BluetoothState = "disconnected" | "connecting" | "connected" | "unsupported"
 
 const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
 const CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
 
-type BluetoothState = "disconnected" | "connecting" | "connected" | "unsupported"
+function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI__" in window
+}
 
 export function useBluetooth() {
   const [state, setState] = useState<BluetoothState>(() =>
-    typeof navigator !== "undefined" && "bluetooth" in navigator ? "disconnected" : "unsupported",
+    isTauri()
+      ? "disconnected"
+      : typeof navigator !== "undefined" && "bluetooth" in navigator
+        ? "disconnected"
+        : "unsupported",
   )
   const characteristicRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null)
 
+  useEffect(() => {
+    if (!isTauri()) return
+
+    let unlisten: (() => void) | undefined
+    let cancelled = false
+
+    async function setup() {
+      const fn = await listen<string>("ble-state-changed", (event) => {
+        if (cancelled) return
+        setState(event.payload as BluetoothState)
+      })
+      if (!cancelled) {
+        unlisten = fn
+      } else {
+        fn()
+      }
+    }
+    setup()
+
+    return () => {
+      cancelled = true
+      unlisten?.()
+    }
+  }, [])
+
   const connect = useCallback(async () => {
+    if (isTauri()) {
+      setState("connecting")
+      try {
+        await invoke("ble_connect")
+        setState("connected")
+      } catch {
+        setState("disconnected")
+      }
+      return
+    }
+
     if (!("bluetooth" in navigator)) {
       setState("unsupported")
       return
@@ -45,6 +91,11 @@ export function useBluetooth() {
   }, [])
 
   const send = useCallback((data: string) => {
+    if (isTauri()) {
+      void invoke("ble_send", { command: data })
+      return
+    }
+
     const characteristic = characteristicRef.current
     if (!characteristic) return
     void characteristic.writeValue(new TextEncoder().encode(data))

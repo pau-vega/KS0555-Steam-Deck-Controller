@@ -1,2 +1,3 @@
-# Tauri v2 permissions - Phase 6 shell only
-# Commands and events will be added in Phase 7-8
+# Tauri v2 permissions
+# Custom commands (ble_connect, ble_disconnect, ble_send) and events (ble-state-changed)
+# are accessible by default in Tauri v2 — no explicit capability grants needed.
