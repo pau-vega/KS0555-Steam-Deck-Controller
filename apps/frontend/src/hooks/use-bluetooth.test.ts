@@ -35,6 +35,9 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+  // Tauri v2 exposes `__TAURI_INTERNALS__`; ensure neither global is present
+  // before each test so isTauri() falls back to the navigator branch.
+  delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
   delete (window as unknown as Record<string, unknown>).__TAURI__
   capturedBleHandler.current = null
 })
@@ -146,7 +149,9 @@ describe("useBluetooth (Web Bluetooth)", () => {
 
 describe("useBluetooth (Tauri IPC)", () => {
   beforeEach(() => {
-    ;(window as unknown as Record<string, unknown>).__TAURI__ = true
+    // Tauri v2 default: only `__TAURI_INTERNALS__` is injected (not `__TAURI__`).
+    // Match production behavior so isTauri() takes the IPC branch.
+    ;(window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {}
     delete (navigator as unknown as Record<string, unknown>).bluetooth
     mockTauriInvoke.mockResolvedValue(undefined)
   })
