@@ -13,7 +13,7 @@
   "dependencies": {
     "fastify": "^4.16.0",
     "serialport": "^12.0.0",
-    "@fastify/websocket": "^9.0.0",
+    "@fastify/websocket": "^11.2.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
