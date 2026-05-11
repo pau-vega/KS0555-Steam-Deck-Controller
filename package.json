@@ -1,29 +1,32 @@
 {
   "name": "ks0555-steam-deck-controller",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "private": true,
-  "description": "Steam Deck Bluetooth robot controller — monorepo with React frontend and Node.js backend",
+  "description": "Steam Deck Bluetooth robot controller — Tauri v2 desktop app (Rust BLE via btleplug, gamepad via gilrs)",
   "scripts": {
-    "dev": "turbo dev",
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
+    "dev": "pnpm --filter @ks0555/frontend tauri:dev",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "test": "turbo test",
-    "format:check": "prettier --check ."
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "install:steamdeck": "./install-on-steamdeck.sh",
+    "prepare": "lefthook install"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "packageManager": "pnpm@10.29.3",
   "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
-    "@commitlint/config-conventional": "^20.5.3",
-    "@typescript-eslint/eslint-plugin": "^8.59.1",
-    "@typescript-eslint/parser": "^8.59.1",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
+    "@eslint/json": "^1.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^10.3.0",
+    "lefthook": "^2.1.6",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.8"
+    "turbo": "^2.9.10"
   }
 }

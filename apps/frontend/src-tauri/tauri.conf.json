@@ -1,6 +1,6 @@
 {
   "productName": "Robot Controller",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "identifier": "com.ks0555.robotcontroller",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -11,13 +11,16 @@
   "app": {
     "windows": [
       {
-        "fullscreen": true,
+        "title": "Robot Controller",
+        "width": 1280,
+        "height": 800,
+        "resizable": true,
         "decorations": false,
-        "title": "Robot Controller"
+        "center": true
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://localhost:5173; script-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:5173 ws://localhost:5173; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {
@@ -28,6 +31,11 @@
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.png"
-    ]
+    ],
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
   }
 }

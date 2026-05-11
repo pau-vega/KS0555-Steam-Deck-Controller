@@ -1,72 +1,73 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { listen, type UnlistenFn } from "@tauri-apps/api/event"
+import { useEffect, useRef, useState } from "react"
 
-type Direction = "F" | "B" | "L" | "R" | "S"
+import { Direction } from "../types"
 
-const DEADZONE = 0.15
+const STEAM_DECK_VENDOR_ID = "057e"
+const STEAM_DECK_PRODUCT_ID = "2009"
 
-function getDirectionFromAxes(axes: Float32Array | readonly number[]): Direction {
-  const x = axes[0] ?? 0
-  const y = axes[1] ?? 0
-
-  const absX = Math.abs(x)
-  const absY = Math.abs(y)
-
-  if (absX < DEADZONE && absY < DEADZONE) {
-    return "S"
-  }
-
-  if (absY > absX) {
-    return y < 0 ? "F" : "B"
-  }
-
-  return x < 0 ? "L" : "R"
+function isSteamDeck(gamepad: Gamepad): boolean {
+  const id = gamepad.id.toLowerCase()
+  return (
+    id.includes("steam deck") ||
+    id.includes("galileo") ||
+    (id.includes(STEAM_DECK_VENDOR_ID) && id.includes(STEAM_DECK_PRODUCT_ID))
+  )
 }
 
 export function useGamepad() {
   const [direction, setDirection] = useState<Direction>("S")
   const [gamepadConnected, setGamepadConnected] = useState(false)
-  const frameRef = useRef<number>(0)
-  const connectedRef = useRef(false)
-
-  const pollGamepad = useCallback(() => {
-    const gamepads = navigator.getGamepads()
-    const gp = Array.from(gamepads).find((g) => g?.id.includes("Steam")) || gamepads[0]
-
-    if (!gp) {
-      frameRef.current = requestAnimationFrame(pollGamepad)
-      return
-    }
-
-    if (!connectedRef.current) {
-      connectedRef.current = true
-      setGamepadConnected(true)
-    }
-
-    const newDirection = getDirectionFromAxes(gp.axes)
-    setDirection(newDirection)
-
-    frameRef.current = requestAnimationFrame(pollGamepad)
-  }, [])
+  const [isDeck, setIsDeck] = useState(false)
+  const unlistenersRef = useRef<UnlistenFn[]>([])
 
   useEffect(() => {
-    frameRef.current = requestAnimationFrame(pollGamepad)
+    let cancelled = false
 
-    const onConnected = () => setGamepadConnected(true)
-    const onDisconnected = () => {
-      connectedRef.current = false
-      setGamepadConnected(false)
-      setDirection("S")
+    const setup = async () => {
+      if (!window.__TAURI_INTERNALS__) return
+
+      const unlistenDirection = await listen<{ direction: Direction }>("gamepad-direction", (event) => {
+        if (cancelled) return
+        setDirection(event.payload.direction)
+      })
+      unlistenersRef.current.push(unlistenDirection)
+
+      const unlistenConnected = await listen<{ name: string }>("gamepad-connected", (event) => {
+        if (cancelled) return
+        setGamepadConnected(true)
+        detectSteamDeck()
+      })
+      unlistenersRef.current.push(unlistenConnected)
+
+      const unlistenDisconnected = await listen<{ name: string }>("gamepad-disconnected", (event) => {
+        if (cancelled) return
+        setGamepadConnected(false)
+        setDirection("S")
+        setIsDeck(false)
+      })
+      unlistenersRef.current.push(unlistenDisconnected)
+
+      detectSteamDeck()
     }
 
-    window.addEventListener("gamepadconnected", onConnected)
-    window.addEventListener("gamepaddisconnected", onDisconnected)
+    const detectSteamDeck = () => {
+      const gamepads = navigator.getGamepads?.() ?? []
+      const deck = gamepads.find((gp) => gp && isSteamDeck(gp))
+      setIsDeck(!!deck)
+      if (deck && !cancelled) {
+        console.log("[SteamDeck] Detected:", deck.id)
+      }
+    }
+
+    setup()
 
     return () => {
-      cancelAnimationFrame(frameRef.current)
-      window.removeEventListener("gamepadconnected", onConnected)
-      window.removeEventListener("gamepaddisconnected", onDisconnected)
+      cancelled = true
+      unlistenersRef.current.forEach((fn) => fn())
+      unlistenersRef.current = []
     }
-  }, [pollGamepad])
+  }, [])
 
-  return { direction, gamepadConnected }
+  return { direction, gamepadConnected, isDeck }
 }

@@ -14,7 +14,7 @@ export function StatusBar({ bleConnected, gamepadConnected, connecting }: Status
           bleConnected
             ? "bg-success text-success-text"
             : isBluetoothConnecting
-              ? "bg-yellow-600 text-yellow-100"
+              ? "bg-connecting text-connecting-text"
               : "bg-error text-error-text"
         }`}
       >

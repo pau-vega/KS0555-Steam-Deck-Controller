@@ -41,11 +41,10 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
-# Rust / Cargo
-target/
+# Claude
+.claude/scheduled_tasks.lock
 
-# Tauri auto-generated schemas
-apps/frontend/src-tauri/gen/schemas/
-
-# OpenCode editor config (local)
+# OpenCode
 tui.json
+*.flatpak
+flatpak/robot-controller.deb

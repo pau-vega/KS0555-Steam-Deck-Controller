@@ -20,7 +20,7 @@
     "eslint-plugin-react-hooks": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
+    "@types/node": "^22.19.18",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }

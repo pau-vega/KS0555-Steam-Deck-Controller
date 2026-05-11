@@ -1,0 +1,1 @@
+{"main-capability":{"identifier":"main-capability","description":"Grant BLE and gamepad permissions to main window","local":true,"windows":["main"],"permissions":["core:default","ble-connect","ble-disconnect","ble-send","ble-state-changed"]}}

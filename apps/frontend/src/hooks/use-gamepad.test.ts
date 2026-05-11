@@ -1,185 +1,115 @@
-import { renderHook, waitFor, act } from "@testing-library/react"
+import { renderHook, act } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 import { useGamepad } from "./use-gamepad"
 
-function createMockGamepad(axes: number[], id = "Steam Deck Gamepad"): Gamepad {
+vi.stubGlobal("__TAURI_INTERNALS__", {})
+
+const { listenerCallbacks, mockUnlistenDirection, mockUnlistenConnected, mockUnlistenDisconnected } = vi.hoisted(() => {
+  const callbacks: Record<string, (payload: unknown) => void> = {}
   return {
-    axes,
-    id,
-    connected: true,
-    timestamp: 0,
-    mapping: "standard" as GamepadMappingType,
-    index: 0,
-    buttons: [],
-    hapticActuators: [],
-    vibrationActuator: null,
-  } as unknown as Gamepad
-}
+    listenerCallbacks: callbacks,
+    mockUnlistenDirection: vi.fn(),
+    mockUnlistenConnected: vi.fn(),
+    mockUnlistenDisconnected: vi.fn(),
+  }
+})
+
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn((event: string, callback: (event: { payload: unknown }) => void) => {
+    listenerCallbacks[event] = (payload: unknown) => callback({ payload })
+    const unlistenMap: Record<string, ReturnType<typeof vi.fn>> = {
+      "gamepad-direction": mockUnlistenDirection,
+      "gamepad-connected": mockUnlistenConnected,
+      "gamepad-disconnected": mockUnlistenDisconnected,
+    }
+    return Promise.resolve(unlistenMap[event] ?? vi.fn())
+  }),
+}))
 
 describe("useGamepad", () => {
-  let originalGetGamepads: typeof navigator.getGamepads
-  let originalRAF: typeof window.requestAnimationFrame
-  let rafCallbacks: Array<(time: number) => void> = []
-
   beforeEach(() => {
     vi.clearAllMocks()
-    rafCallbacks = []
+    Object.keys(listenerCallbacks).forEach((key) => delete listenerCallbacks[key])
+  })
 
-    // Store original functions
-    originalGetGamepads = navigator.getGamepads
-    originalRAF = window.requestAnimationFrame
+  it("starts with stop direction and disconnected", () => {
+    const { result } = renderHook(() => useGamepad())
+    expect(result.current.direction).toBe("S")
+    expect(result.current.gamepadConnected).toBe(false)
+  })
 
-    // Mock requestAnimationFrame to capture callbacks
-    window.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-      rafCallbacks.push(callback)
-      return rafCallbacks.length
+  it("gamepad-direction event updates direction", async () => {
+    const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
+
+    act(() => {
+      listenerCallbacks["gamepad-direction"]!({ direction: "F" })
     })
+    expect(result.current.direction).toBe("F")
 
-    // Mock cancelAnimationFrame
-    window.cancelAnimationFrame = vi.fn()
+    act(() => {
+      listenerCallbacks["gamepad-direction"]!({ direction: "L" })
+    })
+    expect(result.current.direction).toBe("L")
+  })
+
+  it("gamepad-connected event sets connected", async () => {
+    const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
+
+    act(() => {
+      listenerCallbacks["gamepad-connected"]!({ name: "Steam Deck Controller" })
+    })
+    expect(result.current.gamepadConnected).toBe(true)
+  })
+
+  it("gamepad-disconnected event resets state", async () => {
+    const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
+
+    act(() => {
+      listenerCallbacks["gamepad-connected"]!({ name: "Steam Deck Controller" })
+    })
+    expect(result.current.gamepadConnected).toBe(true)
+
+    act(() => {
+      listenerCallbacks["gamepad-disconnected"]!({ name: "Steam Deck Controller" })
+    })
+    expect(result.current.gamepadConnected).toBe(false)
+    expect(result.current.direction).toBe("S")
+  })
+
+  it("cleanup calls all unlisteners", async () => {
+    const { unmount } = renderHook(() => useGamepad())
+    await act(async () => {})
+    unmount()
+    expect(mockUnlistenDirection).toHaveBeenCalled()
+    expect(mockUnlistenConnected).toHaveBeenCalled()
+    expect(mockUnlistenDisconnected).toHaveBeenCalled()
+  })
+
+  it("multiple direction changes work", async () => {
+    const { result } = renderHook(() => useGamepad())
+    await act(async () => {})
+
+    act(() => {
+      listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+    })
+    expect(result.current.direction).toBe("F")
+
+    act(() => {
+      listenerCallbacks["gamepad-direction"]!({ direction: "R" })
+    })
+    expect(result.current.direction).toBe("R")
+
+    act(() => {
+      listenerCallbacks["gamepad-direction"]!({ direction: "S" })
+    })
+    expect(result.current.direction).toBe("S")
   })
 
   afterEach(() => {
-    navigator.getGamepads = originalGetGamepads
-    window.requestAnimationFrame = originalRAF
-    vi.restoreAllMocks()
-  })
-
-  // Helper to simulate RAF callback
-  const flushRAF = () => {
-    const callbacks = [...rafCallbacks]
-    rafCallbacks = []
-    callbacks.forEach((cb) => cb(0))
-  }
-
-  it("returns direction S when axes are neutral (within deadzone)", async () => {
-    // Mock gamepad with neutral axes (within deadzone of 0.15)
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0, 0])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    // Flush the RAF callback
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("S")
-    })
-  })
-
-  it("returns direction F when Y axis negative (forward)", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0, -0.5])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("F")
-    })
-  })
-
-  it("returns direction B when Y axis positive (backward)", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0, 0.5])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("B")
-    })
-  })
-
-  it("returns direction L when X axis negative (left)", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([-0.5, 0])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("L")
-    })
-  })
-
-  it("returns direction R when X axis positive (right)", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0.5, 0])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("R")
-    })
-  })
-
-  it("sets gamepadConnected=true when gamepad present", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0, 0])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.gamepadConnected).toBe(true)
-    })
-  })
-
-  it("sets gamepadConnected=false when no gamepad", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [null] // No gamepad connected
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.gamepadConnected).toBe(false)
-    })
-  })
-
-  it("deadzone: does not change direction for small movements", async () => {
-    navigator.getGamepads = vi.fn(() => {
-      return [createMockGamepad([0.1, 0.1])]
-    })
-
-    const { result } = renderHook(() => useGamepad())
-
-    act(() => {
-      flushRAF()
-    })
-
-    await waitFor(() => {
-      expect(result.current.direction).toBe("S") // Should stay as Stop
-    })
+    vi.clearAllMocks()
   })
 })

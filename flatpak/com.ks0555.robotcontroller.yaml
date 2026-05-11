@@ -8,13 +8,12 @@
 #   org.freedesktop.Flatpak    — Portal grant, not needed (no portal interaction)
 
 id: com.ks0555.robotcontroller
-runtime: org.gnome.Platform
-runtime-version: "48"
-sdk: org.gnome.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Platform.GL.default
 command: robot-controller
-appstream-compose: false
 finish-args:
   - --socket=wayland
   - --socket=fallback-x11

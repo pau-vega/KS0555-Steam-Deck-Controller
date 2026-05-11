@@ -49,7 +49,7 @@ ks0555-steam-deck-controller/
 ├── pnpm-workspace.yaml      # pnpm workspace definition
 ├── turbo.json               # Turborepo configuration
 ├── package.json             # Root package.json
-└── .husky/                  # Git hooks (commitlint)
+└── lefthook.yml             # Git hooks (commitlint, lint, format-check)
 ```
 
 ## Directory Purposes

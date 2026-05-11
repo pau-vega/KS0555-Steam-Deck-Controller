@@ -59,7 +59,7 @@
 - @typescript-eslint/eslint-plugin 8.59.1 - TypeScript support for ESLint
 - @typescript-eslint/parser 8.59.1 - TypeScript parser for ESLint
 - Prettier 3.8.3 - Code formatter
-- husky 9.1.7 - Git hooks manager (`.husky/` directory present)
+- lefthook 2.1.6 - Git hooks manager (`lefthook.yml`)
 
 ## Configuration
 

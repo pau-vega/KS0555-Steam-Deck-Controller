@@ -1,3 +1,11 @@
-# Tauri v2 permissions
-# Custom commands (ble_connect, ble_disconnect, ble_send) and events (ble-state-changed)
-# are accessible by default in Tauri v2 — no explicit capability grants needed.
+# Tauri v2 permissions - Phase 7 BLE commands added
+
+[default]
+description = "Default permissions for BLE commands"
+
+permissions = [
+  "ble-connect",
+  "ble-disconnect",
+  "ble-send",
+  "ble-state-changed"
+]

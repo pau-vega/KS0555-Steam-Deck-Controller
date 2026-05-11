@@ -1,95 +1,133 @@
 ---
-milestone: v2.0
-milestone_name: Tauri Migration
-status: in_progress
-progress_phases: 6
-progress_plans: 2
-progress_tasks: 4
+gsd_state_version: 1.0
+milestone: v2.1
+milestone_name: — Flatpak Packaging
+status: active
+stopped_at: Phase 18 complete; ready for Phase 19
+last_updated: "2026-05-10T15:30:00.000Z"
+last_activity: 2026-05-10 -- Completed quick task 260510-001: Docker-based flatpak local build
+progress:
+  total_phases: 14
+  completed_phases: 12
+  total_plans: 27
+  completed_plans: 26
+  percent: 96
 ---
 
 # STATE.md
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-05)
+See: .planning/PROJECT.md (updated 2026-05-09)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 7 BLE Commands — Context gathered ✓
+**Current focus:** Phase 19 — Execute Deb Build + Flatpak Runner
 
 ## Current Position
 
-Phase: 7 (BLE Commands with btleplug) — CONTEXT COMPLETE ✓
-Plan: Not started
-Status: Ready for planning
-Last activity: 2026-05-06 - Phase 7 context gathered
+Phase: 19 — Execute Deb Build + Flatpak Runner
+Plan: 19-01-PLAN.md — CI validation with artifact upload
+Status: Planned (ready to execute)
+Last activity: 2026-05-10 -- Phase 18 complete: STEAM_DECK.md + ARCHITECTURE.md rewritten for Flatpak era
 
 ## Progress
 
-| Phase | Status | Plans | Progress |
-|-------|--------|-------|----------|
-| 6. Tauri Shell Setup | Complete | 2/2 | 100% |
-| 7. BLE Commands with btleplug | Context complete | 0/3 | 25% |
-| 8. Gamepad Monitoring with gilrs | Not started | 0/3 | 0% |
-| 9. Hook Rewrites | Not started | 0/2 | 0% |
-| 10. Build and Test on SteamOS | Not started | 0/2 | 0% |
+**Total roadmap (v2.0 + v2.1):** 13 phases
+**v2.0 complete:** Phases 6-10 (5/5)
+**v2.1 active:** Phases 11-19 (8/9)
+
+| Phase | Status |
+|-------|--------|
+| 6. Tauri Shell Setup | Complete |
+| 7. BLE Commands with btleplug | Complete |
+| 8. Gamepad Monitoring with gilrs | Complete |
+| 9. Hook Rewrites | Complete |
+| 10. Build and Test on SteamOS | Complete |
+| 11. Bundle Pipeline Restructure | Complete |
+| 12. Manifest + AppStream + Local Build | Complete |
+| 13. Sandbox Permissions for BLE + Gamepad | Complete |
+| 14. Steam Deck On-Device Validation | Complete ✓ |
+| 15. CI Migration (Parallel-Run) | Complete ✓ |
+| 16. AppImage Decommission + Upgrade Workflow Docs | Complete ✓ |
+| 17. Close Verification Gaps | Complete |
+| 18. Fix Stale Docs | Complete ✓ |
+| 19. Execute Deb Build + Flatpak Runner | Planned |
+
+Plans: 26/26 complete (12 v2.0 + 7 v2.1 + 2/2 Phase 15 + 3/3 Phase 16 + 1/1 Phase 18). Phase 19: not planned yet.
 
 ## Decisions Made
 
-- D-02: Backend extends @ks0555/tsconfig/tsconfig.node.json
-- D-07: Backend ESLint uses packages/eslint-config/src/node.js
-- D-10: Frontend extends @ks0555/tsconfig/tsconfig.react.json
-- D-12: Frontend ESLint uses packages/eslint-config/src/react.js
-- D-13: Use factory functions (createMockGamepad) instead of Partial<T> for complex DOM mock types
-- D-14: Use non-null assertions (!) for mock instances guaranteed by beforeEach setup
-- D-15: Added @typescript-eslint/parser to react.js ESLint config for TypeScript parsing
-- D-16: Set tsconfigRootDir to process.cwd() in node.js ESLint config for correct tsconfig resolution
-- D-17: Add ESLint overrides for *.config.ts files to exclude from type-aware linting
-- D-18: (Phase 5) Use ESM export default [...] for eslint-config (not CommonJS module.exports)
-- D-19: (Phase 5) Use "type": "module" in packages/eslint-config/package.json
-- D-20: (Phase 5) Use import type {...} for plugin types, import() for runtime plugin loading
-- D-21: (Phase 5) Use tsup to compile .ts → .js + .d.ts (ESM format)
-- D-22: (Phase 5) Rename node.js → node.ts, react.js → react.ts in packages/eslint-config/src/
-- D-23: (Phase 5) Disable dts in tsup.config.ts (eslint-plugin-perfectionist has no Plugin export)
-- D-24: (Phase 5) Add tsconfig.json with relative path to @ks0555/tsconfig (not package reference)
-- D-25: (Phase 7) Auto-reconnect with backoff when BT24 disconnects
-- D-26: (Phase 7) Use WriteType::WithoutResponse for BLE commands
-- D-27: (Phase 7) ble_connect scan timeout: 5 seconds
-- D-28: (Phase 7) Tauri commands return Result<(), String> for error propagation
+(carried from v2.0 — see PROJECT.md Key Decisions table)
+
+**v2.1 decisions (validated in completed phases):**
+
+- **Flatpak runtime choice (PKG-04):** Resolved in Phase 11 — `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and extension `org.freedesktop.Platform.GL.default`. Committed to PROJECT.md Key Decisions.
+- **Auto-update reframed (DECK-05 / DOCS-01):** PROJECT.md "Active" requirement amended to "Manual upgrade workflow (`flatpak install --user --reinstall`) documented; optional GitHub Releases polling launcher script". True `flatpak update` deferred to v2.2+ (`FLAT-PUB-01`).
+- **D-01 (Phase 13):** Belt-and-suspenders Flatpak detection via FLATPAK_ID + /.flatpak-info
+- **D-02 (Phase 13):** Entire D-Bus rewrite block gated behind !in_flatpak()
+- **D-03 (Phase 13):** WEBKIT_DISABLE_COMPOSITING_MODE set_var remains unconditional
+- **D-05 (Phase 13):** Anti-feature checklist placed as comment block at top of manifest
+- **D-16 (Phase 16 / Plan 03):** `upgrade-robot-controller.sh` at repo root, zero dependencies beyond `curl` + `jq`
+- **D-17 (Phase 16 / Plan 03):** Dual-purpose script: fresh install if Flatpak not installed, upgrade check if installed
+- **D-24 (Phase 16 / Plan 03):** `flatpak-build` justfile recipe runs `flatpak-builder` directly, does NOT wrap `flatpak/build.sh`
+- **D-27 (Phase 16 / Plan 03):** `flatpak-deploy` uses `scp` for transfer only, no remote install
+- **D-01 (Phase 16 / Plan 01):** Remove `build-x64` job, rename `build-flatpak-x64` to `build` (single self-contained job)
+- **D-02 (Phase 16 / Plan 01):** VAL-08 `git diff --exit-code` dropped from CI (pre-commit hooks enforce it)
+- **D-04 (Phase 16 / Plan 01):** Version from Cargo.toml via `cargo metadata` + `jq`, not `github.ref_name`
+- **D-05 (Phase 16 / Plan 01):** Remove `cancel-in-progress` from concurrency
+- **D-06 (Phase 16 / Plan 01):** Deb built and consumed inline, no upload/download artifact
+- **D-08 (Phase 16 / Plan 01):** Delete `install-on-steamdeck.sh`, remove all references from docs
+- **D-09 (Phase 16 / Plan 01):** Full cleanup of all AppImage references in codebase
+- **D-10 (Phase 16 / Plan 01):** Add `~/.pnpm-store` cache with `actions/cache@v4`
+- **D-11 (Phase 16 / Plan 01):** Job-level `contents: write` for release upload step only
+- **D-20 (Phase 16 / Plan 02):** ARCHITECTURE.md covers build chain, sandbox model, D-Bus gate, event pipeline, monorepo layout
+- **D-21 (Phase 16 / Plan 02):** flatpak/README.md updated with finish-args rationale, anti-feature checklist, D-Bus gate explanation
+- **D-22 (Phase 16 / Plan 02):** Root README install section rewritten for Flatpak, zero AppImage references
 
 ## Accumulated Context
 
-### Phase 6 Notes
-- Phase 6 COMPLETE — Tauri v2 shell initialized and Vite configured
-- `apps/frontend/src-tauri/` created with Cargo.toml, tauri.conf.json, src/main.rs, build.rs, permissions/default.toml
-- Tauri v2.11.0 (plan specified 2.10.1, auto-corrected to latest), tauri-build 2.6.0
-- Rust deps: btleplug 0.12.0 (bluez feature removed — doesn't exist), gilrs 0.11.1, tokio with macros + rt-multi-thread
-- Frontend package.json: @tauri-apps/cli ^2.10.1, @tauri-apps/api ^2.10.1, tauri scripts added
-- Vite config: clearScreen false, strictPort true, port 5173, watch ignore src-tauri/**
-- Deviations: bundle format corrected for Tauri 2.11.0, placeholder RGBA icon added for generate_context!()
-- `pnpm --filter @ks0555/frontend build` passes ✅
-- All 39 tests pass ✅
+### v2.0 Recap (Validated)
 
-### Phase 7 Notes
-- Phase 7 CONTEXT COMPLETE — Ready for planning
-- Decisions captured: Auto-reconnect (D-25), WithoutResponse (D-26), 5s timeout (D-27), Result error propagation (D-28)
-- BLE commands: ble_connect, ble_disconnect, ble_send
-- BT24 device: service UUID 0000ffe0-..., char UUID 0000ffe1-..., device name "BT24"
-- Events: ble-state-changed
-- State: Peripheral stored via app.manage()
+- Phases 1-10 shipped: monorepo, backend (deprecated), React UI, TS hardening, ESLint TS conversion, Tauri shell, BLE via btleplug, gamepad via gilrs, hook rewrites, SteamOS build/test
+- CI now single Flatpak-only job — AppImage removed, install-on-steamdeck.sh deleted
+- 43+ tests passing, app.tsx untouched
+- Recent quick tasks: Tauri v2 best practices (lib.rs extraction), Steam Deck WEBKIT_DISABLE_COMPOSITING_MODE, Mac dev support, doc updates
 
-### Phase 5 Notes
-- Phase 5 COMPLETE — ESLint config converted to TypeScript ESM
-- `node.js` → `node.ts`, `react.js` → `react.ts` (ESM export default)
-- Added `tsup.config.ts` for ESM build (dist/ output)
-- Updated `package.json` with `"type": "module"`, `"main": "dist/node.js"`, `"types": "dist/node.d.ts"`
-- Both apps' lint scripts updated to reference `.ts` config files
-- `pnpm build`, `pnpm typecheck`, `pnpm lint` all pass with zero errors
-- Auto-fixes: installed tsup, @types/node; added tsconfig.json; disabled dts (eslint-plugin-perfectionist has no Plugin export)
-- Known issue resolved by quick task 260505-nxp: 15 leftover `.js` files in `apps/frontend/` deleted (all had .ts/.tsx counterparts)
+### v2.1 Goals & Phase Map
+
+- Phase 11: ✓ switch `bundle.targets` to `["deb"]`; drop custom tauri-cli fork; pick runtime (complete)
+- Phase 12: write `flatpak/` directory (manifest + metainfo + build.sh); first local `flatpak run` opens window
+- Phase 13: ✓ sandbox finish-args for BLE D-Bus + evdev gamepad; `lib.rs` `!in_flatpak` gate (complete)
+- Phase 14: real-Deck validation in Desktop + Gaming Mode
+- Phase 15: ✓ CI parallel-run (Flatpak + AppImage shipped together for one transition release)
+- Phase 16: ✓ AppImage decommission + upgrade workflow docs (all plans complete)
+- Phase 17: Close verification gaps — VERIFICATION.md for Phases 13, 15, 16
+- Phase 18: Fix stale docs — STEAM_DECK.md and ARCHITECTURE.md are out of date
+- Phase 19: Execute PKG-03 deb build and VAL-05 flatpak-builder on CI runner
+
+### Critical Risks (from research/PITFALLS.md)
+
+- BLE silently fails without `--system-talk-name=org.bluez` (Pitfall #2) — ✓ Resolved Phase 13 (manifest args + in_flatpak gate)
+- `lib.rs` D-Bus rewrite incompatible with Flatpak (Pitfall #13) — ✓ Resolved Phase 13 (in_flatpak gate)
+- `--device=input` requires Flatpak ≥ 1.15.6 — empirical test on real Deck (Pitfall #4) — Phase 14
+- Sideload bundles do NOT auto-update (Pitfall #7) — resolve in Phase 16 docs
+- Removing AppImage in same PR as Flatpak adoption — keep parallel-run for ≥1 release (Pitfall #11) — Phase 15 → 16 split
+
+### Roadmap Evolution
+
+- Phase 17 added: Close verification gaps — VERIFICATION.md for Phases 13, 15, 16
+- Phase 18 added: Fix stale docs — STEAM_DECK.md and ARCHITECTURE.md
+- Phase 19 added: Execute PKG-03 deb build and VAL-05 flatpak-builder on CI runner
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260505-nhk | fix ts-review findings | 2026-05-05 | 7a6b3a8 | [260505-nhk-fix-ts-review-findings](./quick/260505-nhk-fix-ts-review-findings/) |
-| 260505-nxp | delete 15 leftover .js files from TS migration | 2026-05-05 | 9332916 | [260505-nxp-make-sure-there-are-no-js-files-after-th](./quick/260505-nxp-make-sure-there-are-no-js-files-after-th/) |
+| 260510-001 | Docker-based flatpak local build | 2026-05-10 | b7a8438e | [260510-001-docker-flatpak-local-build](./quick/260510-001-docker-flatpak-local-build/) |
+
+## Session Continuity
+
+Last session: 2026-05-10T08:43:51.000Z
+Stopped at: Phase 16 plan 1 complete — CI decommission + docs cleanup done
+Resume file: None
+Next action: Plan Phase 18 — /gsd-plan-phase 18

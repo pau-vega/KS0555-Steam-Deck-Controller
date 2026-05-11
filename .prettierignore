@@ -1,19 +1,43 @@
-# Ignore everything by default
-**
+# Build outputs
+dist/
+build/
+.vite/
 
-# Re-include workspace source files
-!apps/
-!apps/*/
-!apps/*/src/
-!apps/*/src/**
-!packages/
-!packages/*/
-!packages/*/src/
-!packages/*/src/**
+# Turbo
+.turbo/
 
-# Re-apply exclusions within workspaces
-**/dist/
-**/build/
-**/node_modules/
-**/.turbo/
+# Rust / Tauri
+**/target/
+**/src-tauri/gen/
+
+# Coverage
+coverage/
+.nyc_output
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Lock files
 pnpm-lock.yaml
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Minified files
+*.min.js
+
+# OS
+.DS_Store
+
+# pnpm
+.pnpm-store/
+
+# GSD planning (auto-generated)
+.planning/

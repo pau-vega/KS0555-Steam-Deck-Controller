@@ -10,7 +10,7 @@
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ```
 
-- `org.gnome.Platform//46` runtime and `org.gnome.Sdk//46` SDK
+- `org.freedesktop.Platform//24.08` runtime and `org.freedesktop.Sdk//24.08` SDK
   (auto-fetched by flatpak-builder on first build)
 
 ## Building
@@ -79,8 +79,8 @@ See the root [README](../README.md) for full usage documentation.
 ## Flatpak Manifest
 
 - **Location:** `flatpak/com.ks0555.robotcontroller.yaml`
-- **Runtime:** `org.gnome.Platform//46`
-- **SDK:** `org.gnome.Sdk//46`
+- **Runtime:** `org.freedesktop.Platform//24.08`
+- **SDK:** `org.freedesktop.Sdk//24.08`
 - **Extension:** `org.freedesktop.Platform.GL.default`
 
 ### Finish-args (Sandbox Permissions)

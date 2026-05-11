@@ -1,0 +1,22 @@
+# Tauri v2 permissions for BLE commands (BLE-01, BLE-02, BLE-03)
+# Reference: https://v2.tauri.app/plugin/permissions/
+
+[[permission]]
+identifier = "ble-connect"
+description = "Allow BLE connect command"
+commands.allow = ["ble_connect"]
+
+[[permission]]
+identifier = "ble-disconnect"
+description = "Allow BLE disconnect command"
+commands.allow = ["ble_disconnect"]
+
+[[permission]]
+identifier = "ble-send"
+description = "Allow BLE send command"
+commands.allow = ["ble_send"]
+
+[[permission]]
+identifier = "ble-state-changed"
+description = "Allow ble-state-changed event"
+events.allow = ["ble-state-changed"]

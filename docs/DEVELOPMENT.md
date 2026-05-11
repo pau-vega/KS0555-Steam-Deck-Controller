@@ -1,0 +1,487 @@
+<!-- generated-by: gsd-doc-writer -->
+
+# Development
+
+This guide covers the day-to-day development workflow for the Steam Deck Robot Controller — a Tauri v2 desktop app with a React frontend and Rust backend (BLE via `btleplug`, gamepad input via `gilrs`).
+
+## Local Setup
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- **Node.js** >= 18.0.0 (pin the exact version with `nvm use` if you have `nvm` installed)
+- **pnpm** 10.29.3 (enforced via `packageManager` in root `package.json`)
+- **Rust** stable edition 2021 (no `rust-toolchain.toml` — your system's stable is used)
+- **Git** (for version control and Husky hooks)
+
+On **macOS**, install Xcode Command Line Tools if not already present:
+
+```bash
+xcode-select --install
+```
+
+On **Linux** (Arch / Debian / Ubuntu), install development headers:
+
+```bash
+# Arch
+sudo pacman -S base-devel webkit2gtk-4.1 librsvg
+
+# Debian / Ubuntu
+sudo apt install build-essential libssl-dev pkg-config libssl-dev webkit2gtk-4.1 libwebkit2gtk-4.1-dev librsvg2-dev
+```
+
+### Clone and Install
+
+1. Clone the repository:
+
+```bash
+git clone <your-fork-or-remote-url>
+cd KS0555-Steam-Deck-Controller-2
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+This installs workspace dependencies, dev tools, and Rust toolchain dependencies for `apps/frontend/src-tauri`.
+
+## Development Workflow
+
+### Starting the Dev Server
+
+To run the app in development mode (Tauri app with Vite hot reload and Rust backend):
+
+```bash
+pnpm dev
+```
+
+This command runs `pnpm --filter @ks0555/frontend tauri:dev`, which:
+
+- Starts the Vite dev server (React frontend with hot module reload)
+- Compiles the Rust backend in debug mode
+- Opens the Tauri window (1280×800 on macOS; Gamescope-compatible on Steam Deck)
+- Enables the Tauri DevTools (accessible via `Ctrl+Shift+I` / `Cmd+Option+I`)
+
+The app connects to your Steam Deck or Arduino robot via Bluetooth. On macOS, the first BLE scan triggers the system's Bluetooth permission prompt.
+
+### Build Commands
+
+All build tasks are orchestrated by Turbo and run across the workspace:
+
+| Command             | Description                                                                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`        | Build the production bundle: TypeScript compilation, React minification, Rust release binary, Tauri bundle (DMG on macOS, AppImage on Linux) |
+| `pnpm typecheck`    | Run TypeScript type checking across all packages without building                                                                            |
+| `pnpm lint`         | Run ESLint on all TypeScript and TSX files                                                                                                   |
+| `pnpm format:check` | Check code formatting with Prettier (use `prettier --write .` to auto-fix)                                                                   |
+| `pnpm test`         | Run Vitest unit tests for the frontend                                                                                                       |
+
+### Frontend-Specific Commands
+
+Inside `apps/frontend/`, you can also run:
+
+```bash
+pnpm --filter @ks0555/frontend build         # Build Vite + Tauri bundle (release)
+pnpm --filter @ks0555/frontend tauri:build   # Build Tauri binary only
+pnpm --filter @ks0555/frontend lint          # Lint frontend code only
+pnpm --filter @ks0555/frontend typecheck     # Type-check frontend only
+pnpm --filter @ks0555/frontend test          # Run frontend tests only
+```
+
+## Code Organization
+
+### Frontend Structure
+
+The React frontend lives under `apps/frontend/src/`:
+
+```
+src/
+├── main.tsx          # Entry point; mounts React app
+├── app.tsx           # Root component
+├── components/       # React UI components (PascalCase)
+├── hooks/            # Custom React hooks (use* convention)
+│   ├── use-bluetooth.ts  # BLE IPC hooks
+│   └── use-gamepad.ts    # Gamepad event subscription
+├── index.css         # Global Tailwind styles
+└── types.ts          # Shared TypeScript types
+```
+
+**Naming Conventions:**
+
+- Files: `kebab-case` (`use-bluetooth.ts`, `control-pad.tsx`)
+- Components: `PascalCase` (`ControlPad`, `StatusBar`)
+- Functions & variables: `camelCase`
+- Types & interfaces: `PascalCase`
+
+**Framework Requirements:**
+
+- React components and custom hooks do not require explicit return type annotations
+- All other functions must have explicit return types
+- Use `import type` for type-only imports (enforced by ESLint)
+- No default exports (except where a framework requires it)
+
+### Rust Backend Structure
+
+The Tauri shell lives under `apps/frontend/src-tauri/src/`:
+
+```
+src-tauri/src/
+├── main.rs           # Entry point; sets up Tauri, registers IPC commands
+├── lib.rs            # (Generated by Tauri; do not edit directly)
+├── ble/
+│   └── mod.rs        # BLE scanning, connection, write, and disconnect
+└── gamepad/
+    └── mod.rs        # Gamepad event polling, direction coalescing
+```
+
+**Rust Conventions:**
+
+- Use `cargo fmt` for formatting (enforced by Rust toolchain)
+- Modules organized by feature (`ble/`, `gamepad/`)
+- Tauri commands return `Result<T, String>` so errors serialize to the frontend
+- Long-lived state (BLE peripheral handle, gamepad event loop) lives behind `tokio::sync::Mutex` inside a `tauri::State`-managed struct
+- Async tasks run in the `tokio` runtime spawned by `tauri::Builder::setup()`
+
+### IPC Contract
+
+Communication between React and Rust follows the Tauri IPC pattern:
+
+**Commands** (React → Rust, request-response):
+
+```typescript
+// Frontend
+const result = await invoke("ble_connect", { address: "00:11:22:33:44:55" })
+```
+
+Registered in `main.rs`:
+
+```rust
+tauri::generate_handler![ble_connect, ble_disconnect, ble_send]
+```
+
+**Events** (Rust → React, one-way notifications):
+
+```rust
+// Rust backend
+app.emit("ble-state-changed", BleStateChange { ... })?;
+```
+
+```typescript
+// Frontend hook
+const unlisten = await listen("ble-state-changed", (event) => {
+  console.log(event.payload)
+})
+```
+
+## Code Style
+
+### TypeScript/ESLint
+
+The project enforces a strict TypeScript configuration via the shared `@ks0555/tsconfig` package (`packages/tsconfig/tsconfig.json`):
+
+- `strict: true` — all strict checks enabled
+- `noUncheckedIndexedAccess: true` — array/object access returns `T | undefined`
+- `noImplicitAny: true` — no implicit `any`
+
+**ESLint:** Run with the React config:
+
+```bash
+pnpm lint
+```
+
+Config file: `packages/eslint-config/src/react.ts` (applied to `apps/frontend/` via `.eslintrc` or `eslint.config.ts`).
+
+Key rules enforced:
+
+- `@typescript-eslint/consistent-type-imports` — always use `import type`
+- `import/no-default-exports` — no default exports
+- `perfectionist/sort-imports` — alphabetize imports
+- React Hook Rules — `eslint-plugin-react-hooks`
+
+**Type Safety Guidelines:**
+
+- **Prefer `interface extends` over `&`** for type composition (faster TypeScript compilation, clearer errors)
+
+```typescript
+// Avoid
+type C = A & B
+
+// Prefer
+interface C extends A, B {}
+```
+
+- **Use discriminated unions** to prevent impossible states
+
+```typescript
+// Avoid — allows { status: "idle", data: someValue }
+type State<TData> = {
+  status: "idle" | "loading" | "success" | "error"
+  data?: TData
+}
+
+// Prefer — each status carries exactly the right fields
+type State<TData> = { status: "idle" } | { status: "loading" } | { status: "success"; data: TData }
+```
+
+- **Avoid `any`** — use generics or `unknown`
+- **Use Result types** instead of throwing for predictable errors
+- **Prefix type parameters** with `T` (`TData`, `TKey`)
+- **Prefer optional properties** over `T | undefined`
+
+See `.agents/rules/typescript.md` for the complete rule set.
+
+### Prettier Formatting
+
+Prettier is configured for:
+
+- No semicolons (`semi: false`)
+- 120-character line width (`printWidth: 120`)
+
+Auto-format your code:
+
+```bash
+prettier --write .
+```
+
+The `pre-commit` hook runs `pnpm format:check && pnpm lint` before each commit, so violations are caught early.
+
+## Commits and Branches
+
+### Conventional Commits
+
+All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. The `commit-msg` Husky hook enforces this via `commitlint`.
+
+Format:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+<footer>
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `perf`
+
+**Scopes** (examples):
+
+- `tauri` — Tauri shell, IPC, or Rust backend changes
+- `ble` — Bluetooth connectivity
+- `gamepad` — Gamepad input
+- `steam-deck` — Steam Deck–specific code
+- `mac` — macOS-specific code
+- `ui` — React component changes
+- `running` — documentation for running the app
+- `deps` — dependency updates
+
+**Examples:**
+
+```
+feat(ble): add auto-reconnect on peripheral disconnect
+
+fix(gamepad): adjust deadzone threshold from 0.2 to 0.15
+
+docs(running): add Steam Deck troubleshooting section
+
+chore(deps): upgrade tauri to 2.11.0
+```
+
+The `commitlint.config.ts` uses `@commitlint/config-conventional`, so commits are linted against the Conventional Commits spec.
+
+### Branch Conventions
+
+No explicit branch naming convention is documented, but follow these patterns for clarity:
+
+- Feature branches: `feat/<feature-name>` or `feature/<feature-name>`
+- Bug fixes: `fix/<bug-name>` or `bugfix/<bug-name>`
+- Documentation: `docs/<doc-name>`
+- Refactoring: `refactor/<area>`
+
+Always create a feature branch off `main` and open a pull request before merging.
+
+## Pull Request Process
+
+1. **Create a feature branch** off `main`:
+
+```bash
+git checkout -b feat/my-feature
+```
+
+2. **Make your changes** and commit with Conventional Commits:
+
+```bash
+git add apps/frontend/src/components/my-component.tsx
+git commit -m "feat(ui): add my component"
+```
+
+The `pre-commit` hook will run `pnpm format:check && pnpm lint`. If linting fails, fix the issues and re-commit.
+
+3. **Push to your fork** and **open a pull request** on GitHub:
+
+```bash
+git push -u origin feat/my-feature
+```
+
+4. **CI checks will run** (`.github/workflows/build.yml`):
+   - TypeScript type checking
+   - ESLint and Prettier formatting
+   - Vitest unit tests
+   - Tauri bundle build (macOS DMG + Linux AppImage)
+
+5. **Await review** and address feedback.
+
+6. **Merge** once approved and CI passes.
+
+## Debugging
+
+### Tauri DevTools
+
+When running `pnpm dev`, press `Ctrl+Shift+I` (Linux/Windows) or `Cmd+Option+I` (macOS) to open the Tauri DevTools panel. This gives you:
+
+- JavaScript console
+- React DevTools (if installed in browser)
+- Network inspector (Tauri IPC calls)
+- Window / app state inspection
+
+### BLE Debugging
+
+Enable debug logging for `btleplug` by setting the `RUST_LOG` environment variable:
+
+```bash
+RUST_LOG=btleplug=debug pnpm dev
+```
+
+This prints BLE scan results, connection attempts, characteristic discoveries, and write operations to the console.
+
+### Gamepad Debugging
+
+The `gilrs` library supports debug output via:
+
+```bash
+RUST_LOG=gilrs=debug pnpm dev
+```
+
+This logs gamepad events (button presses, stick movement) from the `gilrs` event loop.
+
+### Steam Deck Specifics
+
+On Steam Deck (SteamOS), two environment variables are automatically set by `main.rs` if not already present:
+
+- `DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/host/run/dbus/system_bus_socket` — routes `btleplug` to the host D-Bus (required for BLE access under Gamescope)
+- `WEBKIT_DISABLE_COMPOSITING_MODE=1` — disables GPU compositing in WebKitGTK to work around a Gamescope crash
+
+If you're testing Steam Deck behavior on another Linux box, manually set these variables:
+
+```bash
+export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+pnpm dev
+```
+
+### macOS CoreBluetooth Permissions
+
+On macOS, the first BLE scan will trigger a system permission dialog asking for "Bluetooth access." Grant it, then restart the app if the dialog doesn't appear again immediately.
+
+The prompt is triggered by the `NSBluetoothAlwaysUsageDescription` key in `apps/frontend/src-tauri/Info.plist`.
+
+## GSD Planning Artifacts
+
+The project uses GSD (Goals, Status, Definition) planning. Artifacts live under `.planning/`:
+
+```
+.planning/
+├── phases/          # Planned multi-phase work (numbered: 01-..., 02-...)
+├── quick/           # Quick fixes and small tasks (dated: quick-<DATE>-<slug>/)
+├── STATE.md         # Current commit hash and completion tracking
+└── ...
+```
+
+When starting a quick task or phase work, use the corresponding GSD command (e.g., `/gsd-quick` or `/gsd-execute-phase`) rather than editing files directly. This keeps the planning context in sync with the codebase.
+
+## Workspace Layout
+
+The project is a monorepo using `pnpm workspaces`:
+
+```
+.
+├── apps/
+│   └── frontend/          # React + Tauri shell
+│       ├── src/           # React components and hooks
+│       └── src-tauri/     # Rust backend and Tauri config
+├── packages/
+│   ├── eslint-config/     # Shared ESLint flat config
+│   └── tsconfig/          # Shared TypeScript base config
+├── turbo.json             # Turbo task orchestration
+└── pnpm-workspace.yaml    # Workspace definition
+```
+
+Tasks are run via Turbo (`turbo build`, `turbo lint`, `turbo test`), which caches results and runs tasks in dependency order across the workspace.
+
+## Common Tasks
+
+### Add a React Component
+
+1. Create the file in `apps/frontend/src/components/my-component.tsx`:
+
+```typescript
+export function MyComponent() {
+  return <div>Hello</div>;
+}
+```
+
+2. Use it in `app.tsx` or another component.
+
+3. Run `pnpm lint` to check formatting.
+
+4. Commit with `git commit -m "feat(ui): add my component"`.
+
+### Add a Tauri Command
+
+1. Create a function in `apps/frontend/src-tauri/src/ble/mod.rs` (or the relevant module):
+
+```rust
+#[tauri::command]
+pub async fn my_command(app: tauri::AppHandle) -> Result<String, String> {
+    Ok("Hello from Rust".to_string())
+}
+```
+
+2. Register it in `apps/frontend/src-tauri/src/main.rs`:
+
+```rust
+.invoke_handler(tauri::generate_handler![my_command])
+```
+
+3. Call it from React via `invoke('my_command')`.
+
+4. Commit with `git commit -m "feat(tauri): add my command"`.
+
+### Run Tests
+
+Frontend tests use Vitest:
+
+```bash
+pnpm test
+```
+
+Tests live alongside source files (e.g., `App.test.tsx` next to `app.tsx`) or under a `__tests__/` directory.
+
+### Format Code
+
+Auto-format all files:
+
+```bash
+prettier --write .
+```
+
+### Update Dependencies
+
+Always use the package manager CLI:
+
+```bash
+pnpm add -D <package-name>
+```
+
+Never manually edit `package.json` — the lockfile (`pnpm-lock.yaml`) must stay in sync.

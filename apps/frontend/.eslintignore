@@ -1,0 +1,12 @@
+# Tauri build artifacts
+src-tauri/target/
+src-tauri/target/**
+
+# Build outputs
+dist/
+*.min.js
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
