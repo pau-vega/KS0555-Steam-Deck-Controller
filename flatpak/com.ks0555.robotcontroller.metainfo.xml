@@ -23,6 +23,11 @@
   </categories>
   <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
   <releases>
+    <release version="0.1.10" date="2026-05-11">
+      <description>
+        <p>Fix GLIBC_2.39 error: downgrade build host to ubuntu-22.04 for Steam Deck compatibility.</p>
+      </description>
+    </release>
     <release version="0.1.9" date="2026-05-11">
       <description>
         <p>Fix Flatpak runtime: switch to org.gnome.Platform//46 for libwebkit2gtk-4.1 support.</p>
