@@ -73,7 +73,7 @@ importers:
   apps/frontend:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.10.1
+        specifier: ^2.11.0
         version: 2.11.0
       react:
         specifier: ^19.2.5
@@ -92,7 +92,7 @@ importers:
         specifier: ^4.2.2
         version: 4.2.4(vite@8.0.10(@types/node@22.19.17)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
       '@tauri-apps/cli':
-        specifier: ^2.10.1
+        specifier: ^2.11.0
         version: 2.11.0
       '@testing-library/jest-dom':
         specifier: ^6.9.1
