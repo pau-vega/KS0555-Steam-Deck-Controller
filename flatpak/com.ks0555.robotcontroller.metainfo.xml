@@ -23,6 +23,11 @@
   </categories>
   <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
   <releases>
+    <release version="0.1.21" date="2026-05-11">
+      <description>
+        <p>Gamepad: add D-pad axis and button support for Steam Deck gaming mode. The D-pad now controls the robot alongside the left stick.</p>
+      </description>
+    </release>
     <release version="0.1.20" date="2026-05-11">
       <description>
         <p>Fix BLE connect on Steam Deck: detect Tauri v2 via __TAURI_INTERNALS__ so the Connect button invokes the Rust ble_connect command instead of falling through to the unsupported Web Bluetooth path.</p>
