@@ -1,6 +1,6 @@
 [package]
 name = "robot-controller"
-version = "0.1.13"
+version = "0.1.14"
 description = "Steam Deck Robot Controller - Tauri v2"
 authors = ["KS0555"]
 edition = "2021"
