@@ -9,7 +9,7 @@ import { useGamepad } from "./hooks/use-gamepad"
 
 export function App() {
   const [lastCommand, setLastCommand] = useState<Direction>("S")
-  const { connected: bleConnected, connecting, connect, send } = useBluetooth()
+  const { connected: bleConnected, connecting, connect, send, error: bleError } = useBluetooth()
   const { direction, gamepadConnected } = useGamepad()
   const prevDirection = useRef<Direction>("S")
 
@@ -33,13 +33,16 @@ export function App() {
       <h1>🤖 Robot Controller</h1>
       <StatusBar bleConnected={bleConnected} gamepadConnected={gamepadConnected} connecting={connecting} />
       {!bleConnected && (
-        <button
-          className="px-6 py-3 rounded-xl bg-accent text-white font-medium text-lg disabled:opacity-50 cursor-pointer"
-          onClick={() => void connect()}
-          disabled={connecting}
-        >
-          {connecting ? "Connecting..." : "Connect Bluetooth"}
-        </button>
+        <div className="flex flex-col items-center gap-2">
+          <button
+            className="px-6 py-3 rounded-xl bg-accent text-white font-medium text-lg disabled:opacity-50 cursor-pointer"
+            onClick={() => void connect()}
+            disabled={connecting}
+          >
+            {connecting ? "Connecting..." : "Connect Bluetooth"}
+          </button>
+          {bleError && <div className="text-red-400 text-sm max-w-xs text-center break-words">{bleError}</div>}
+        </div>
       )}
       <ControlPad onCommand={sendCommand} disabled={!bleConnected} />
       <div className="text-lg p-3 bg-surface rounded-lg border border-border">

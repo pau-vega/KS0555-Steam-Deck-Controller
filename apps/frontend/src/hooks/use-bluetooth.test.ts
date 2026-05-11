@@ -115,7 +115,7 @@ describe("useBluetooth (Web Bluetooth)", () => {
     expect(mockWriteValue).not.toHaveBeenCalled()
   })
 
-  it("connect() sets disconnected on requestDevice rejection", async () => {
+  it("connect() sets disconnected and error on requestDevice rejection", async () => {
     mockRequestDevice.mockRejectedValue(new Error("User cancelled"))
     const { result } = renderHook(() => useBluetooth())
 
@@ -125,9 +125,10 @@ describe("useBluetooth (Web Bluetooth)", () => {
 
     expect(result.current.connected).toBe(false)
     expect(result.current.connecting).toBe(false)
+    expect(result.current.error).toBe("User cancelled")
   })
 
-  it("connect() sets disconnected when device has no gatt", async () => {
+  it("connect() sets disconnected and error when device has no gatt", async () => {
     mockRequestDevice.mockResolvedValue({
       gatt: null,
       addEventListener: mockAddEventListener,
@@ -139,6 +140,7 @@ describe("useBluetooth (Web Bluetooth)", () => {
     })
 
     expect(result.current.connected).toBe(false)
+    expect(result.current.error).toBe("Device has no GATT server")
   })
 })
 
@@ -207,7 +209,7 @@ describe("useBluetooth (Tauri IPC)", () => {
     expect(result.current.connected).toBe(true)
   })
 
-  it("connect() handles error and sets disconnected", async () => {
+  it("connect() handles error and sets disconnected + error", async () => {
     mockTauriInvoke.mockRejectedValue(new Error("No Bluetooth adapter found"))
     const { result } = renderHook(() => useBluetooth())
 
@@ -218,6 +220,7 @@ describe("useBluetooth (Tauri IPC)", () => {
     expect(mockTauriInvoke).toHaveBeenCalledWith("ble_connect")
     expect(result.current.connected).toBe(false)
     expect(result.current.connecting).toBe(false)
+    expect(result.current.error).toBe("No Bluetooth adapter found")
   })
 
   it("connect() handles scan timeout error", async () => {

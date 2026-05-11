@@ -2726,7 +2726,7 @@ dependencies = [
 
 [[package]]
 name = "robot-controller"
-version = "0.1.14"
+version = "0.1.17"
 dependencies = [
  "btleplug",
  "futures",

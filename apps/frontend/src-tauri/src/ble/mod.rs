@@ -90,12 +90,20 @@ pub async fn ble_connect(app: AppHandle, state: tauri::State<'_, BleState>) -> R
 
     match result {
         Ok(Ok(())) => Ok(()),
-        Ok(Err(e)) => Err(format!("BT24 connection failed: {}", e)),
-        Err(_) => Err(format!(
-            "Scan timed out after {} seconds. Ensure the robot is powered on (blue LED blinking) and in range, \
-             then try again. If the issue persists, restart Bluetooth on your Steam Deck.",
-            SCAN_TIMEOUT.as_secs()
-        )),
+        Ok(Err(e)) => {
+            let msg = format!("BT24 connection failed: {}", e);
+            eprintln!("[ble] {}", msg);
+            Err(msg)
+        }
+        Err(_) => {
+            let msg = format!(
+                "Scan timed out after {} seconds. Ensure the robot is powered on (blue LED blinking) and in range, \
+                 then try again. If the issue persists, restart Bluetooth on your Steam Deck.",
+                SCAN_TIMEOUT.as_secs()
+            );
+            eprintln!("[ble] {}", msg);
+            Err(msg)
+        }
     }
 }
 

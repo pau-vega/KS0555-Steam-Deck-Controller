@@ -19,6 +19,7 @@ export function useBluetooth() {
         ? "disconnected"
         : "unsupported",
   )
+  const [error, setError] = useState<string | null>(null)
   const characteristicRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null)
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function useBluetooth() {
         const fn = await listen<string>("ble-state-changed", (event) => {
           if (cancelled) return
           setState(event.payload as BluetoothState)
+          setError(null)
         })
         if (!cancelled) {
           unlisten = fn
@@ -51,13 +53,17 @@ export function useBluetooth() {
   }, [])
 
   const connect = useCallback(async () => {
+    setError(null)
+
     if (isTauri()) {
       setState("connecting")
       try {
         await invoke("ble_connect")
         setState("connected")
       } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
         console.error("BLE connect failed:", e)
+        setError(msg)
         setState("disconnected")
       }
       return
@@ -78,10 +84,12 @@ export function useBluetooth() {
       device.addEventListener("gattserverdisconnected", () => {
         setState("disconnected")
         characteristicRef.current = null
+        setError("Device disconnected")
       })
 
       if (!device.gatt) {
         setState("disconnected")
+        setError("Device has no GATT server")
         return
       }
 
@@ -91,7 +99,9 @@ export function useBluetooth() {
       characteristicRef.current = characteristic
       setState("connected")
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
       console.error("Web Bluetooth connect failed:", e)
+      setError(msg)
       setState("disconnected")
     }
   }, [])
@@ -113,5 +123,6 @@ export function useBluetooth() {
     unsupported: state === "unsupported",
     connect,
     send,
+    error,
   }
 }
