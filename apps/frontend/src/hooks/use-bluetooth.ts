@@ -28,14 +28,18 @@ export function useBluetooth() {
     let cancelled = false
 
     async function setup() {
-      const fn = await listen<string>("ble-state-changed", (event) => {
-        if (cancelled) return
-        setState(event.payload as BluetoothState)
-      })
-      if (!cancelled) {
-        unlisten = fn
-      } else {
-        fn()
+      try {
+        const fn = await listen<string>("ble-state-changed", (event) => {
+          if (cancelled) return
+          setState(event.payload as BluetoothState)
+        })
+        if (!cancelled) {
+          unlisten = fn
+        } else {
+          fn()
+        }
+      } catch (e) {
+        console.error("Failed to set up BLE event listener:", e)
       }
     }
     setup()
@@ -52,7 +56,8 @@ export function useBluetooth() {
       try {
         await invoke("ble_connect")
         setState("connected")
-      } catch {
+      } catch (e) {
+        console.error("BLE connect failed:", e)
         setState("disconnected")
       }
       return
@@ -85,7 +90,8 @@ export function useBluetooth() {
       const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID)
       characteristicRef.current = characteristic
       setState("connected")
-    } catch {
+    } catch (e) {
+      console.error("Web Bluetooth connect failed:", e)
       setState("disconnected")
     }
   }, [])

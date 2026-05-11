@@ -1,99 +1,120 @@
 pub mod state;
 pub use state::BleState;
 use btleplug::{
-    api::{Central, CentralEvent, Manager as ManagerTrait, Peripheral as PeripheralTrait, ScanFilter},
+    api::{
+        Central, CentralEvent, CentralState, Manager as ManagerTrait, Peripheral as PeripheralTrait,
+        ScanFilter,
+    },
     platform::{Adapter, Manager, Peripheral},
 };
-use tauri::{AppHandle, Emitter, Manager as TauriManager};
-use tokio::time::{timeout, Duration};
 use futures::stream::StreamExt;
-
-const BT24_SERVICE_UUID: &str = "0000ffe0-0000-1000-8000-00805f9b34fb";
+use tauri::{AppHandle, Emitter};
+use tokio::time::{timeout, Duration};
 const BT24_NAME: &str = "BT24";
-const SCAN_TIMEOUT: Duration = Duration::from_secs(5);
+const SCAN_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[tauri::command]
-pub async fn ble_connect(app: AppHandle, state: tauri::State<'_, BleState>) -> Result<(), String> {
-    // Emit "connecting" state
-    app.emit("ble-state-changed", "connecting")
-        .map_err(|e| format!("Failed to emit connecting state: {}", e))?;
-
-    // Get manager and adapters
-    let manager = Manager::new().await
-        .map_err(|e| format!("Failed to create manager: {}", e))?;
-    let adapters = manager.adapters().await
-        .map_err(|e| format!("Failed to get adapters: {}", e))?;
-    let adapter = adapters.into_iter().next()
-        .ok_or_else(|| "No Bluetooth adapter found".to_string())?;
-
-    // Start scan with timeout (D-03: 5 seconds)
-    adapter.start_scan(ScanFilter::default()).await
-        .map_err(|e| format!("Failed to start scan: {}", e))?;
-
-    let result = timeout(SCAN_TIMEOUT, async {
-        // Subscribe to events for device discovery
-        let mut events = adapter.events().await
-            .map_err(|e| format!("Failed to get events: {}", e))?;
-                        while let Some(event) = events.next().await {
-            if let CentralEvent::DeviceDiscovered(device_id) = event {
-                // Get peripheral by device ID
-                let peripherals = adapter.peripherals().await
-                    .map_err(|e| format!("Failed to get peripherals: {}", e))?;
-
-                // Find BT24 device - check each peripheral's properties
-                let mut found_peripheral = None;
-                for p in peripherals {
-                    if let Ok(Some(props)) = p.properties().await {
-                        if let Some(name) = &props.local_name {
-                            if name.contains(BT24_NAME) {
-                                found_peripheral = Some(p);
-                                break;
-                            }
-                        }
+async fn find_bt24(adapter: &Adapter) -> Option<Peripheral> {
+    if let Ok(peripherals) = adapter.peripherals().await {
+        for p in &peripherals {
+            if let Ok(Some(props)) = p.properties().await {
+                if let Some(name) = &props.local_name {
+                    if name.contains(BT24_NAME) {
+                        return Some(p.clone())
                     }
-                }
-
-                if let Some(peripheral) = found_peripheral {
-                    // Stop scan and connect
-                    let _ = adapter.stop_scan().await;
-                    peripheral.connect().await
-                        .map_err(|e| format!("Connect failed: {}", e))?;
-
-                    // Store in managed state (D-05)
-                    state.set(Some(peripheral));
-
-                    // Emit "connected" state
-                    app.emit("ble-state-changed", "connected")
-                        .map_err(|e| format!("Failed to emit connected: {}", e))?;
-                    return Ok(());
                 }
             }
         }
-        Err("Scan timeout".to_string())
+    }
+    None
+}
+
+#[tauri::command]
+pub async fn ble_connect(app: AppHandle, state: tauri::State<'_, BleState>) -> Result<(), String> {
+    app.emit("ble-state-changed", "connecting")
+        .map_err(|e| format!("Failed to emit connecting state: {}", e))?;
+
+    let manager = Manager::new().await
+        .map_err(|e| format!("Failed to create BLE manager: {}", e))?;
+    let adapters = manager.adapters().await
+        .map_err(|e| format!("Failed to get Bluetooth adapters: {}", e))?;
+    let adapter = adapters.into_iter().next()
+        .ok_or_else(|| "No Bluetooth adapter found. Ensure Bluetooth is enabled on your Steam Deck.".to_string())?;
+
+    // Check adapter power state
+    let state_info = adapter.adapter_state().await
+        .map_err(|e| format!("Failed to check Bluetooth state: {}", e))?;
+    if state_info != CentralState::PoweredOn {
+        return Err("Bluetooth is powered off. Enable Bluetooth in Steam Deck Settings and try again.".to_string());
+    }
+
+    // Start scanning
+    adapter.start_scan(ScanFilter::default()).await
+        .map_err(|e| format!("Failed to start BLE scan: {}", e))?;
+
+    let result = timeout(SCAN_TIMEOUT, async {
+        // Subscribe to BLE events so we get notified when devices appear
+        let mut events = adapter.events().await
+            .map_err(|e| format!("Failed to subscribe to BLE events: {}", e))?;
+
+        loop {
+            // Check known peripherals first (catches already-known devices + new ones)
+            if let Some(peripheral) = find_bt24(&adapter).await {
+                let _ = adapter.stop_scan().await;
+                peripheral.connect().await
+                    .map_err(|e| format!("Failed to connect to BT24: {}", e))?;
+                peripheral.discover_services().await
+                    .map_err(|e| format!("Failed to discover BT24 services: {}", e))?;
+                state.set(Some(peripheral));
+                app.emit("ble-state-changed", "connected")
+                    .map_err(|e| format!("Failed to emit connected: {}", e))?;
+                return Ok(());
+            }
+
+            // Wait for BLE events, polling peripherals every 500ms as fallback.
+            // On BlueZ, DeviceDiscovered fires once per device when first seen;
+            // DeviceUpdated fires when properties change. By also polling we
+            // handle the case where BT24 was already cached before scan start.
+            match timeout(Duration::from_millis(500), events.next()).await {
+                Ok(Some(CentralEvent::DeviceDiscovered(_))) |
+                Ok(Some(CentralEvent::DeviceUpdated(_))) => {
+                    // Will be caught by find_bt24 at top of loop
+                }
+                Ok(Some(_)) => continue,
+                Ok(None) => return Err("BLE event stream ended".to_string()),
+                Err(_) => continue,
+            }
+        }
     }).await;
+
+    let _ = adapter.stop_scan().await;
 
     match result {
         Ok(Ok(())) => Ok(()),
-        Ok(Err(e)) => Err(e),
-        Err(_) => {
-            let _ = adapter.stop_scan().await;
-            Err("Scan timeout: BT24 device not found within 5 seconds".to_string())
-        }
+        Ok(Err(e)) => Err(format!("BT24 connection failed: {}", e)),
+        Err(_) => Err(format!(
+            "Scan timed out after {} seconds. Ensure the robot is powered on (blue LED blinking) and in range, \
+             then try again. If the issue persists, restart Bluetooth on your Steam Deck.",
+            SCAN_TIMEOUT.as_secs()
+        )),
     }
 }
 
-pub fn setup_event_listener(app: AppHandle, state: BleState) {
+pub fn setup_event_listener(app: AppHandle, _state: BleState) {
     tauri::async_runtime::spawn(async move {
-        // Get manager and adapter
         if let Ok(manager) = Manager::new().await {
             if let Ok(adapters) = manager.adapters().await {
                 if let Some(adapter) = adapters.into_iter().next() {
+                    // Ensure adapter is powered on for event listening
+                    if let Ok(adapter_state) = adapter.adapter_state().await {
+                        if adapter_state != CentralState::PoweredOn {
+                            let _ = app.emit("ble-state-changed", "disconnected");
+                            return;
+                        }
+                    }
                     if let Ok(mut events) = adapter.events().await {
                         while let Some(event) = events.next().await {
                             if let CentralEvent::DeviceDisconnected(_) = event {
-                                // Auto-emit disconnected (BLE-05)
                                 let _ = app.emit("ble-state-changed", "disconnected");
-                                // D-01: Auto-reconnect with backoff would go here
                             }
                         }
                     }
@@ -112,17 +133,11 @@ pub async fn ble_disconnect(
 ) -> Result<(), String> {
     match state.get() {
         Some(peripheral) => {
-            // Disconnect from peripheral
             peripheral.disconnect().await
                 .map_err(|e| format!("Failed to disconnect: {}", e))?;
-
-            // Clear state
             state.set(None);
-
-            // Emit disconnected event (BLE-02)
             app.emit("ble-state-changed", "disconnected")
                 .map_err(|e| format!("Failed to emit disconnected: {}", e))?;
-
             Ok(())
         }
         None => Err("Not connected to any device".to_string()),
@@ -131,11 +146,10 @@ pub async fn ble_disconnect(
 
 #[tauri::command]
 pub async fn ble_send(
-    app: AppHandle,
+    _app: AppHandle,
     state: tauri::State<'_, BleState>,
     command: String,
 ) -> Result<(), String> {
-    // Validate command is a single character (F/B/L/R/S)
     if command.len() != 1 {
         return Err(format!("Invalid command: '{}'. Must be single char (F/B/L/R/S)", command));
     }
@@ -143,11 +157,9 @@ pub async fn ble_send(
     let peripheral = state.get()
         .ok_or_else(|| "Not connected to BT24 device".to_string())?;
 
-    // Discover services to find characteristic
     peripheral.discover_services().await
         .map_err(|e| format!("Failed to discover services: {}", e))?;
 
-    // Find the BT24 characteristic
     let chars = peripheral.characteristics();
     let char_uuid = uuid::Uuid::parse_str(BT24_CHAR_UUID)
         .map_err(|e| format!("Invalid UUID: {}", e))?;
@@ -156,10 +168,8 @@ pub async fn ble_send(
         .find(|c| c.uuid == char_uuid)
         .ok_or_else(|| "BT24 characteristic not found".to_string())?;
 
-    // Convert command to bytes
     let data = command.as_bytes().to_vec();
 
-    // Write to characteristic using WithoutResponse (D-02)
     peripheral.write(&characteristic, &data, btleplug::api::WriteType::WithoutResponse).await
         .map_err(|e| format!("Failed to send command '{}': {}", command, e))?;
 
