@@ -23,9 +23,9 @@
   </categories>
   <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
   <releases>
-    <release version="0.1.5" date="2026-05-09">
+    <release version="0.1.18" date="2026-05-11">
       <description>
-        <p>Initial Flatpak release. BLE robot control and gamepad input via Tauri v2.</p>
+        <p>Merge milestone v2.1: Flatpak build pipeline, lib.rs architecture, Docker support, docs, CI improvements, error display in UI.</p>
       </description>
     </release>
   </releases>
