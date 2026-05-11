@@ -1,0 +1,58 @@
+# === Anti-feature checklist (SBX-06) ===
+# Verify NONE of these are in finish-args:
+#   --filesystem=home          — Unnecessary sandbox escape
+#   --device=bluetooth         — Wrong stack (AF_BLUETOOTH not D-Bus; btleplug talks BlueZ over D-Bus)
+#   --talk-name=org.bluez      — Wrong bus (session, not system; need --system-talk-name)
+#   --socket=session-bus       — Tray icon arg, not needed for this app
+#   --socket=system-bus        — Over-broad; use --system-talk-name=org.bluez instead (principle of least privilege)
+#   org.freedesktop.Flatpak    — Portal grant, not needed (no portal interaction)
+
+id: com.ks0555.robotcontroller
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Platform.GL.default
+command: robot-controller
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
+  # BLE — btleplug talks to BlueZ over the system D-Bus (Pitfall 2)
+  - --system-talk-name=org.bluez
+  - --system-talk-name=org.bluez.*
+  - --allow=bluetooth
+  - --share=network
+  # Gamepad — gilrs reads from /dev/input/event* (Pitfall 4)
+  # --device requires Flatpak ≥ 1.15.6; fall back to --device=all on older runtimes
+  - --device=all
+modules:
+  - name: robot-controller
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/bin /app/share/applications /app/share/icons/hicolor/32x32/apps /app/share/icons/hicolor/128x128/apps /app/share/icons/hicolor/256x256@2/apps /app/share/metainfo
+      - ar -x robot-controller.deb
+      - tar -xf data.tar.*
+      - install -Dm755 usr/bin/robot-controller /app/bin/robot-controller
+      - DESKTOP_FILE=$(ls usr/share/applications/*.desktop 2>/dev/null | head -1); install -Dm644 "$DESKTOP_FILE" /app/share/applications/com.ks0555.robotcontroller.desktop
+      - sed -i 's/^Icon=.*/Icon=com.ks0555.robotcontroller/' /app/share/applications/com.ks0555.robotcontroller.desktop
+      - install -Dm644 icon-32x32.png /app/share/icons/hicolor/32x32/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 icon-128x128.png /app/share/icons/hicolor/128x128/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 icon-256x256.png /app/share/icons/hicolor/256x256@2/apps/com.ks0555.robotcontroller.png
+      - install -Dm644 com.ks0555.robotcontroller.metainfo.xml /app/share/metainfo/com.ks0555.robotcontroller.metainfo.xml
+    sources:
+      - type: file
+        path: robot-controller.deb
+      - type: file
+        path: icons/32x32/com.ks0555.robotcontroller.png
+        dest-filename: icon-32x32.png
+      - type: file
+        path: icons/128x128/com.ks0555.robotcontroller.png
+        dest-filename: icon-128x128.png
+      - type: file
+        path: icons/256x256@2/com.ks0555.robotcontroller.png
+        dest-filename: icon-256x256.png
+      - type: file
+        path: com.ks0555.robotcontroller.metainfo.xml

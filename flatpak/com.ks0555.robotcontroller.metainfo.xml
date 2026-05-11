@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.ks0555.robotcontroller</id>
+  <name>Robot Controller</name>
+  <summary>Control a robot from your Steam Deck gamepad</summary>
+  <developer_name>KS0555</developer_name>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>
+      Control a real robot from your Steam Deck gamepad input with low latency.
+      Connects to a BT24 Bluetooth module and translates gamepad directions
+      (Forward, Back, Left, Right, Stop) into robot movement commands.
+    </p>
+    <p>
+      Built with Tauri v2 and Rust for native performance. Designed for
+      sideload-only distribution on Steam Deck via Flatpak.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/pauvelascogarrofe/KS0555-Steam-Deck-Controller-2</url>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
+  <releases>
+    <release version="0.1.5" date="2026-05-09">
+      <description>
+        <p>Initial Flatpak release. BLE robot control and gamepad input via Tauri v2.</p>
+      </description>
+    </release>
+  </releases>
+</component>
