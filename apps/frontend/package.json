@@ -22,7 +22,7 @@
   "devDependencies": {
     "@ks0555/eslint-config": "workspace:*",
     "@ks0555/tsconfig": "workspace:*",
-    "@tauri-apps/cli": "^2.11.0",
+    "@tauri-apps/cli": "^2.11.1",
     "@tailwindcss/vite": "^4.2.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
