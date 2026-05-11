@@ -23,6 +23,11 @@
   </categories>
   <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
   <releases>
+    <release version="0.1.12" date="2026-05-11">
+      <description>
+        <p>Disable appstream-compose for GNOME 48 SDK compatibility.</p>
+      </description>
+    </release>
     <release version="0.1.11" date="2026-05-11">
       <description>
         <p>Upgrade Flatpak runtime to org.gnome.Platform//48 (Freedesktop 24.08) — fixes EOL warnings.</p>

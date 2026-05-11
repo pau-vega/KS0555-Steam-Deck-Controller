@@ -14,6 +14,7 @@ sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Platform.GL.default
 command: robot-controller
+appstream-compose: false
 finish-args:
   - --socket=wayland
   - --socket=fallback-x11
