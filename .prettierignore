@@ -36,8 +36,30 @@ pnpm-debug.log*
 # OS
 .DS_Store
 
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
 # pnpm
 .pnpm-store/
 
 # GSD planning (auto-generated)
 .planning/
+
+# Claude
+.claude/
+
+# OpenCode
+tui.json
+opencode.json
+
+# Flatpak
+*.flatpak
+flatpak/robot-controller.deb

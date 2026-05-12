@@ -1,9 +1,17 @@
 set shell := ["bash", "-uc"]
+set positional-arguments := true
 
 # List available recipes
 [private]
 default:
     @just --list --unsorted
+
+# --- Aliases for common commands ---
+
+alias c := check
+alias f := format
+alias l := lint
+alias t := test
 
 # --- Development ---
 
@@ -108,7 +116,6 @@ nuke: clean-artifacts
 
 # Nuke everything and reinstall dependencies
 [group('maintenance')]
-[default]
 phoenix: nuke
     pnpm install
 
