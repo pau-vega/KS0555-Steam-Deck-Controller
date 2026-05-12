@@ -6,19 +6,21 @@ const repoRoot = resolve(import.meta.dirname, "../../..")
 
 // ── SC-1: Each specified phase has a VERIFICATION.md ──
 
+const phasesDir = ".planning/milestones/v2.0+v2.1-phases"
+
 describe("SC-1: VERIFICATION.md exists for Phases 13, 15, 16", () => {
-  it("Phase 13: .planning/phases/13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md exists", () => {
-    const path = join(repoRoot, ".planning/phases/13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md")
+  it("Phase 13: 13-VERIFICATION.md exists", () => {
+    const path = join(repoRoot, phasesDir, "13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md")
     expect(existsSync(path)).toBe(true)
   })
 
-  it("Phase 15: .planning/phases/15-ci-migration-parallel-run/15-VERIFICATION.md exists", () => {
-    const path = join(repoRoot, ".planning/phases/15-ci-migration-parallel-run/15-VERIFICATION.md")
+  it("Phase 15: 15-VERIFICATION.md exists", () => {
+    const path = join(repoRoot, phasesDir, "15-ci-migration-parallel-run/15-VERIFICATION.md")
     expect(existsSync(path)).toBe(true)
   })
 
-  it("Phase 16: .planning/phases/16-appimage-decommission-upgrade-workflow-docs/16-VERIFICATION.md exists", () => {
-    const path = join(repoRoot, ".planning/phases/16-appimage-decommission-upgrade-workflow-docs/16-VERIFICATION.md")
+  it("Phase 16: 16-VERIFICATION.md exists", () => {
+    const path = join(repoRoot, phasesDir, "16-appimage-decommission-upgrade-workflow-docs/16-VERIFICATION.md")
     expect(existsSync(path)).toBe(true)
   })
 })
@@ -64,15 +66,12 @@ function countHandWavyPhrases(content: string): number {
 
 describe("SC-2: Verification methods are concrete (not hand-wavy)", () => {
   const phase13 = readFileSync(
-    join(repoRoot, ".planning/phases/13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md"),
+    join(repoRoot, phasesDir, "13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md"),
     "utf-8",
   )
-  const phase15 = readFileSync(
-    join(repoRoot, ".planning/phases/15-ci-migration-parallel-run/15-VERIFICATION.md"),
-    "utf-8",
-  )
+  const phase15 = readFileSync(join(repoRoot, phasesDir, "15-ci-migration-parallel-run/15-VERIFICATION.md"), "utf-8")
   const phase16 = readFileSync(
-    join(repoRoot, ".planning/phases/16-appimage-decommission-upgrade-workflow-docs/16-VERIFICATION.md"),
+    join(repoRoot, phasesDir, "16-appimage-decommission-upgrade-workflow-docs/16-VERIFICATION.md"),
     "utf-8",
   )
 
@@ -120,10 +119,7 @@ describe("SC-2: Verification methods are concrete (not hand-wavy)", () => {
 // ── SC-3: Phase 13 VERIFICATION.md captures D-Bus proxy, gamepad /dev/input, anti-features ──
 
 describe("SC-3: Phase 13 VERIFICATION.md captures required content", () => {
-  const v13 = readFileSync(
-    join(repoRoot, ".planning/phases/13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md"),
-    "utf-8",
-  )
+  const v13 = readFileSync(join(repoRoot, phasesDir, "13-sandbox-permissions-ble-gamepad/13-VERIFICATION.md"), "utf-8")
 
   describe("D-Bus proxy connectivity (SC-1 context)", () => {
     it("mentions dbus-monitor for D-Bus signal verification", () => {

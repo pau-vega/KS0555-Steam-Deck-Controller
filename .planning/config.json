@@ -88,7 +88,8 @@
     "subagent_timeout": 900,
     "cross_ai_execution": false,
     "cross_ai_timeout": 600,
-    "plan_review_convergence": false
+    "plan_review_convergence": false,
+    "_auto_chain_active": false
   },
   "intel": {
     "enabled": false

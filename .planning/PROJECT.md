@@ -2,37 +2,34 @@
 
 ## What This Is
 
-A Tauri v2 desktop application for Steam Deck that connects the built-in gamepad to a Bluetooth Arduino robot (BT24 module). Provides a React UI with connection status and real-time gamepad-to-robot command mapping via native Rust backend (btleplug + gilrs).
+A Tauri v2 desktop application for Steam Deck that connects the built-in gamepad to a Bluetooth Arduino robot (BT24 module). Provides a React UI with connection status and real-time gamepad-to-robot command mapping via native Rust backend (btleplug + gilrs). Distributed as a sideloaded Flatpak bundle.
 
 ## Core Value
 
 Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly through native Bluetooth LE and gamepad APIs.
 
-## Current Milestone: v2.1 Flatpak Packaging
+## Current State
 
-**Goal:** Replace AppImage distribution with a Flatpak bundle sideloaded onto Steam Deck, with sandbox permissions for BLE + gamepad and Gaming Mode integration.
+**Shipped: v2.0 (Tauri Migration) + v2.1 (Flatpak Packaging)**
 
-**Target features:**
-- Tauri v2 produces a `.deb` bundle (replaces AppImage in CI); deb is the intermediate artifact consumed by flatpak-builder (Phase 12) to produce the final Flatpak bundle
-- Flatpak manifest with finish-args for BLE (`--system-talk-name=org.bluez`) and evdev/gamepad access
-- CI builds signed `.flatpak` artifact; AppImage build removed from `.github/workflows/build.yml`
-- Sideload install workflow documented for Steam Deck (`flatpak install --user app.flatpak`)
-- "Add as Non-Steam Game" workflow for Gaming Mode launch
-- Auto-update workflow (`flatpak update`) documented or scripted
+- v2.0: Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, native Rust backend replacing broken Web APIs
+- v2.1: Flatpak packaging pipeline, sandbox permissions for BLE + gamepad, CI producing deb → Flatpak artifacts
 
-## Previous Milestone: v2.0 Tauri Migration ✓
+**Current codebase:**
+- ~4,424 LOC (TypeScript + Rust)
+- Tech stack: Tauri v2, React + Vite + TypeScript frontend, Rust backend (btleplug + gilrs)
+- CI: Single GitHub Actions job producing .deb (3.6 MB) → .flatpak (2.4 MB)
+- Locked files: app.tsx, control-pad.tsx, status-bar.tsx (pre-commit hooks)
 
-**Goal:** Migrate apps/frontend from browser-based React+Vite to a Tauri v2 desktop app, replacing broken Web Bluetooth and Gamepad APIs with native Rust alternatives.
+**Known gaps:**
+- VAL-06, VAL-07, VAL-09 require real BT24 hardware + Steam Deck validation (manual)
 
-**Shipped features:**
-- Tauri v2 desktop shell with src-tauri Rust backend (Linux/SteamOS target)
-- BLE communication via btleplug crate (replaces Web Bluetooth API)
-- Gamepad input via gilrs crate (replaces navigator.getGamepads())
-- Rewrite use-bluetooth.ts → Tauri invoke() + listen() for BLE commands
-- Rewrite use-gamepad.ts → Tauri listen() for gamepad events
-- Keep stable hook interfaces — app.tsx, control-pad.tsx, status-bar.tsx unchanged
-- Tauri commands: ble_connect, ble_disconnect, ble_send
-- Background threads emitting events: ble-state-changed, gamepad-direction, gamepad-connected, gamepad-disconnected
+## Next Milestone Goals
+
+The next milestone should focus on one of:
+- **v2.2 Pipeline Fixes & Optimization** — Release-please integration, CI optimization (concurrency groups, action version standardization), versioned artifact naming
+- **Feature work** — Motor speed control (u/v commands), auto-reconnect with exponential backoff, multiple robot profiles
+- **Flathub preparation** — Signed bundles, OSTree repo, AppStream polish
 
 ## Requirements
 
@@ -52,26 +49,30 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 - ✓ Rewrite use-bluetooth.ts → Tauri invoke() + listen() — Phase 9
 - ✓ Rewrite use-gamepad.ts → Tauri listen() for gamepad events — Phase 9
 - ✓ Stable hook interfaces preserved (app.tsx unchanged) — Phases 7-9
+- ✓ Build and test on SteamOS target — Docker cross-compile via tauri-action — Phase 10
+- ✓ Rust integration tests mocking btleplug/gilrs — Phase 10
+- ✓ Switch bundle.targets to ["deb"] with deb metadata — Phase 11 (PKG-01)
+- ✓ Rewrite build.yml to single deb job with stock tauri-cli — Phase 11 (PKG-02, PKG-03)
+- ✓ Delete build-steamdeck.sh, lock Flatpak runtime in PROJECT.md — Phase 11 (PKG-04)
+- ✓ Flatpak manifest with deb-extract pattern — Phase 12 (PKG-05)
+- ✓ AppStream metainfo — Phase 12 (PKG-06)
+- ✓ Build-commands rename desktop, sed Icon=, install icons — Phase 12 (PKG-07)
+- ✓ build.sh wrapping flatpak-builder — Phase 12 (PKG-08)
+- ✓ flatpak/README.md — Phase 12 (PKG-09)
+- ✓ Sandbox finish-args for BLE (org.bluez) + gamepad (evdev) — Phase 13 (SBX-01..06)
+- ✓ in_flatpak() D-Bus gate in lib.rs — Phase 13
+- ✓ Steam Deck validation checklist + report template — Phase 14 (DECK-01..04, VAL-09)
+- ✓ CI migration: build-flatpak-x64 job, OSTree cache, concurrency — Phase 15 (CI-01..04)
+- ✓ AppImage decommission: single job CI, delete install-on-steamdeck.sh — Phase 16 (CI-05)
+- ✓ README rewrite for Flatpak, ARCHITECTURE.md, upgrade script — Phase 16 (DOCS-01..04, DECK-05)
+- ✓ VAL-08: app.tsx unchanged across milestone — Phase 16
+- ✓ VERIFICATION.md for Phases 13, 15, 16 — Phase 17
+- ✓ STEAM_DECK.md + ARCHITECTURE.md rewritten — Phase 18
+- ✓ CI pipeline produces .deb + .flatpak end-to-end — Phase 19 (PKG-03, VAL-05)
 
 ### Active
 
-- [ ] Flatpak manifest with BLE (`org.bluez`) and gamepad/evdev finish-args (Phase 13)
-- [ ] Sideload install + "Add as Non-Steam Game" docs for Steam Deck Gaming Mode
-- [ ] Auto-upgrade workflow (`flatpak update`) documented or scripted
-
-### Validated
-
-- ✓ Build and test on SteamOS target — Docker cross-compile via tauri-action — Phase 10
-- ✓ Rust integration tests mocking btleplug/gilrs for event pipeline validation — Phase 10
-- ✓ Switch tauri.conf.json bundle.targets to `["deb"]` with deb metadata — Phase 11 (PKG-01)
-- ✓ Rewrite build.yml to single deb job with stock tauri-cli — Phase 11 (PKG-02, PKG-03)
-- ✓ Delete build-steamdeck.sh, lock Flatpak runtime in PROJECT.md — Phase 11 (PKG-04)
-- ✓ Legacy appimage test updated to deb target — Phase 11 (test fix)
-- ✓ Flatpak manifest with deb-extract pattern, display-only finish-args, and 5 type:file sources — Phase 12 (PKG-05)
-- ✓ AppStream metainfo with all required AppStream fields (id, name, summary, description, licenses, developer, categories, launchable, releases) — Phase 12 (PKG-06)
-- ✓ Manifest build-commands rename desktop, sed Icon=, install hicolor icons (32, 128, 512) — Phase 12 (PKG-07)
-- ✓ build.sh wrapping flatpak-builder with macOS structural validation and Linux full build — Phase 12 (PKG-08)
-- ✓ flatpak/README.md documenting prerequisites, build steps, icon regeneration, and architecture — Phase 12 (PKG-09)
+*(No active requirements — milestone archived, ready for next planning)*
 
 ### Out of Scope
 
@@ -86,25 +87,24 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 ## Context
 
-- Target platform: Steam Deck (SteamOS Linux) running Tauri v2 desktop app
-- Robot: Keyestudio Mini Tank Robot V3 with BT24 Bluetooth module (service UUID: 0000ffe0-0000-1000-8000-00805f9b34fb, characteristic UUID: 0000ffe1-0000-1000-8000-00805f9b34fb)
-- Arduino firmware is FIXED and accepts: F, B, L, R, S, and optional motor speed commands
-- Web Bluetooth API (navigator.bluetooth) does NOT work in Tauri's WebKitGTK on Linux/SteamOS
-- Steam Input intercepts built-in gamepad before WebView gets it via navigator.getGamepads()
-- Replace broken browser APIs with native Rust: btleplug (BLE) + gilrs (gamepad)
+- Target platform: Steam Deck (SteamOS Linux) running Tauri v2 desktop app, distributed as Flatpak
+- Robot: Keyestudio Mini Tank Robot V3 with BT24 Bluetooth module (service: 0000ffe0, characteristic: 0000ffe1)
+- Arduino firmware is FIXED and accepts: F, B, L, R, S commands
+- Browser Web APIs (navigator.bluetooth, navigator.getGamepads()) do NOT work in Tauri's WebKitGTK — replaced by native Rust (btleplug + gilrs)
+- Flatpak sandbox requires specific finish-args for BLE (--system-talk-name=org.bluez) and gamepad (--device=input)
 - Low latency is critical for responsive robot control
 - Monorepo structure preserved: src-tauri lives inside apps/frontend/
+- 4,424 LOC (TypeScript + Rust), 415+ commits, 14 phases shipped
 
 ## Constraints
 
 - **Tech Stack**: Tauri v2 + React + Vite + TypeScript frontend, Rust (edition 2021) backend with btleplug + gilrs
-- **Platform**: Steam Deck (SteamOS Linux) — Tauri deb target (via flatpak-builder for final bundle), no Windows/macOS builds
+- **Platform**: Steam Deck (SteamOS Linux) — Flatpak distribution, no Windows/macOS builds
 - **Robot Firmware**: Cannot modify Arduino code — must work with existing BT24 UART serial protocol (F, B, L, R, S commands)
 - **Bluetooth**: BT24 device — btleplug crate, service UUID 0000ffe0, characteristic UUID 0000ffe1, device name filter "BT24"
-- **Gamepad**: gilrs crate, deadzone 0.15, prefer Steam Deck controller (id contains "Steam"), same axis logic as current use-gamepad.ts
+- **Gamepad**: gilrs crate, deadzone 0.15, prefer Steam Deck controller (id contains "Steam")
 - **Monorepo**: pnpm workspaces mandatory — src-tauri lives inside apps/frontend/
 - **Hook Interfaces**: use-bluetooth.ts and use-gamepad.ts must keep same return shape — app.tsx, control-pad.tsx, status-bar.tsx must be unchanged
-- **No new UI components** — only infrastructure changes
 
 ## Key Decisions
 
@@ -118,10 +118,14 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 | Keep hook return shapes stable | app.tsx, control-pad.tsx, status-bar.tsx must be unchanged | ✓ Verified Phase 9 |
 | Monorepo preserved | src-tauri lives inside apps/frontend/, pnpm for packages | ✓ Implemented Phase 6 |
 | Deprecate apps/backend | Fastify + WebSocket no longer needed, Tauri Rust backend replaces it | ✓ Deprecated Phase 6 |
-| Switch from AppImage to deb (Flatpak input) | Better SteamOS integration via Flatpak; deb is the intermediate artifact for flatpak-builder | ✓ Implemented Phase 11 |
-| Flatpak runtime choice | `org.freedesktop.Platform//24.08` with SDK `24.08` and GL extension — smaller, no GNOME deps, ships WebKitGTK for Tauri v2 | ✓ Phase 11 (PKG-04) |
-| Sideload-only distribution | No Flathub overhead, single-user device, faster iteration | Pending v2.1 |
-| Flatpak runtime | `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` | Smaller (~300 MB), no GNOME deps, ships WebKitGTK-6 for Tauri v2. Extension: `org.freedesktop.Platform.GL.default` for GPU rendering. EOL Aug 2027. | Phase 11 |
+| Switch from AppImage to deb (Flatpak input) | Better SteamOS integration via Flatpak; deb is intermediate artifact | ✓ Phase 11 |
+| Flatpak runtime: freedesktop 24.08 | Smaller, no GNOME deps, ships WebKitGTK-6 for Tauri v2 | ✓ Phase 11 (PKG-04) |
+| Sideload-only distribution | No Flathub overhead, single-user device, faster iteration | ✓ v2.1 |
+| Flatpak detection via FLATPAK_ID + /.flatpak-info | Belt-and-suspenders approach | ✓ Phase 13 |
+| D-Bus rewrite gated behind !in_flatpak() | Inside Flatpak the runtime proxies system bus correctly | ✓ Phase 13 |
+| Single-job CI (Flatpak only) | AppImage decommissioned after parallel-run window | ✓ Phase 16 |
+| Version from Cargo.toml (cargo metadata + jq) | Single source of truth, not github.ref_name | ✓ Phase 16 |
+| Stale Tauri cache cleanup | Prevents path-drift build failures from cached target dirs | ✓ Phase 19 |
 
 ## Evolution
 
@@ -141,4 +145,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — Phase 12 complete, v2.1 milestone 2/6*
+
+*Last updated: 2026-05-12 — v2.0 + v2.1 milestones shipped and archived*
