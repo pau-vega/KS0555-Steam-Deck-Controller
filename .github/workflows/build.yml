@@ -3,6 +3,8 @@ name: Build and Release
 on:
   push:
     tags: ["v*", "*-v*"]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       skip_release:
@@ -19,8 +21,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
+    if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'release-please--')
     runs-on: ubuntu-24.04
     permissions:
       contents: write
