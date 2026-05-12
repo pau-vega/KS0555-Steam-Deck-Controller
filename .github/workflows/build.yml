@@ -13,6 +13,11 @@ on:
         default: false
   workflow_call:
     inputs:
+      ref:
+        description: "Git ref to check out (defaults to github.ref)"
+        type: string
+        required: false
+        default: ""
       tag_name:
         description: "Release tag to upload artifacts to"
         type: string
@@ -30,6 +35,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: pnpm/action-setup@v5
 

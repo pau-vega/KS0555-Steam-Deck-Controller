@@ -2,12 +2,12 @@ pre-commit:
   parallel: true
   commands:
     format:
-      run: pnpm format
+      run: just format
       stage_fixed: true
     lint:
-      run: pnpm lint
+      run: just lint
     typecheck:
-      run: pnpm typecheck
+      run: just typecheck
 
 commit-msg:
   commands:
