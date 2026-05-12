@@ -15,7 +15,7 @@ The same Tauri v2 binary runs on three places: a Steam Deck (end-user device), a
 
    ```bash
    curl -fsSL -o ~/Downloads/RobotController-x86_64.flatpak \
-     https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest/download/RobotController-x86_64.flatpak
+     https://github.com/pau-vega/KS0555-Steam-Deck-Controller/releases/latest/download/RobotController-x86_64.flatpak
    flatpak install --user ~/Downloads/RobotController-x86_64.flatpak
    ```
 
@@ -47,7 +47,7 @@ Or manually: download the latest `.flatpak` from GitHub Releases and run `flatpa
 
 ### Manual install (no script)
 
-1. Download `RobotController-x86_64.flatpak` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest).
+1. Download `RobotController-x86_64.flatpak` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/releases/latest).
 2. `flatpak install --user ~/Downloads/RobotController-x86_64.flatpak`
 3. Steam → Library → **+** → **Add a Non-Steam Game** → pick **com.ks0555.robotcontroller** from the list.
 
@@ -57,8 +57,8 @@ Source builds are handled by GitHub Actions CI (see `.github/workflows/build.yml
 For local development on a Linux desktop, use the standard Tauri build:
 
 ```bash
-git clone https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2.git
-cd KS0555-Steam-Deck-Controller-2
+git clone https://github.com/pau-vega/KS0555-Steam-Deck-Controller.git
+cd KS0555-Steam-Deck-Controller
 pnpm install
 pnpm --filter @ks0555/frontend tauri:build
 ```

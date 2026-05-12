@@ -13,7 +13,7 @@ Drive a Bluetooth Arduino robot (DX-BT24 module) with your Steam Deck gamepad. S
 In **Desktop Mode**, open Konsole and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pau-vega/KS0555-Steam-Deck-Controller-2/main/upgrade-robot-controller.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pau-vega/KS0555-Steam-Deck-Controller/main/upgrade-robot-controller.sh | bash
 ```
 
 That script:
@@ -28,7 +28,7 @@ Final manual step: in Steam → Library → **+** → **Add a Non-Steam Game** �
 
 If you'd rather not pipe to bash:
 
-1. Download `RobotController-x86_64.flatpak` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest).
+1. Download `RobotController-x86_64.flatpak` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/releases/latest).
 2. `flatpak install --user ~/Downloads/RobotController-x86_64.flatpak`
 3. Steam → Library → **+** → **Add a Non-Steam Game** → pick **com.ks0555.robotcontroller** → _Add Selected Programs_.
 
@@ -45,7 +45,7 @@ Re-run the curl line above, or:
 
 CI publishes a universal `.dmg` (Intel + Apple Silicon) on every tagged release. To install:
 
-1. Download `RobotController-universal.dmg` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest).
+1. Download `RobotController-universal.dmg` from the [latest release](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/releases/latest).
 2. Open the DMG and drag _Robot Controller_ into Applications.
 3. First launch: right-click → _Open_ → _Open_ (the bundle is unsigned, so Gatekeeper warns once).
 4. Allow Bluetooth access when macOS asks.

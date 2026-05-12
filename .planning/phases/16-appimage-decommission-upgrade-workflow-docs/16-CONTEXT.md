@@ -33,7 +33,7 @@ Remove the AppImage CI path (parallel-run window closed) and simplify CI to a si
 - **D-16:** Bash script at repo root: `upgrade-robot-controller.sh` — self-contained, zero dependencies beyond `curl` + `jq` (both on SteamOS by default).
 - **D-17:** Dual-purpose: if `com.ks0555.robotcontroller` is not installed, do fresh `flatpak install --user`. If installed, check GitHub Releases for newer version.
 - **D-18:** Full upgrade assistant UX: (1) check installed version via `flatpak info`, (2) fetch latest release from GitHub Releases API, (3) compare versions, (4) if newer: download `.flatpak`, (5) display full release body as changelog, (6) prompt y/N to confirm, (7) `flatpak install --user --reinstall <path>`, (8) clean up old downloaded `.flatpak` files from the download location.
-- **D-19:** GitHub Releases API endpoint: `https://api.github.com/repos/pau-vega/KS0555-Steam-Deck-Controller-2/releases/latest`. Asset pattern: `RobotController-*-x86_64.flatpak`.
+- **D-19:** GitHub Releases API endpoint: `https://api.github.com/repos/pau-vega/KS0555-Steam-Deck-Controller/releases/latest`. Asset pattern: `RobotController-*-x86_64.flatpak`.
 
 ### Architecture Docs (DOCS-02, DOCS-03)
 - **D-20:** Create `apps/frontend/src-tauri/ARCHITECTURE.md` — full system coverage: deb-extract build chain (ar → tar → /app), Flatpak sandbox model with finish-args rationale (BLE `--system-talk-name=org.bluez`, gamepad `--device=input`, display `--socket=wayland/fallback-x11`), `in_flatpak()` D-Bus gate (belt-and-suspenders FLATPAK_ID + `/.flatpak-info`), Tauri → Rust → btleplug/gilrs pipeline, IPC event flow (invoke + listen), Vite + React frontend integration, monorepo structure with Tauri nested in `apps/frontend/src-tauri/`.

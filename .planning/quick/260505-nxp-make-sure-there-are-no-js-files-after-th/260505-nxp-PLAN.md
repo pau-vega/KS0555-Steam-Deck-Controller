@@ -109,7 +109,7 @@ Output: Zero .js files in the repository outside of node_modules/dist/build dire
     - packages/eslint-config/dist/*.js (these are tsup build outputs — intentional)
   </action>
   <verify>
-    <automated>find /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2 -name "*.js" -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/.turbo/*" -not -path "*/.git/*" | sort</automated>
+    <automated>find /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller -name "*.js" -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/.turbo/*" -not -path "*/.git/*" | sort</automated>
   </verify>
   <done>The find command returns zero lines (no .js files outside node_modules/dist/build).</done>
 </task>
@@ -131,7 +131,7 @@ Output: Zero .js files in the repository outside of node_modules/dist/build dire
     If any command fails, investigate whether a config file (e.g., vite, vitest) was referencing the old .js path explicitly — if so, update the reference to the .ts equivalent.
   </action>
   <verify>
-    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2 && pnpm build 2>&1 | tail -5 && pnpm typecheck 2>&1 | tail -5 && pnpm lint 2>&1 | tail -5 && pnpm test 2>&1 | tail -10</automated>
+    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller && pnpm build 2>&1 | tail -5 && pnpm typecheck 2>&1 | tail -5 && pnpm lint 2>&1 | tail -5 && pnpm test 2>&1 | tail -10</automated>
   </verify>
   <done>pnpm build, pnpm typecheck, pnpm lint, and pnpm test all exit 0 with zero errors. Test count is 51 passing.</done>
 </task>

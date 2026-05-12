@@ -37,7 +37,7 @@ sudo apt install build-essential libssl-dev pkg-config libssl-dev webkit2gtk-4.1
 
 ```bash
 git clone <your-fork-or-remote-url>
-cd KS0555-Steam-Deck-Controller-2
+cd KS0555-Steam-Deck-Controller
 ```
 
 2. Install dependencies:

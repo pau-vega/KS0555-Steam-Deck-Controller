@@ -62,8 +62,8 @@ sudo usermod -aG input "$USER"
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/pau-vega/KS0555-Steam-Deck-Controller-2.git
-cd KS0555-Steam-Deck-Controller-2
+git clone https://github.com/pau-vega/KS0555-Steam-Deck-Controller.git
+cd KS0555-Steam-Deck-Controller
 ```
 
 ### 2. Ensure Node version matches
