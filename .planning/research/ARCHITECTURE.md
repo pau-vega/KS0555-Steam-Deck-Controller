@@ -75,7 +75,7 @@ This is "wrap the .deb" not "build from source in sandbox." A from-source build 
 ## Recommended Project Structure
 
 ```
-KS0555-Steam-Deck-Controller-2/
+KS0555-Steam-Deck-Controller/
 ├── apps/
 │   └── frontend/
 │       ├── src-tauri/

@@ -16,7 +16,7 @@
 # Downloads .flatpak + .sha256, verifies checksum, then installs.
 set -euo pipefail
 
-REPO="pau-vega/KS0555-Steam-Deck-Controller-2"
+REPO="pau-vega/KS0555-Steam-Deck-Controller"
 APP_ID="com.ks0555.robotcontroller"
 TEMP_DIR="/tmp/robot-controller-upgrade"
 API_URL="https://api.github.com/repos/${REPO}/releases/latest"

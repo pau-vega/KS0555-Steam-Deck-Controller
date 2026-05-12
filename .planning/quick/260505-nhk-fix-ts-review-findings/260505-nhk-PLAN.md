@@ -47,12 +47,12 @@ Output: Four files corrected, all tests and lint still green.
 </objective>
 
 <execution_context>
-@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2/.planning/quick/260505-nhk-fix-ts-review-findings/260505-nhk-PLAN.md
+@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller/.planning/quick/260505-nhk-fix-ts-review-findings/260505-nhk-PLAN.md
 </execution_context>
 
 <context>
-@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2/.planning/STATE.md
-@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2/.planning/PROJECT.md
+@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller/.planning/STATE.md
+@/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller/.planning/PROJECT.md
 
 ## Note on WR-04
 WR-04 (missing tsconfigRootDir in react.js) was fixed during Phase 5 when react.js was converted
@@ -98,7 +98,7 @@ to react.ts. The file at `packages/eslint-config/src/react.ts` already contains
     ```
   </action>
   <verify>
-    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2 && grep -c '";$' apps/frontend/src/app.tsx apps/frontend/src/main.tsx || true</automated>
+    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller && grep -c '";$' apps/frontend/src/app.tsx apps/frontend/src/main.tsx || true</automated>
   </verify>
   <done>
     Zero lines ending with `";` in app.tsx and main.tsx. No local Direction type in app.tsx.
@@ -127,7 +127,7 @@ to react.ts. The file at `packages/eslint-config/src/react.ts` already contains
     Do not change anything else in the test file.
   </action>
   <verify>
-    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2 && pnpm --filter @ks0555/backend typecheck && pnpm --filter @ks0555/frontend typecheck</automated>
+    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller && pnpm --filter @ks0555/backend typecheck && pnpm --filter @ks0555/frontend typecheck</automated>
   </verify>
   <done>
     `WebSocketMessage` no longer appears in the index.ts import line.
@@ -150,7 +150,7 @@ to react.ts. The file at `packages/eslint-config/src/react.ts` already contains
     with value imports by default in this config — place it where ESLint expects it and re-run).
   </action>
   <verify>
-    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2 && pnpm lint && pnpm test && pnpm build</automated>
+    <automated>cd /Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller && pnpm lint && pnpm test && pnpm build</automated>
   </verify>
   <done>
     `pnpm lint` exits 0. `pnpm test` reports 51 passed. `pnpm build` exits 0.

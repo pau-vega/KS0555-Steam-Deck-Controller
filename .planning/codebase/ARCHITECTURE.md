@@ -66,7 +66,7 @@
 
 **Workspace Root:**
 - Purpose: Orchestrate builds, linting, testing, and dev across all workspaces
-- Location: `/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller-2`
+- Location: `/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller`
 - Contains: Root `package.json`, Turbo configuration, shared tooling
 - Depends on: pnpm workspaces, Turbo, shared dev dependencies
 - Used by: All workspace packages through npm/pnpm resolution
