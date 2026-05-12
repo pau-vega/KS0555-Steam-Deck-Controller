@@ -1,7 +1,7 @@
 pub mod ble;
 pub mod gamepad;
 
-use ble::{setup_event_listener, ble_connect, ble_disconnect, ble_send, BleState};
+use ble::{ble_connect, ble_disconnect, ble_send, setup_event_listener, BleState};
 use gamepad::setup_gamepad_monitor;
 use tauri::Manager;
 
@@ -9,8 +9,7 @@ fn in_flatpak() -> bool {
     // Belt-and-suspenders Flatpak detection (D-01).
     // FLATPAK_ID is set by the Flatpak runtime at container start.
     // /.flatpak-info is the canonical file-based signal.
-    std::env::var("FLATPAK_ID").is_ok()
-        || std::path::Path::new("/.flatpak-info").exists()
+    std::env::var("FLATPAK_ID").is_ok() || std::path::Path::new("/.flatpak-info").exists()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
