@@ -3,12 +3,114 @@
   "granularity": "coarse",
   "parallelization": true,
   "commit_docs": true,
-  "model_profile": "budget",
+  "model_profile": "balanced",
+  "runtime": "opencode",
+  "model_profile_overrides": {
+    "opencode": {
+      "opus": "deepseek-v4-pro",
+      "sonnet": "glm-5.1",
+      "haiku": "deepseek-v4-flash"
+    }
+  },
+  "models": {
+    "planning": "opus",
+    "discuss": "opus",
+    "research": "sonnet",
+    "execution": "sonnet",
+    "verification": "sonnet",
+    "completion": "haiku"
+  },
+  "model_overrides": {
+    "gsd-planner": "deepseek-v4-pro",
+    "gsd-plan-checker": "deepseek-v4-pro",
+    "gsd-executor": "glm-5.1",
+    "gsd-verifier": "qwen-3.6-plus",
+    "gsd-code-reviewer": "deepseek-v4-pro",
+    "gsd-code-fixer": "glm-5.1",
+    "gsd-security-auditor": "deepseek-v4-pro",
+    "gsd-debugger": "deepseek-v4-pro",
+    "gsd-eval-auditor": "deepseek-v4-pro",
+    "gsd-ui-researcher": "qwen-3.6-plus",
+    "gsd-ui-checker": "qwen-3.6-plus",
+    "gsd-ui-auditor": "qwen-3.6-plus",
+    "gsd-phase-researcher": "kimi-k2.6",
+    "gsd-project-researcher": "kimi-k2.6",
+    "gsd-domain-researcher": "kimi-k2.6",
+    "gsd-pattern-mapper": "glm-5.1",
+    "gsd-codebase-mapper": "kimi-k2.6",
+    "gsd-doc-writer": "glm-5.1",
+    "gsd-doc-verifier": "deepseek-v4-flash",
+    "gsd-doc-classifier": "deepseek-v4-flash",
+    "gsd-doc-synthesizer": "glm-5.1",
+    "gsd-nyquist-auditor": "qwen-3.6-plus",
+    "gsd-roadmapper": "glm-5.1",
+    "gsd-framework-selector": "deepseek-v4-pro",
+    "gsd-eval-planner": "deepseek-v4-pro",
+    "gsd-ai-researcher": "kimi-k2.6",
+    "gsd-doc-writer-update": "glm-5.1",
+    "gsd-integration-checker": "qwen-3.6-plus",
+    "gsd-ui-auditor-retro": "qwen-3.6-plus",
+    "gsd-debug-session-manager": "deepseek-v4-pro",
+    "gsd-research-synthesizer": "glm-5.1",
+    "gsd-intel-updater": "deepseek-v4-flash",
+    "gsd-user-profiler": "deepseek-v4-flash",
+    "gsd-advisor-researcher": "kimi-k2.6",
+    "gsd-assumptions-analyzer": "deepseek-v4-pro"
+  },
+  "dynamic_routing": {
+    "enabled": false,
+    "tier_models": {
+      "light": "haiku",
+      "standard": "sonnet",
+      "heavy": "opus"
+    },
+    "escalate_on_failure": true,
+    "max_escalations": 1
+  },
   "workflow": {
     "research": true,
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "auto_advance": true
+    "auto_advance": true,
+    "pattern_mapper": true,
+    "ui_phase": true,
+    "ui_safety_gate": true,
+    "ai_integration_phase": true,
+    "tdd_mode": false,
+    "code_review": true,
+    "code_review_depth": "standard",
+    "ui_review": true,
+    "research_before_questions": true,
+    "skip_discuss": false,
+    "use_worktrees": true,
+    "text_mode": true,
+    "subagent_timeout": 900,
+    "cross_ai_execution": false,
+    "cross_ai_timeout": 600,
+    "plan_review_convergence": false
+  },
+  "intel": {
+    "enabled": false
+  },
+  "graphify": {
+    "enabled": true
+  },
+  "git": {
+    "branching_strategy": "milestone"
+  },
+  "hooks": {
+    "context_warnings": true
+  },
+  "review": {
+    "models": {
+      "opencode": "opencode run --model deepseek-v4-pro",
+      "opencode-longctx": "opencode run --model kimi-k2.6",
+      "opencode-code": "opencode run --model qwen-3.6-plus"
+    }
+  },
+  "executor": {
+    "stall_detect_interval_minutes": 5,
+    "stall_threshold_minutes": 15
   }
 }
