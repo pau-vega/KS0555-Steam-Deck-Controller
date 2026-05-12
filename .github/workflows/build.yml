@@ -81,6 +81,18 @@ jobs:
       - name: build frontend
         run: pnpm build
 
+      - name: clean stale tauri cache
+        run: |
+          set -e
+          STALE_DIRS=$(find apps/frontend/src-tauri/target/release/build/tauri-* -name 'permissions' -maxdepth 1 -type d 2>/dev/null || true)
+          if [ -n "$STALE_DIRS" ]; then
+            echo "Removing stale Tauri permissions cache (absolute path drift from previous CI runner)"
+            rm -rf apps/frontend/src-tauri/target/release/build/tauri-*/out/permissions/
+          else
+            echo "No stale permissions cache found"
+          fi
+        shell: bash
+
       - name: build deb
         run: cargo tauri build --bundles deb
         working-directory: apps/frontend/src-tauri
@@ -143,8 +155,8 @@ jobs:
       - name: install flatpak runtime
         run: |
           sudo flatpak install --system -y --noninteractive flathub \
-            org.gnome.Platform//48 \
-            org.gnome.Sdk//48
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
 
       - name: build flatpak
         run: |
