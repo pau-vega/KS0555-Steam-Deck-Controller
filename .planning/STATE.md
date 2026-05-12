@@ -5,7 +5,7 @@ milestone_name: — Flatpak Packaging
 status: active
 stopped_at: Phase 18 complete; ready for Phase 19
 last_updated: "2026-05-11T08:00:00.000Z"
-last_activity: 2026-05-10 -- Completed quick task 260510-001: Docker-based flatpak local build
+last_activity: 2026-05-12 -- Completed quick task 260512-002: Setup release-please and reset to 0.0.1
 progress:
   total_phases: 14
   completed_phases: 12
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-09)
 Phase: 19 — Execute Deb Build + Flatpak Runner
 Plan: 19-01-PLAN.md — CI validation with artifact upload
 Status: Planned (ready to execute)
-Last activity: 2026-05-11 -- Completed quick task 260511-001: Fix D-pad not working in gaming mode
+Last activity: 2026-05-12 -- Completed quick task 260512-002: Setup release-please and reset to 0.0.1
 
 ## Progress
 
@@ -123,6 +123,8 @@ Plans: 26/26 complete (12 v2.0 + 7 v2.1 + 2/2 Phase 15 + 3/3 Phase 16 + 1/1 Phas
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260512-002 | Setup release-please and reset to 0.0.1 | 2026-05-12 | 6e5f21be | [260512-002-setup-release-please](./quick/260512-002-setup-release-please/) |
+| 260512-001 | Add metadata to the flatpak package | 2026-05-12 | 7e05fedf | [260512-001-add-flatpak-metadata](./quick/260512-001-add-flatpak-metadata/) |
 | 260511-001 | Fix D-pad not working in gaming mode | 2026-05-11 | 51ea36da | [260511-001-fix-dpad-gaming-mode](./quick/260511-001-fix-dpad-gaming-mode/) |
 | 260510-001 | Docker-based flatpak local build | 2026-05-10 | b7a8438e | [260510-001-docker-flatpak-local-build](./quick/260510-001-docker-flatpak-local-build/) |
 
