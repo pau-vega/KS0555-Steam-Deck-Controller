@@ -53,6 +53,9 @@ node_modules/
 # GSD planning (auto-generated)
 .planning/
 
+# Auto-generated changelog
+CHANGELOG.md
+
 # Claude
 .claude/
 
