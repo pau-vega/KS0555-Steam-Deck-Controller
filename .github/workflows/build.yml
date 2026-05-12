@@ -3,6 +3,8 @@ name: Build and Release
 on:
   push:
     tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       skip_release:
@@ -102,7 +104,12 @@ jobs:
 
       - name: extract version
         run: |
-          VERSION=$(grep '^version' apps/frontend/src-tauri/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            VERSION="${TAG#v}"
+          else
+            VERSION=$(grep '^version' apps/frontend/src-tauri/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: upload deb artifact
