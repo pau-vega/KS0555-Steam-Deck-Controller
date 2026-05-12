@@ -22,6 +22,29 @@
     <category>Utility</category>
   </categories>
   <launchable type="desktop-id">com.ks0555.robotcontroller.desktop</launchable>
+  <keywords>
+    <keyword>robot</keyword>
+    <keyword>controller</keyword>
+    <keyword>steam-deck</keyword>
+    <keyword>gamepad</keyword>
+    <keyword>bluetooth</keyword>
+    <keyword>ble</keyword>
+    <keyword>robotics</keyword>
+  </keywords>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Robot Controller main interface</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="os-specific">
+    <content_attribute id="maturity">none</content_attribute>
+  </content_rating>
+  <provides>
+    <binary>robot-controller</binary>
+  </provides>
+  <supports>
+    <option>x86_64</option>
+  </supports>
   <releases>
     <release version="0.1.21" date="2026-05-11">
       <description>
