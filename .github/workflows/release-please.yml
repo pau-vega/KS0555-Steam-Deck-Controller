@@ -36,6 +36,8 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.pr != '' && needs.release-please.outputs.releases_created != 'true'
     uses: ./.github/workflows/build.yml
+    with:
+      ref: refs/pull/${{ needs.release-please.outputs.pr }}/head
 
   build-and-upload:
     needs: release-please
