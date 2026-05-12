@@ -107,6 +107,50 @@ describe("CI workflow: .github/workflows/build.yml", () => {
     expect(buildYml).not.toContain("download-artifact")
   })
 
+  // ── Phase 19: Deb Validation Detail (PKG-03) ──
+
+  it("PKG-03: validate deb contents step runs dpkg -c on .deb", () => {
+    expect(buildYml).toContain("validate deb contents")
+    expect(buildYml).toContain("dpkg -c")
+  })
+
+  it("PKG-03: dpkg validation checks binary and desktop file exist in deb", () => {
+    expect(buildYml).toContain("usr/bin/robot-controller")
+    expect(buildYml).toContain("usr/share/applications/")
+  })
+
+  it("PKG-03: deb artifact named robot-controller-deb with wildcard path", () => {
+    expect(buildYml).toContain("name: robot-controller-deb")
+    expect(buildYml).toMatch(/\/\*\.deb/)
+  })
+
+  // ── Phase 19: Flatpak Validation Detail (VAL-05) ──
+
+  it("VAL-05: flatpak artifact upload named robot-controller-flatpak", () => {
+    expect(buildYml).toContain("name: robot-controller-flatpak")
+  })
+
+  it("VAL-05: flatpak upload includes both .flatpak and .sha256 files", () => {
+    expect(buildYml).toContain("RobotController-${{ env.VERSION }}-x86_64.flatpak")
+    expect(buildYml).toContain("RobotController-${{ env.VERSION }}-x86_64.flatpak.sha256")
+  })
+
+  it("VAL-05: flatpak build-export and build-bundle commands present", () => {
+    expect(buildYml).toContain("flatpak build-export")
+    expect(buildYml).toContain("flatpak build-bundle")
+  })
+
+  it("VAL-05: flatpak SDK 24.08 runtime installed alongside platform", () => {
+    expect(buildYml).toContain("org.freedesktop.Sdk//24.08")
+  })
+
+  it("VAL-05: flatpak sources verification checks deb, manifest, metainfo, icons", () => {
+    expect(buildYml).toContain("verify flatpak sources")
+    expect(buildYml).toContain("flatpak/robot-controller.deb")
+    expect(buildYml).toContain("flatpak/com.ks0555.robotcontroller.metainfo.xml")
+    expect(buildYml).toContain("icons/32x32/com.ks0555.robotcontroller.png")
+  })
+
   it("D-11: top-level permissions are contents: read", () => {
     const lines = buildYml.split("\n")
     const permIdx = lines.findIndex((l) => l.trim() === "permissions:")
