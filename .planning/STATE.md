@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: — Flatpak Packaging
-status: milestone_complete
-stopped_at: Phase 16 plan 1 complete — CI decommission + docs cleanup done
-last_updated: "2026-05-12T17:06:19.831Z"
-last_activity: 2026-05-12 -- Phase 19 execution started
+milestone: v2.0 + v2.1
+milestone_name: Tauri Migration + Flatpak Packaging
+status: archived
+stopped_at: All 14 phases complete. Milestones archived.
+last_updated: "2026-05-12"
+last_activity: 2026-05-12 -- v2.0 + v2.1 milestones archived
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 15
-  completed_plans: 14
+  total_phases: 14
+  completed_phases: 14
+  total_plans: 27
+  completed_plans: 27
   percent: 100
 ---
 
@@ -18,120 +18,89 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-09)
+See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Phase 19 — execute-deb-flatpak-runner
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Milestone complete
+Phase: All archived (v2.0: 6-10, v2.1: 11-19)
+Status: Milestones shipped
 Last activity: 2026-05-12
 
 ## Progress
 
-**Total roadmap (v2.0 + v2.1):** 13 phases
-**v2.0 complete:** Phases 6-10 (5/5)
-**v2.1 active:** Phases 11-19 (8/9)
+**Total shipped:** 14 phases (6-19), 27 plans, 415+ commits, ~4,424 LOC
 
-| Phase | Status |
-|-------|--------|
-| 6. Tauri Shell Setup | Complete |
-| 7. BLE Commands with btleplug | Complete |
-| 8. Gamepad Monitoring with gilrs | Complete |
-| 9. Hook Rewrites | Complete |
-| 10. Build and Test on SteamOS | Complete |
-| 11. Bundle Pipeline Restructure | Complete |
-| 12. Manifest + AppStream + Local Build | Complete |
-| 13. Sandbox Permissions for BLE + Gamepad | Complete |
-| 14. Steam Deck On-Device Validation | Complete ✓ |
-| 15. CI Migration (Parallel-Run) | Complete ✓ |
-| 16. AppImage Decommission + Upgrade Workflow Docs | Complete ✓ |
-| 17. Close Verification Gaps | Complete |
-| 18. Fix Stale Docs | Complete ✓ |
-| 19. Execute Deb Build + Flatpak Runner | Planned |
-
-Plans: 26/26 complete (12 v2.0 + 7 v2.1 + 2/2 Phase 15 + 3/3 Phase 16 + 1/1 Phase 18). Phase 19: not planned yet.
+| Phase | Milestone | Status |
+|-------|-----------|--------|
+| 6. Tauri Shell Setup | v2.0 | Complete |
+| 7. BLE Commands with btleplug | v2.0 | Complete |
+| 8. Gamepad Monitoring with gilrs | v2.0 | Complete |
+| 9. Hook Rewrites | v2.0 | Complete |
+| 10. Build and Test on SteamOS | v2.0 | Complete |
+| 11. Bundle Pipeline Restructure | v2.1 | Complete |
+| 12. Manifest + AppStream + Local Build | v2.1 | Complete |
+| 13. Sandbox Permissions for BLE + Gamepad | v2.1 | Complete |
+| 14. Steam Deck On-Device Validation | v2.1 | Complete |
+| 15. CI Migration (Parallel-Run) | v2.1 | Complete |
+| 16. AppImage Decommission + Upgrade Workflow Docs | v2.1 | Complete |
+| 17. Close Verification Gaps | v2.1 | Complete |
+| 18. Fix Stale Docs | v2.1 | Complete |
+| 19. Execute Deb Build + Flatpak Runner | v2.1 | Complete |
 
 ## Decisions Made
 
-(carried from v2.0 — see PROJECT.md Key Decisions table)
+(Full log in PROJECT.md Key Decisions table)
 
-**v2.1 decisions (validated in completed phases):**
+**Key v2.0 decisions:**
+- Tauri v2 over v1 — better SteamOS support
+- btleplug for BLE — cross-platform Rust BLE
+- gilrs for gamepad — sees Steam Deck controller
+- Keep hook return shapes stable — app.tsx/control-pad.tsx/status-bar.tsx unchanged
+- Deprecate apps/backend — Fastify no longer needed
 
-- **Flatpak runtime choice (PKG-04):** Resolved in Phase 11 — `org.freedesktop.Platform//24.08` with SDK `org.freedesktop.Sdk//24.08` and extension `org.freedesktop.Platform.GL.default`. Committed to PROJECT.md Key Decisions.
-- **Auto-update reframed (DECK-05 / DOCS-01):** PROJECT.md "Active" requirement amended to "Manual upgrade workflow (`flatpak install --user --reinstall`) documented; optional GitHub Releases polling launcher script". True `flatpak update` deferred to v2.2+ (`FLAT-PUB-01`).
-- **D-01 (Phase 13):** Belt-and-suspenders Flatpak detection via FLATPAK_ID + /.flatpak-info
-- **D-02 (Phase 13):** Entire D-Bus rewrite block gated behind !in_flatpak()
-- **D-03 (Phase 13):** WEBKIT_DISABLE_COMPOSITING_MODE set_var remains unconditional
-- **D-05 (Phase 13):** Anti-feature checklist placed as comment block at top of manifest
-- **D-16 (Phase 16 / Plan 03):** `upgrade-robot-controller.sh` at repo root, zero dependencies beyond `curl` + `jq`
-- **D-17 (Phase 16 / Plan 03):** Dual-purpose script: fresh install if Flatpak not installed, upgrade check if installed
-- **D-24 (Phase 16 / Plan 03):** `flatpak-build` justfile recipe runs `flatpak-builder` directly, does NOT wrap `flatpak/build.sh`
-- **D-27 (Phase 16 / Plan 03):** `flatpak-deploy` uses `scp` for transfer only, no remote install
-- **D-01 (Phase 16 / Plan 01):** Remove `build-x64` job, rename `build-flatpak-x64` to `build` (single self-contained job)
-- **D-02 (Phase 16 / Plan 01):** VAL-08 `git diff --exit-code` dropped from CI (pre-commit hooks enforce it)
-- **D-04 (Phase 16 / Plan 01):** Version from Cargo.toml via `cargo metadata` + `jq`, not `github.ref_name`
-- **D-05 (Phase 16 / Plan 01):** Remove `cancel-in-progress` from concurrency
-- **D-06 (Phase 16 / Plan 01):** Deb built and consumed inline, no upload/download artifact
-- **D-08 (Phase 16 / Plan 01):** Delete `install-on-steamdeck.sh`, remove all references from docs
-- **D-09 (Phase 16 / Plan 01):** Full cleanup of all AppImage references in codebase
-- **D-10 (Phase 16 / Plan 01):** Add `~/.pnpm-store` cache with `actions/cache@v4`
-- **D-11 (Phase 16 / Plan 01):** Job-level `contents: write` for release upload step only
-- **D-20 (Phase 16 / Plan 02):** ARCHITECTURE.md covers build chain, sandbox model, D-Bus gate, event pipeline, monorepo layout
-- **D-21 (Phase 16 / Plan 02):** flatpak/README.md updated with finish-args rationale, anti-feature checklist, D-Bus gate explanation
-- **D-22 (Phase 16 / Plan 02):** Root README install section rewritten for Flatpak, zero AppImage references
+**Key v2.1 decisions:**
+- Flatpak runtime: org.freedesktop.Platform//24.08
+- Sideload-only distribution (no Flathub)
+- in_flatpak() D-Bus gate — belt-and-suspenders detection
+- Single-job CI — AppImage decommissioned
+- Version from Cargo.toml via cargo metadata + jq
+- Stale Tauri cache cleanup step
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-05-12:
+
+| Category | Item | Status |
+|----------|------|--------|
+| validation | VAL-06: Local flatpak run BLE on BT24 | deferred — needs real hardware |
+| validation | VAL-07: Local flatpak run gamepad input | deferred — needs real hardware |
+| validation | VAL-09: Real-Deck end-to-end test | deferred — needs Steam Deck + robot |
+| ci | VAL-08 tag push bypass (lefthook.yml missing lock) | deferred — pre-commit hooks cover PRs |
+| ci | appstream-util validate not in CI | deferred — non-blocking |
+| test | upgrade-robot-controller.sh integration test | deferred — not tested against actual release |
 
 ## Accumulated Context
 
-### v2.0 Recap (Validated)
+### v2.0 Delivered
+Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, hook rewrites, SteamOS build/test. Replaced broken Web APIs with native Rust.
 
-- Phases 1-10 shipped: monorepo, backend (deprecated), React UI, TS hardening, ESLint TS conversion, Tauri shell, BLE via btleplug, gamepad via gilrs, hook rewrites, SteamOS build/test
-- CI now single Flatpak-only job — AppImage removed, install-on-steamdeck.sh deleted
-- 43+ tests passing, app.tsx untouched
-- Recent quick tasks: Tauri v2 best practices (lib.rs extraction), Steam Deck WEBKIT_DISABLE_COMPOSITING_MODE, Mac dev support, doc updates
+### v2.1 Delivered
+Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flatpak), documentation rewrite, validated end-to-end CI run. All 9 phases complete.
 
-### v2.1 Goals & Phase Map
-
-- Phase 11: ✓ switch `bundle.targets` to `["deb"]`; drop custom tauri-cli fork; pick runtime (complete)
-- Phase 12: write `flatpak/` directory (manifest + metainfo + build.sh); first local `flatpak run` opens window
-- Phase 13: ✓ sandbox finish-args for BLE D-Bus + evdev gamepad; `lib.rs` `!in_flatpak` gate (complete)
-- Phase 14: real-Deck validation in Desktop + Gaming Mode
-- Phase 15: ✓ CI parallel-run (Flatpak + AppImage shipped together for one transition release)
-- Phase 16: ✓ AppImage decommission + upgrade workflow docs (all plans complete)
-- Phase 17: Close verification gaps — VERIFICATION.md for Phases 13, 15, 16
-- Phase 18: Fix stale docs — STEAM_DECK.md and ARCHITECTURE.md are out of date
-- Phase 19: Execute PKG-03 deb build and VAL-05 flatpak-builder on CI runner
-
-### Critical Risks (from research/PITFALLS.md)
-
-- BLE silently fails without `--system-talk-name=org.bluez` (Pitfall #2) — ✓ Resolved Phase 13 (manifest args + in_flatpak gate)
-- `lib.rs` D-Bus rewrite incompatible with Flatpak (Pitfall #13) — ✓ Resolved Phase 13 (in_flatpak gate)
-- `--device=input` requires Flatpak ≥ 1.15.6 — empirical test on real Deck (Pitfall #4) — Phase 14
-- Sideload bundles do NOT auto-update (Pitfall #7) — resolve in Phase 16 docs
-- Removing AppImage in same PR as Flatpak adoption — keep parallel-run for ≥1 release (Pitfall #11) — Phase 15 → 16 split
-
-### Roadmap Evolution
-
-- Phase 17 added: Close verification gaps — VERIFICATION.md for Phases 13, 15, 16
-- Phase 18 added: Fix stale docs — STEAM_DECK.md and ARCHITECTURE.md
-- Phase 19 added: Execute PKG-03 deb build and VAL-05 flatpak-builder on CI runner
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260512-002 | Setup release-please and reset to 0.0.1 | 2026-05-12 | 6e5f21be | [260512-002-setup-release-please](./quick/260512-002-setup-release-please/) |
-| 260512-003 | Justfile best practices for monorepo | 2026-05-12 | uncommitted | [260512-003-justfile-best-practices](./quick/260512-003-justfile-best-practices/) |
-| 260512-001 | Add metadata to the flatpak package | 2026-05-12 | 7e05fedf | [260512-001-add-flatpak-metadata](./quick/260512-001-add-flatpak-metadata/) |
-| 260511-001 | Fix D-pad not working in gaming mode | 2026-05-11 | 51ea36da | [260511-001-fix-dpad-gaming-mode](./quick/260511-001-fix-dpad-gaming-mode/) |
-| 260510-001 | Docker-based flatpak local build | 2026-05-10 | b7a8438e | [260510-001-docker-flatpak-local-build](./quick/260510-001-docker-flatpak-local-build/) |
+### Quick Tasks (v2.1)
+| # | Description | Date |
+|---|-------------|------|
+| 260512-002 | Setup release-please and reset to 0.0.1 | 2026-05-12 |
+| 260512-003 | Justfile best practices for monorepo | 2026-05-12 |
+| 260512-001 | Add metadata to the flatpak package | 2026-05-12 |
+| 260511-001 | Fix D-pad not working in gaming mode | 2026-05-11 |
+| 260510-001 | Docker-based flatpak local build | 2026-05-10 |
 
 ## Session Continuity
 
-Last session: 2026-05-10T08:43:51.000Z
-Stopped at: Phase 16 plan 1 complete — CI decommission + docs cleanup done
-Resume file: None
-Next action: Plan Phase 18 — /gsd-plan-phase 18
+Last session: 2026-05-12
+Resume: Milestones archived. Ready for next milestone planning.
+Next action: `/gsd-new-milestone` to start next cycle
