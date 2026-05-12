@@ -19,6 +19,7 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      pr: ${{ steps.release.outputs.pr }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -30,6 +31,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: .github/release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  build-pr:
+    needs: release-please
+    if: needs.release-please.outputs.pr != '' && needs.release-please.outputs.releases_created != 'true'
+    uses: ./.github/workflows/build.yml
 
   build-and-upload:
     needs: release-please
