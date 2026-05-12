@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.2](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/compare/ks0555-steam-deck-controller-v0.0.1...ks0555-steam-deck-controller-v0.0.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **ci:** add stale tauri cache cleanup and fix flatpak runtime to freedesktop 24.08 ([75520b3](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/75520b328e330eca10638e55e2916924c9ed544b))
+* **test:** update VERIFICATION.md paths to v2.0+v2.1-phases dir ([9655095](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/965509541ab7b3022e34799cedd32a0a049d9fda))
+
+
+### Documentation
+
+* **phase-19:** add security threat verification ([3ad0e91](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/3ad0e910e405fdbc6d41b00133226569dbb6be13))
+* **phase-19:** add SUMMARY.md documenting CI validation results ([fe057f2](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/fe057f23bc599cc29e2d53e4ed2cbf873271419d))
+* **phase-19:** mark phase complete — CI pipeline validated end-to-end ([b144118](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/b144118c2f2fa9cf072e6ff934d991d6ba49259e))
+
 ## 0.0.1 (2026-05-12)
 
 ### Features
