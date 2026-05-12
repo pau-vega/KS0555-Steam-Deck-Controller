@@ -98,6 +98,7 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 | 260512-001 | Add metadata to the flatpak package | 2026-05-12 |
 | 260511-001 | Fix D-pad not working in gaming mode | 2026-05-11 |
 | 260510-001 | Docker-based flatpak local build | 2026-05-10 |
+| 260513-030 | Switch release-please to PAT for CI triggers on PRs | 2026-05-12 |
 
 ## Session Continuity
 
