@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Progressive Analog Control
 status: planning
-last_updated: "2026-05-13T14:00:00.000Z"
-last_activity: 2026-05-13
+last_updated: "2026-05-13T06:57:46.805Z"
+last_activity: 2026-05-13 — v2.2 roadmap created (Phases 20-25)
 progress:
-  total_phases: 6
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # STATE.md
@@ -106,6 +105,7 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 6 phases for Progressive Analog Control. Core changes: Rust analog engine (`gamepad/analog.rs`), dual-event strategy (`gamepad-state` + `gamepad-direction`), new React hooks + display component, BLE rate limiting, hardware validation. Zero new dependencies. Phase 20 (protocol verification) is a mandatory gating phase requiring physical robot access.
 
 **Key architectural decisions:**
+
 - Speed computation in Rust (not frontend) — avoids IPC latency
 - Dual-event strategy — `gamepad-state` (new) + `gamepad-direction` (old, unchanged)
 - New `AnalogDisplay` mounts as sibling in `main.tsx` — locked files untouched
@@ -125,6 +125,6 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 
 ## Session Continuity
 
-Last session: 2026-05-13
+Last session: 2026-05-13T06:57:46.797Z
 Resume: v2.2 roadmap created (Phases 20-25). Phase 20 (Protocol Verification) must execute first — it's the gating phase that requires physical robot + Steam Deck access.
 Next action: `/gsd-plan-phase 20` to plan the protocol verification phase
