@@ -5,7 +5,7 @@ milestone_name: Tauri Migration + Flatpak Packaging
 status: archived
 stopped_at: All 14 phases complete. Milestones archived.
 last_updated: "2026-05-14"
-last_activity: 2026-05-14 -- quick 260514-001: harden flatpak release upload
+last_activity: 2026-05-14 -- quick 260514-no4: connect to any gamepad controller
 progress:
   total_phases: 14
   completed_phases: 14
@@ -91,8 +91,8 @@ Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, hook rewrites, Stea
 Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flatpak), documentation rewrite, validated end-to-end CI run. All 9 phases complete.
 
 ### Quick Tasks (v2.1)
-| # | Description | Date |
-|---|-------------|------|
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
 | 260512-002 | Setup release-please and reset to 0.0.1 | 2026-05-12 |
 | 260512-003 | Justfile best practices for monorepo | 2026-05-12 |
 | 260512-001 | Add metadata to the flatpak package | 2026-05-12 |
@@ -100,9 +100,10 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 | 260510-001 | Docker-based flatpak local build | 2026-05-10 |
 | 260513-030 | Switch release-please to PAT for CI triggers on PRs | 2026-05-12 |
 | 260514-001 | Harden flatpak release upload (fail-on-missing + verify bundle) | 2026-05-14 |
+| 260514-no4 | connect to any gamepad controller, not just steam deck—support 8bitdo ultimate 2 and others | 2026-05-14 | 8ea758c5 | [260514-no4-connect-to-any-gamepad-controller-not-ju](./quick/260514-no4-connect-to-any-gamepad-controller-not-ju/) |
 
 ## Session Continuity
 
-Last session: 2026-05-12
+Last session: 2026-05-14
 Resume: Milestones archived. Ready for next milestone planning.
 Next action: `/gsd-new-milestone` to start next cycle
