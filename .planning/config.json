@@ -1,14 +1,12 @@
 {
   "mode": "yolo",
   "granularity": "coarse",
-  "parallelization": true,
-  "commit_docs": true,
   "model_profile": "balanced",
   "runtime": "opencode",
   "model_profile_overrides": {
     "opencode": {
-      "opus": "deepseek-v4-pro",
-      "sonnet": "glm-5.1",
+      "opus": "kimi-k2.6",
+      "sonnet": "deepseek-v4-pro",
       "haiku": "deepseek-v4-flash"
     }
   },
@@ -67,6 +65,10 @@
     "escalate_on_failure": true,
     "max_escalations": 1
   },
+  "planning": {
+    "commit_docs": true,
+    "search_gitignored": false
+  },
   "workflow": {
     "research": true,
     "plan_check": true,
@@ -89,19 +91,46 @@
     "cross_ai_execution": false,
     "cross_ai_timeout": 600,
     "plan_review_convergence": false,
-    "_auto_chain_active": false
+    "max_discuss_passes": 5
+  },
+  "parallelization": {
+    "enabled": true,
+    "plan_level": true,
+    "task_level": false,
+    "skip_checkpoints": true,
+    "max_concurrent_agents": 3,
+    "min_plans_for_parallel": 2
   },
   "intel": {
     "enabled": false
   },
   "graphify": {
-    "enabled": true
+    "enabled": false
   },
   "git": {
     "branching_strategy": "milestone"
   },
   "hooks": {
-    "context_warnings": true
+    "context_warnings": true,
+    "workflow_guard": false
+  },
+  "gates": {
+    "confirm_project": true,
+    "confirm_phases": true,
+    "confirm_roadmap": true,
+    "confirm_breakdown": true,
+    "confirm_plan": true,
+    "execute_next_plan": true,
+    "issues_review": true,
+    "confirm_transition": true
+  },
+  "safety": {
+    "always_confirm_destructive": true,
+    "always_confirm_external_services": true
+  },
+  "features": {
+    "thinking_partner": false,
+    "global_learnings": false
   },
   "review": {
     "models": {
