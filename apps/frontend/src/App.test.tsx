@@ -52,7 +52,7 @@ describe("App", () => {
   it("displays ControlPad component", () => {
     const { container } = render(<App />)
     const buttons = container.querySelectorAll("button")
-    expect(buttons.length).toBe(5)
+    expect(buttons.length).toBe(6)
   })
 
   it("displays last command section", () => {
