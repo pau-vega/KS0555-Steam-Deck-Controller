@@ -1,6 +1,6 @@
 {
   "name": "ks0555-steam-deck-controller",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Steam Deck Bluetooth robot controller — Tauri v2 desktop app (Rust BLE via btleplug, gamepad via gilrs)",
   "scripts": {

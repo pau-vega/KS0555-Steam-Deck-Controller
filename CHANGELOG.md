@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/compare/0.0.1...0.0.2) (2026-05-14)
+
+
+### Documentation
+
+* **agents:** symlink CLAUDE.md to AGENTS.md ([a0afdc9](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/a0afdc93a63f154300b24cf2a8c565b7ea060982))
+* **agents:** symlink CLAUDE.md to AGENTS.md ([f17306a](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/f17306ab3d6b9a0b5fc67e4edb95b652dc26970d))
+
 ## 0.0.1 (2026-05-14)
 
 
