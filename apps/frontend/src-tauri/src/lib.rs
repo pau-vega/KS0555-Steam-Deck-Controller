@@ -1,7 +1,7 @@
 pub mod ble;
 pub mod gamepad;
 
-use ble::{ble_connect, ble_disconnect, ble_send, setup_event_listener, BleState};
+use ble::{ble_connect, ble_disconnect, ble_send, get_invert_state, toggle_invert, setup_event_listener, BleState};
 use gamepad::setup_gamepad_monitor;
 use tauri::Manager;
 
@@ -52,9 +52,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            ble_connect,    // BLE-01
-            ble_disconnect, // BLE-02
-            ble_send,       // BLE-03
+            ble_connect,       // BLE-01
+            ble_disconnect,    // BLE-02
+            ble_send,          // BLE-03
+            toggle_invert,     // INV-01
+            get_invert_state,  // INV-02
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
