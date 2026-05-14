@@ -178,11 +178,12 @@ docker-flatpak-build deb_path="":
 
 # Build .deb + .flatpak entirely in Docker (no local Rust/Tauri required)
 # Works on macOS and Linux — single command, full CI pipeline
+# Target = Steam Deck (x86_64). Force linux/amd64 so Apple Silicon hosts don't produce aarch64 artifacts.
 [group('flatpak')]
 docker-build-all:
-    @echo "→ Building .deb in Docker..."
-    docker build -t robot-controller-builder -f flatpak/Dockerfile .
+    @echo "→ Building .deb in Docker (linux/amd64)..."
+    docker build --platform linux/amd64 -t robot-controller-builder -f flatpak/Dockerfile .
     @echo "→ Running flatpak-builder (needs --privileged for bubblewrap)..."
-    docker run --rm --privileged -v $(pwd):/repo robot-controller-builder
+    docker run --rm --platform linux/amd64 --privileged -v $(pwd):/repo robot-controller-builder
     @echo ""
     @echo "✓ Flatpak bundle: RobotController-x86_64.flatpak"

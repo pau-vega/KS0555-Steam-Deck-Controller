@@ -67,12 +67,14 @@ echo "→ Copied deb to $DEB_COPY"
 echo ""
 echo "→ Pulling container image (first run may take a few minutes)..."
 echo "   Image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48"
-docker pull ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+# Target = Steam Deck (x86_64). Force linux/amd64 so Apple Silicon hosts don't produce aarch64 artifacts.
+docker pull --platform linux/amd64 ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
 
 echo ""
 echo "→ Running flatpak-builder inside Docker..."
 
 docker run --rm \
+    --platform linux/amd64 \
     --privileged \
     -v "${REPO_ROOT}:/workspace" \
     -w /workspace \
