@@ -5,6 +5,17 @@ import { useGamepad } from "./use-gamepad"
 
 vi.stubGlobal("__TAURI_INTERNALS__", {})
 
+const { mockToggleInvert } = vi.hoisted(() => ({
+  mockToggleInvert: vi.fn(),
+}))
+
+vi.mock("./use-invert-controls", () => ({
+  useInvertControls: vi.fn(() => ({
+    inverted: false,
+    toggleInvert: mockToggleInvert,
+  })),
+}))
+
 const { listenerCallbacks, mockUnlistenDirection, mockUnlistenConnected, mockUnlistenDisconnected } = vi.hoisted(() => {
   const callbacks: Record<string, (payload: unknown) => void> = {}
   return {
@@ -144,6 +155,118 @@ describe("useGamepad", () => {
   it("isDeck remains in return for backward compat", () => {
     const { result } = renderHook(() => useGamepad())
     expect(result.current.isDeck).toBe(false)
+  })
+
+  it("returns inverted and toggleInvert in hook shape", () => {
+    const { result } = renderHook(() => useGamepad())
+    expect(result.current).toHaveProperty("inverted")
+    expect(result.current).toHaveProperty("toggleInvert")
+    expect(result.current.inverted).toBe(false)
+  })
+
+  it("existing return fields still present", () => {
+    const { result } = renderHook(() => useGamepad())
+    expect(result.current).toHaveProperty("direction")
+    expect(result.current).toHaveProperty("gamepadConnected")
+    expect(result.current).toHaveProperty("gamepadName")
+    expect(result.current).toHaveProperty("isDeck")
+  })
+
+  describe("inversion", () => {
+    beforeEach(async () => {
+      vi.clearAllMocks()
+      Object.keys(listenerCallbacks).forEach((key) => delete listenerCallbacks[key])
+    })
+
+    it("inverted=false: F direction stays F", async () => {
+      const useInvertControls = await import("./use-invert-controls")
+      vi.mocked(useInvertControls.useInvertControls).mockReturnValue({
+        inverted: false,
+        toggleInvert: mockToggleInvert,
+      })
+
+      const { result } = renderHook(() => useGamepad())
+      await act(async () => {})
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+      })
+      expect(result.current.direction).toBe("F")
+    })
+
+    it("inverted=false: B direction stays B", async () => {
+      const useInvertControls = await import("./use-invert-controls")
+      vi.mocked(useInvertControls.useInvertControls).mockReturnValue({
+        inverted: false,
+        toggleInvert: mockToggleInvert,
+      })
+
+      const { result } = renderHook(() => useGamepad())
+      await act(async () => {})
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "B" })
+      })
+      expect(result.current.direction).toBe("B")
+    })
+
+    it("inverted=true: F direction becomes B", async () => {
+      const useInvertControls = await import("./use-invert-controls")
+      vi.mocked(useInvertControls.useInvertControls).mockReturnValue({
+        inverted: true,
+        toggleInvert: mockToggleInvert,
+      })
+
+      const { result } = renderHook(() => useGamepad())
+      await act(async () => {})
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+      })
+      expect(result.current.direction).toBe("B")
+    })
+
+    it("inverted=true: B direction becomes F", async () => {
+      const useInvertControls = await import("./use-invert-controls")
+      vi.mocked(useInvertControls.useInvertControls).mockReturnValue({
+        inverted: true,
+        toggleInvert: mockToggleInvert,
+      })
+
+      const { result } = renderHook(() => useGamepad())
+      await act(async () => {})
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "B" })
+      })
+      expect(result.current.direction).toBe("F")
+    })
+
+    it("inverted=true: L, R, S pass through unchanged", async () => {
+      const useInvertControls = await import("./use-invert-controls")
+      vi.mocked(useInvertControls.useInvertControls).mockReturnValue({
+        inverted: true,
+        toggleInvert: mockToggleInvert,
+      })
+
+      const { result } = renderHook(() => useGamepad())
+      await act(async () => {})
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "L" })
+      })
+      expect(result.current.direction).toBe("L")
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "R" })
+      })
+      expect(result.current.direction).toBe("R")
+
+      act(() => {
+        listenerCallbacks["gamepad-direction"]!({ direction: "S" })
+      })
+      expect(result.current.direction).toBe("S")
+    })
   })
 
   afterEach(() => {
