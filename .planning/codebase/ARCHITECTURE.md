@@ -1,289 +1,334 @@
-<!-- refreshed: 2026-05-05 -->
+<!-- refreshed: 2026-05-14 -->
 # Architecture
 
-**Analysis Date:** 2026-05-05
+**Analysis Date:** 2026-05-14
 
 ## System Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                  Steam Deck Controller UI                    │
-│              `apps/frontend/src/app.tsx`                    │
-├──────────────────┬──────────────────┬───────────────────────┤
-│   ControlPad     │    StatusBar     │   App State Mgmt      │
-│  `components/`  │  `components/`  │  `app.tsx` hooks     │
-└────────┬─────────┴────────┬─────────┴──────────┬────────────┘
-         │                  │                     │
-         ▼                  ▼                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend Hooks Layer                      │
-│              `hooks/use-bluetooth.ts`                        │
-│              `hooks/use-gamepad.ts`                          │
-└────────┬──────────────────────────────┬─────────────────────┘
-         │                              │
-         │ WebSocket (ws://localhost:3001/ws)
-         │                              │
-         ▼                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Backend Server (Fastify)                  │
-│              `apps/backend/src/index.ts`                    │
-├──────────────────┬──────────────────┬───────────────────────┤
-│  WebSocket API  │  Serial Port     │  Auto-Reconnect       │
-│  `/ws` route    │  `/dev/rfcomm0` │  Logic                │
-└──────────────────┴──────────────────┴───────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 Serial Port (Bluetooth RFCOMM)              │
-│               `serialConfig.path` in backend                 │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       WebView (WebKitGTK / WKWebView)                    │
+│                                                                          │
+│  React 19 App (StrictMode + ErrorBoundary)                               │
+│    `apps/frontend/src/main.tsx` → `apps/frontend/src/app.tsx`            │
+│                                                                          │
+│  ┌──────────────────────┐  ┌──────────────────────┐                      │
+│  │ useGamepad           │  │ useBluetooth          │  ┌─────────────┐    │
+│  │ (event subscriber)   │  │ (command + events)    │  │ ControlPad  │    │
+│  │ `hooks/use-gamepad`  │  │ `hooks/use-bluetooth` │  │ StatusBar   │    │
+│  └──────────┬───────────┘  └──────────┬────────────┘  └──────┬──────┘    │
+│             │                          │                      │           │
+└─────────────┼──────────────────────────┼──────────────────────┼──────────┘
+              │ listen("gamepad-*")      │ invoke("ble_*")       │ onClick
+              │                          │ listen("ble-state-*") │
+              ▼                          ▼                      ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Tauri v2 IPC Boundary                           │
+│                  (invoke_handler + AppHandle::emit)                      │
+└─────────────────────────────────────────────────────────────────────────┘
+              │                          │
+              │ events                   │ commands
+              ▼                          ▼
+┌──────────────────────────┐  ┌──────────────────────────────────────────┐
+│ gamepad poll thread      │  │  Rust BLE commands                       │
+│ `src-tauri/src/gamepad/  │  │  `src-tauri/src/ble/mod.rs`              │
+│   mod.rs`                │  │    • ble_connect   • ble_disconnect      │
+│  • std::thread::spawn    │  │    • ble_send                            │
+│  • gilrs::next_event()   │  │  + setup_event_listener (DeviceDisconn.) │
+│  • deadzone 0.15         │  │  + BleState (Arc<Mutex<Option<Periph>>>) │
+│  • emit("gamepad-*")     │  │    `src-tauri/src/ble/state.rs`          │
+└──────────┬───────────────┘  └────────────────────┬─────────────────────┘
+           │ /dev/input/event*                     │ D-Bus / CoreBluetooth
+           ▼                                       ▼
+   ┌───────────────┐                  ┌────────────────────────────────┐
+   │ evdev / IOKit │                  │ BlueZ (Linux)                  │
+   │ (gilrs)       │                  │ CoreBluetooth (macOS)          │
+   └───────────────┘                  │ via `btleplug` 0.12            │
+                                      └──────────────┬─────────────────┘
+                                                     │ GATT write
+                                                     │ char 0000ffe1-…
+                                                     ▼
+                                       ┌──────────────────────────────┐
+                                       │ BT24 module on KS0555 robot  │
+                                       │ (Arduino + DX-BT24 UART)     │
+                                       │  receives F/B/L/R/S          │
+                                       └──────────────────────────────┘
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
 |-----------|----------------|------|
-| App | Main application logic, state coordination | `apps/frontend/src/app.tsx` |
-| ControlPad | Directional button pad UI component | `apps/frontend/src/components/control-pad.tsx` |
-| StatusBar | Connection status display | `apps/frontend/src/components/status-bar.tsx` |
-| useBluetooth | Web Bluetooth API integration | `apps/frontend/src/hooks/use-bluetooth.ts` |
-| useGamepad | Steam Deck gamepad polling | `apps/frontend/src/hooks/use-gamepad.ts` |
-| Backend Server | WebSocket server, serial port communication | `apps/backend/src/index.ts` |
+| `main` (Rust) | Set `WEBKIT_DISABLE_COMPOSITING_MODE=1` before any WebKit init, then delegate to `app_lib::run()`. Thin shim required for mobile builds. | `apps/frontend/src-tauri/src/main.rs` |
+| `app_lib::run` | Detect Flatpak, fix D-Bus socket on host SteamOS, manage `BleState`, register Tauri commands, spawn BLE/gamepad listeners. | `apps/frontend/src-tauri/src/lib.rs` |
+| `ble` module | Scan for `BT24`, connect via `btleplug`, write F/B/L/R/S to characteristic `0000ffe1-…`, emit `ble-state-changed`. | `apps/frontend/src-tauri/src/ble/mod.rs` |
+| `BleState` | Shared `Arc<Mutex<Option<Peripheral>>>` managed via `app.manage()`; cloned into the disconnect-event listener. | `apps/frontend/src-tauri/src/ble/state.rs` |
+| `gamepad` module | Background `std::thread` polling `gilrs` events, computing direction (D-pad → L stick fallback) with 0.15 deadzone, emitting on change only. | `apps/frontend/src-tauri/src/gamepad/mod.rs` |
+| `main.tsx` (React) | Mount React 19 root inside `<StrictMode>` and `<ErrorBoundary>`. Only entry point referenced by `index.html`. | `apps/frontend/src/main.tsx` |
+| `App` component | Compose hooks + components, dispatch direction changes from gamepad to BLE `send`. Locked file (CI enforced). | `apps/frontend/src/app.tsx` |
+| `useGamepad` | Subscribe to `gamepad-direction` / `gamepad-connected` / `gamepad-disconnected` Tauri events; expose `{ direction, gamepadConnected, isDeck }`. | `apps/frontend/src/hooks/use-gamepad.ts` |
+| `useBluetooth` | Dual-mode: Tauri `invoke` + event listener, with Web Bluetooth fallback for non-Tauri runtimes. | `apps/frontend/src/hooks/use-bluetooth.ts` |
+| `ControlPad` | 3×3 directional pad mapped to `Direction` literals. | `apps/frontend/src/components/control-pad.tsx` |
+| `StatusBar` | Render BLE + gamepad connectivity pills. | `apps/frontend/src/components/status-bar.tsx` |
+| `ErrorBoundary` | Class-component React error fence around `<App />`. | `apps/frontend/src/components/error-boundary.tsx` |
 
 ## Pattern Overview
 
-**Overall:** Client-Server architecture with real-time WebSocket communication
+**Overall:** Single-binary Tauri v2 desktop app with a feature-sliced Rust backend and a hooks-driven React 19 frontend. IPC follows the standard Tauri command/event split — commands (`invoke`) for imperative actions, events (`emit` → `listen`) for state changes from Rust to the WebView.
 
 **Key Characteristics:**
-- Monorepo with pnpm workspaces and Turbo task orchestration
-- React frontend with hooks-based state management
-- Fastify backend with WebSocket support for real-time command streaming
-- Serial port communication for Bluetooth RFCOMM connection to robot
-- TypeScript strict mode across all packages with shared tsconfig
-- Command validation via whitelist pattern (F, B, L, R, S commands)
+- **Single process:** No separate web/API server. `apps/backend/` is empty (deprecated during Tauri migration; the legacy Fastify backend was removed).
+- **Rust owns hardware:** All BLE (`btleplug`) and gamepad (`gilrs`) handles live on the Rust side; the frontend never touches device APIs in production (Web Bluetooth path exists as a non-Tauri fallback only).
+- **Event-driven UI:** React hooks subscribe to Rust-emitted events and reduce them to state; commands are fire-and-forget (`void invoke(...)` for `ble_send`).
+- **Feature-based Rust modules:** `ble/` and `gamepad/` are top-level modules each owning their commands + helpers + tests.
+- **Single shared piece of state:** `BleState` in `app.manage()` — no global mutables on the gamepad side (last-direction guard is thread-local to the gamepad thread).
 
 ## Layers
 
-**Workspace Root:**
-- Purpose: Orchestrate builds, linting, testing, and dev across all workspaces
-- Location: `/Users/pauvelascogarrofe/Documents/KS0555-Steam-Deck-Controller`
-- Contains: Root `package.json`, Turbo configuration, shared tooling
-- Depends on: pnpm workspaces, Turbo, shared dev dependencies
-- Used by: All workspace packages through npm/pnpm resolution
+**Rust binary entry (`main.rs`):**
+- Purpose: minimum-viable entrypoint required by Tauri's mobile build flow.
+- Location: `apps/frontend/src-tauri/src/main.rs`
+- Contains: env var fix + call to `app_lib::run()`.
+- Depends on: `app_lib`.
+- Used by: `cargo tauri build` / `cargo tauri dev`.
 
-**Packages (Shared Configurations):**
-- Purpose: Shared, reusable configurations for TypeScript and ESLint
-- Location: `/packages`
-- Contains: tsconfig variants, ESLint configurations
-- Depends on: TypeScript, ESLint plugins
-- Used by: Apps and other packages via workspace dependencies
+**Rust library / app composition (`lib.rs`):**
+- Purpose: side-effect setup, Tauri Builder wiring.
+- Location: `apps/frontend/src-tauri/src/lib.rs`
+- Contains: `in_flatpak()`, D-Bus gate, `tauri::Builder` chain, `invoke_handler!` registration, `app.manage(BleState)`, listener bootstraps.
+- Depends on: `ble`, `gamepad`, `tauri`.
+- Used by: `main.rs`, integration tests in `src-tauri/tests/`.
 
-**TypeScript Config Package:**
-- Purpose: Provide consistent TypeScript configuration across monorepo
-- Location: `packages/tsconfig/`
-- Contains: `tsconfig.json` (base), `tsconfig.node.json`, `tsconfig.react.json`
-- Depends on: `@tsconfig/node22` (implied by target ES2022)
-- Used by: All apps and packages via `extends` field
+**Rust BLE feature module (`ble/`):**
+- Purpose: BlueZ/CoreBluetooth scan-connect-write lifecycle for the BT24 peripheral.
+- Location: `apps/frontend/src-tauri/src/ble/`
+- Contains: three `#[tauri::command]`s (`ble_connect`, `ble_disconnect`, `ble_send`), `setup_event_listener` background task, `find_bt24` helper, `BleState` struct.
+- Depends on: `btleplug`, `tokio`, `futures`, `uuid`, `tauri`.
+- Used by: `lib.rs` (via `pub use`), React `useBluetooth` (via IPC).
 
-**ESLint Config Package:**
-- Purpose: Provide consistent linting rules across monorepo
-- Location: `packages/eslint-config/`
-- Contains: `src/node.ts` (Node.js config), `src/react.ts` (React config)
-- Depends on: typescript-eslint, eslint-plugin-react, eslint-plugin-perfectionist
-- Used by: All apps via workspace dependencies
+**Rust gamepad feature module (`gamepad/`):**
+- Purpose: input polling + direction inference.
+- Location: `apps/frontend/src-tauri/src/gamepad/mod.rs`
+- Contains: `setup_gamepad_monitor` (spawns OS thread), `compute_direction`, `get_direction_from_axes`, `Direction` enum, unit tests.
+- Depends on: `gilrs`, `serde_json`, `tauri`.
+- Used by: `lib.rs::run`.
 
-**Frontend Application:**
-- Purpose: React-based controller interface for Steam Deck
-- Location: `apps/frontend/`
-- Contains: UI components, hooks, Vite config, Vitest tests
-- Depends on: React 19, Vite 8, Tailwind CSS 4, Web Bluetooth API
-- Used by: End users controlling the robot
+**React app shell:**
+- Purpose: mount + error boundary; non-business-logic.
+- Location: `apps/frontend/src/main.tsx`, `apps/frontend/src/components/error-boundary.tsx`.
+- Depends on: `react`, `react-dom`.
 
-**Backend Server:**
-- Purpose: Bridge between WebSocket clients and serial port (robot)
-- Location: `apps/backend/`
-- Contains: Fastify server, WebSocket handling, serial port communication
-- Depends on: Fastify, @fastify/websocket, serialport, ws
-- Used by: Frontend app via WebSocket connection
+**React feature composition (`app.tsx`):**
+- Purpose: glue hooks + UI components; map gamepad direction → BLE send.
+- Location: `apps/frontend/src/app.tsx`
+- Contains: top-level layout, `prevDirection` ref, `sendCommand` callback.
+- Constraint: **locked by CI** (`git diff --exit-code -- apps/frontend/src/app.tsx`).
+- Depends on: `useBluetooth`, `useGamepad`, `ControlPad`, `StatusBar`, `Direction` type.
+
+**React hooks layer:**
+- Purpose: Tauri IPC adapters that hide `invoke` / `listen` behind ergonomic state hooks.
+- Location: `apps/frontend/src/hooks/`
+- Contains: `use-bluetooth.ts`, `use-gamepad.ts`.
+- Depends on: `@tauri-apps/api/core`, `@tauri-apps/api/event`, `react`.
+
+**React component layer:**
+- Purpose: presentational components; no IPC, no state ownership beyond what's passed in.
+- Location: `apps/frontend/src/components/`
+- Contains: `control-pad.tsx`, `status-bar.tsx`, `error-boundary.tsx`.
+
+**Workspace tooling layer:**
+- Purpose: shared TS/lint configs.
+- Location: `packages/tsconfig/`, `packages/eslint-config/`.
+- Used by: `apps/frontend/tsconfig.json` (extends `@ks0555/tsconfig/tsconfig.react.json`), `apps/frontend/package.json` lint script.
 
 ## Data Flow
 
-### Primary Request Path (User Input → Robot Movement)
+### Primary Request Path — Gamepad → Robot
 
-1. User presses button or moves gamepad stick (`apps/frontend/src/components/control-pad.tsx:27` or `apps/frontend/src/hooks/use-gamepad.ts:45`)
-2. Direction state updates in `useGamepad` hook or `ControlPad` onClick handler (`apps/frontend/src/app.tsx:11-13`)
-3. `useEffect` detects direction change, calls `sendCommand` (`apps/frontend/src/app.tsx:24-29`)
-4. `sendCommand` calls `useBluetooth.send()` with direction command (`apps/frontend/src/app.tsx:16-22`)
-5. Bluetooth characteristic writes value via Web Bluetooth API (`apps/frontend/src/hooks/use-bluetooth.ts:50`)
-6. Backend WebSocket receives message (`apps/backend/src/index.ts:76-100`)
-7. Command validated against whitelist (`apps/backend/src/index.ts:81`)
-8. Valid command written to serial port (`apps/backend/src/index.ts:88-95`)
-9. Serial port (RFCOMM Bluetooth) transmits to robot
+1. **Hardware event arrives at gilrs.** OS delivers an evdev event on `/dev/input/event*` (Linux) or an IOKit notification (macOS). (`apps/frontend/src-tauri/src/gamepad/mod.rs:141-211`)
+2. **Gamepad thread drains events.** A dedicated `std::thread::spawn`'d loop calls `gilrs.next_event()` non-blockingly and matches on `EventType::{Connected, Disconnected, AxisChanged, ButtonChanged, ButtonPressed, ButtonReleased}`. (`apps/frontend/src-tauri/src/gamepad/mod.rs:119-214`)
+3. **Direction inference.** For axis/button changes on the tracked pad, `compute_direction` reads D-pad axes + buttons first, falls back to left stick X/Y if D-pad is idle, then maps `(x, y)` through `get_direction_from_axes` with a 0.15 deadzone. (`apps/frontend/src-tauri/src/gamepad/mod.rs:28-112`)
+4. **Change guard.** A thread-local `last_direction: Option<Direction>` suppresses duplicate emits — `gamepad-direction` only fires on transitions. (`apps/frontend/src-tauri/src/gamepad/mod.rs:182-190`)
+5. **Tauri event emit.** `app_handle.emit("gamepad-direction", { direction: "F"|"B"|"L"|"R"|"S" })`. (`apps/frontend/src-tauri/src/gamepad/mod.rs:188`)
+6. **Frontend subscriber.** `useGamepad` listens with `listen<{ direction: Direction }>("gamepad-direction", ...)` and calls `setDirection(event.payload.direction)`. (`apps/frontend/src/hooks/use-gamepad.ts:30-34`)
+7. **App.tsx reacts.** `useEffect([direction])` compares against `prevDirection.current`; on change calls `sendCommand(direction)`. (`apps/frontend/src/app.tsx:24-29`)
+8. **Hook invokes BLE.** `useBluetooth.send` calls `void invoke("ble_send", { command: data })` (or falls back to `characteristic.writeValue` in Web Bluetooth mode). (`apps/frontend/src/hooks/use-bluetooth.ts:124-133`)
+9. **Tauri IPC routes to Rust.** Registered in `tauri::generate_handler![ble_connect, ble_disconnect, ble_send]`. (`apps/frontend/src-tauri/src/lib.rs:54-58`)
+10. **Rust BLE write.** `ble_send` validates the command is one character, fetches the peripheral from `BleState`, ensures services are discovered, finds the `0000ffe1-…` characteristic, and writes the UTF-8 byte with `WriteType::WithoutResponse`. (`apps/frontend/src-tauri/src/ble/mod.rs:175-218`)
+11. **BT24 module delivers UART byte to the Arduino**, which actuates motors. (Off-process; external hardware.)
 
-### WebSocket Connection Flow
+### BLE Connect Flow
 
-1. Frontend calls `useBluetooth.connect()` (`apps/frontend/src/hooks/use-bluetooth.ts:14-45`)
-2. Web Bluetooth API requests device with filter "BT24" (`apps/frontend/src/hooks/use-bluetooth.ts:22-25`)
-3. GATT server connects, gets service and characteristic (`apps/frontend/src/hooks/use-bluetooth.ts:37-39`)
-4. Connection state updates to "connected" (`apps/frontend/src/hooks/use-bluetooth.ts:41`)
-5. Backend WebSocket route `/ws` accepts connection (`apps/backend/src/index.ts:69`)
-6. Server sends connection confirmation (`apps/backend/src/index.ts:74`)
+1. User clicks "Connect Bluetooth" → `connect()` from `useBluetooth`. (`apps/frontend/src/app.tsx:38-42`)
+2. Hook calls `invoke("ble_connect")`. (`apps/frontend/src/hooks/use-bluetooth.ts:75-83`)
+3. `ble_connect` emits `ble-state-changed: "connecting"`, builds `Manager::new()`, picks the first adapter, validates `CentralState::PoweredOn`, and starts a scan with a 10 s timeout. (`apps/frontend/src-tauri/src/ble/mod.rs:31-105`)
+4. Loop: poll known peripherals + subscribe to `adapter.events()`; first peripheral whose `local_name` contains `"BT24"` is connected, services discovered, stored in `BleState`, and `ble-state-changed: "connected"` is emitted.
+5. Hook subscriber updates React state via `listen<string>("ble-state-changed", ...)`. (`apps/frontend/src/hooks/use-bluetooth.ts:47-67`)
 
-### Reconnection Flow
+### Disconnect / Auto-Disconnect Flow
 
-1. WebSocket disconnects (`apps/backend/src/index.ts:102-114`)
-2. Backend sends "S" (stop) command to serial port for safety (`apps/backend/src/index.ts:105-113`)
-3. Serial port closes (`apps/backend/src/index.ts:52-56`)
-4. Backend auto-reconnects serial port after 2 seconds (`apps/backend/src/index.ts:55`)
-5. Frontend detects Bluetooth disconnect (`apps/frontend/src/hooks/use-bluetooth.ts:27-30`)
-6. State returns to "disconnected" (`apps/frontend/src/hooks/use-bluetooth.ts:28`)
+1. Either: user calls `ble_disconnect` (no UI surface currently — programmatic only) which disconnects, clears `BleState`, emits `"disconnected"`.
+2. Or: `setup_event_listener` (spawned at app startup) receives `CentralEvent::DeviceDisconnected` from the platform adapter and emits `ble-state-changed: "disconnected"` without clearing peripheral state. (`apps/frontend/src-tauri/src/ble/mod.rs:128-151`)
+3. Hook listener flips `state` to `"disconnected"`.
 
 **State Management:**
-- Frontend: React useState/useRef hooks for local component state
-- Backend: Module-level variables for serialPort instance
-- No centralized state management library (Redux, Zustand, etc.)
-- Props passed down from App to components
-- Commands flow up via callbacks (onCommand pattern)
+- React state is local per hook (`useState` in `useGamepad`, `useBluetooth`). No global store, no context, no Redux.
+- Rust BLE state lives in `BleState { peripheral: Arc<Mutex<Option<Peripheral>>> }`, registered with `app.manage()` and accessed in commands via `state: tauri::State<'_, BleState>`. (`apps/frontend/src-tauri/src/ble/state.rs`)
+- Gamepad state is intrinsic to the polling thread — `connected_gamepad_id` and `last_direction` are local variables in the `loop`, never read by other code.
 
 ## Key Abstractions
 
-**Direction Type:**
-- Purpose: Type-safe command representation
-- Examples: `apps/frontend/src/types.ts`, `apps/backend/src/types.ts`
-- Pattern: String literal union type `"F" | "B" | "L" | "R" | "S"`
-- Used in both frontend and backend for type safety
+**`Direction` (TypeScript + Rust mirror):**
+- Purpose: enumerate the five robot commands.
+- TS: `export type Direction = "F" | "B" | "L" | "R" | "S"` in `apps/frontend/src/types.ts`.
+- Rust: private `enum Direction { F, B, L, R, S }` with `as_char` → `&'static str` in `apps/frontend/src-tauri/src/gamepad/mod.rs:7-26`.
+- Pattern: stringly-typed contract across the IPC boundary, kept in sync manually.
 
-**ValidCommand Validation:**
-- Purpose: Whitelist validation for incoming WebSocket commands
-- Location: `apps/backend/src/types.ts:20-22`
-- Pattern: Set-based lookup with type guard function
-- Prevents invalid commands from reaching serial port
+**Tauri command surface (`#[tauri::command]`):**
+- Purpose: the only sanctioned IPC entry points.
+- Examples: `apps/frontend/src-tauri/src/ble/mod.rs:31` (`ble_connect`), `:155` (`ble_disconnect`), `:175` (`ble_send`).
+- Pattern: each command is `async fn` returning `Result<(), String>` (string errors surfaced to JS as exceptions).
 
-**useBluetooth Hook:**
-- Purpose: Encapsulate Web Bluetooth API complexity
-- Location: `apps/frontend/src/hooks/use-bluetooth.ts`
-- Pattern: Custom hook with state machine (disconnected/connecting/connected/unsupported)
-- Returns: `{ connected, connecting, unsupported, connect, send }`
+**Tauri event channel:**
+- Purpose: Rust → JS push notifications.
+- Channels in use: `ble-state-changed`, `gamepad-connected`, `gamepad-disconnected`, `gamepad-direction`.
+- Pattern: `app_handle.emit(channel, payload)` on the Rust side; `listen<T>(channel, cb)` returning `UnlistenFn` on the JS side, with cleanup stored in a ref for unmount.
 
-**useGamepad Hook:**
-- Purpose: Poll Steam Deck gamepad and convert to directions
-- Location: `apps/frontend/src/hooks/use-gamepad.ts`
-- Pattern: requestAnimationFrame loop with deadzone filtering
-- Returns: `{ direction, gamepadConnected }`
+**Capability-gated permissions:**
+- Purpose: explicit allow-list for IPC + events per window.
+- Files: `apps/frontend/src-tauri/capabilities/main.json` (binds the `main` window to `ble-connect`, `ble-disconnect`, `ble-send`, `ble-state-changed`), `apps/frontend/src-tauri/permissions/ble.toml` (declares each permission), `apps/frontend/src-tauri/permissions/default.toml` (default set).
+
+**React hook adapter pattern:**
+- Purpose: encapsulate IPC subscription lifecycle so components stay declarative.
+- Examples: `useGamepad`, `useBluetooth`.
+- Pattern: `useEffect` sets up `listen` subscriptions in an async helper, stores returned `UnlistenFn`s in a `useRef` array (gamepad) or a single `unlisten` variable (bluetooth), uses a `cancelled` flag to guard against late callbacks, and tears down on cleanup.
+
+**Dual-runtime hook (`useBluetooth`):**
+- Purpose: support both Tauri and (theoretically) browser Web Bluetooth from one hook.
+- Pattern: an `isTauri()` guard checks `__TAURI_INTERNALS__` / `__TAURI__` on `window` and branches between `invoke` + Tauri events and `navigator.bluetooth.requestDevice` + GATT. The Web Bluetooth branch is dead code on the Steam Deck (WebKitGTK has no `navigator.bluetooth`) and exists primarily for non-Tauri browser testing. (`apps/frontend/src/hooks/use-bluetooth.ts:24-27, 87-122`)
 
 ## Entry Points
 
-**Development Mode (Turbo):**
-- Location: `turbo.json` → `pnpm dev`
-- Triggers: `turbo dev` runs parallel dev processes for all packages
-- Responsibilities: Coordinate workspace development builds with watch mode
+**Rust binary (`main` fn):**
+- Location: `apps/frontend/src-tauri/src/main.rs`
+- Triggers: `cargo tauri dev`, `cargo tauri build`, the bundled `robot-controller` executable.
+- Responsibilities: set `WEBKIT_DISABLE_COMPOSITING_MODE=1` (must precede any WebKit init — fixes blank white screen on Gamescope/X11), call `app_lib::run()`.
 
-**Frontend Development Server:**
+**Rust app composition (`pub fn run`):**
+- Location: `apps/frontend/src-tauri/src/lib.rs:16-61`
+- Triggers: invoked from `main()`; also `#[cfg_attr(mobile, tauri::mobile_entry_point)]` for mobile targets.
+- Responsibilities: Flatpak detection, conditional D-Bus socket rewrite (skip when in Flatpak), build the Tauri app, register `BleState`, spawn `setup_event_listener`, spawn `setup_gamepad_monitor`, mount the three BLE commands, run.
+
+**Frontend HTML entry:**
+- Location: `apps/frontend/index.html`
+- Triggers: served by Vite on `http://localhost:5173` in dev, packaged as `dist/index.html` and loaded by the WebView in production.
+- Responsibilities: provide `<div id="root">` and load `/src/main.tsx` as the module entry.
+
+**React entry (`main.tsx`):**
 - Location: `apps/frontend/src/main.tsx`
-- Triggers: `vite` command (via `pnpm dev:frontend`)
-- Responsibilities: Initialize React app, render App component with StrictMode
-- Code: Imports global styles, mounts App to DOM root element
+- Triggers: WebView loads `index.html` → `<script type="module" src="/src/main.tsx">`.
+- Responsibilities: `createRoot(...).render(<StrictMode><ErrorBoundary><App /></ErrorBoundary></StrictMode>)` and import `index.css`.
 
-**Frontend Application:**
-- Location: `apps/frontend/src/app.tsx`
-- Triggers: Called from main.tsx
-- Responsibilities: Coordinate Bluetooth connection, gamepad input, command sending
-- Pattern: Uses hooks for Bluetooth and gamepad, effects for direction change detection
+**Tauri command surface:**
+- Location: `apps/frontend/src-tauri/src/ble/mod.rs` (functions annotated `#[tauri::command]`).
+- Registered handler: `tauri::generate_handler![ble_connect, ble_disconnect, ble_send]` in `lib.rs:54-58`.
+- Triggers: `invoke("ble_connect")`, `invoke("ble_disconnect")`, `invoke("ble_send", { command })` from the WebView.
 
-**Backend Server:**
-- Location: `apps/backend/src/index.ts:138-152`
-- Triggers: `tsx src/index.ts` (via `pnpm dev:backend`)
-- Responsibilities: Start Fastify server, connect serial port, handle WebSocket
-- Conditional: Only starts if file run directly (not imported for testing)
-
-**Backend Factory Function:**
-- Location: `apps/backend/src/index.ts:21-135`
-- Triggers: Called by start() or by tests
-- Responsibilities: Create configured Fastify instance with WebSocket support
-- Exported: `export default function build()` for testability
+**Event channels (Rust → JS):**
+| Channel | Producer | Payload | Consumer |
+|---------|----------|---------|----------|
+| `ble-state-changed` | `ble::ble_connect`, `ble::ble_disconnect`, `setup_event_listener` | string: `"connecting"` \| `"connected"` \| `"disconnected"` | `useBluetooth` |
+| `gamepad-connected` | `gamepad::setup_gamepad_monitor` | `{ name: string }` | `useGamepad` |
+| `gamepad-disconnected` | `gamepad::setup_gamepad_monitor` | `{ name: string }` | `useGamepad` |
+| `gamepad-direction` | `gamepad::setup_gamepad_monitor` | `{ direction: "F"\|"B"\|"L"\|"R"\|"S" }` | `useGamepad` |
 
 ## Architectural Constraints
 
-- **Threading:** Single-threaded Node.js event loop in backend; browser main thread in frontend with requestAnimationFrame
-- **Global state:** Backend has module-level `serialPort` variable in `apps/backend/src/index.ts:28`; frontend state isolated to React components
-- **Circular imports:** Not applicable in this small codebase; clear dependency direction
-- **WebSocket connection:** One-way command flow (client → server); server sends JSON status messages only
-- **Serial port path:** Hardcoded to `/dev/rfcomm0` in `apps/backend/src/index.ts:16`; not configurable via env vars
-- **Bluetooth device filter:** Hardcoded to "BT24" device name in `apps/frontend/src/hooks/use-bluetooth.ts:23`
+- **Threading:**
+  - JS side is single-threaded (V8/JSC + React).
+  - Rust uses Tokio (`features = ["macros", "rt-multi-thread"]`) for BLE — `ble_connect` is `async fn`, `setup_event_listener` is launched via `tauri::async_runtime::spawn`.
+  - Gamepad polling intentionally uses **`std::thread::spawn`** (not `tauri::async_runtime::spawn`) because `gilrs::Gilrs` is not `Send` across an async runtime in the same way; `AppHandle` is cloned into the thread (`AppHandle` is `Send`). (`apps/frontend/src-tauri/src/gamepad/mod.rs:119-121`)
+- **Global state:**
+  - `BleState` is the only managed shared state. `Arc<Mutex<Option<Peripheral>>>` — held lock is short-lived (set/get) but uses `std::sync::Mutex`, so blocking inside an `await` while holding it would block the runtime. Current code is safe (lock dropped before `.await`).
+  - Module-level constants only: `BT24_NAME`, `SCAN_TIMEOUT`, `BT24_CHAR_UUID`, `DEADZONE`, `STEAM_DECK_VENDOR_ID`, `STEAM_DECK_PRODUCT_ID`.
+- **Circular imports:** None. The frontend layering is `main.tsx → app.tsx → hooks/* + components/*`; hooks import from `../types`; components import from `../types`. The Rust side is a strict tree from `lib.rs → ble/* + gamepad/*`.
+- **Locked files (CI-enforced):** `apps/frontend/src/app.tsx` — `git diff --exit-code` step in `.github/workflows/ci.yml:34-35`. Tracked components (`control-pad.tsx`, `status-bar.tsx`) referenced as locked by `src-tauri/ARCHITECTURE.md` but only `app.tsx` is currently enforced in CI.
+- **WebKitGTK compatibility:** Vite build target is `safari15` on non-Windows builds (`apps/frontend/vite.config.ts:24`) because modern JS features cause blank screens on the Steam Deck's WebKitGTK.
+- **Fixed dev port:** Vite must listen on `5173` (`strictPort: true`) to match `tauri.conf.json:devUrl`.
+- **CSP:** `default-src 'self'; connect-src 'self' http://localhost:5173 ws://localhost:5173; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'` — only local resources and the dev HMR socket. (`apps/frontend/src-tauri/tauri.conf.json:23`)
+- **Flatpak gate:** D-Bus socket rewrite logic in `lib.rs` is gated on `!in_flatpak()`. Inside Flatpak, the runtime proxies `DBUS_SYSTEM_BUS_ADDRESS`; overwriting it would break BLE silently. Belt-and-suspenders detection: both `FLATPAK_ID` env var and `/.flatpak-info` file. (`apps/frontend/src-tauri/src/lib.rs:8-34`)
+- **Single-binary deployment:** No separate backend service. `apps/backend/` exists as an empty directory; the Fastify backend was removed during the Tauri v2 migration.
 
 ## Anti-Patterns
 
-### useState for Previous Value Tracking
+### Mutating `app.tsx`
 
-**What happens:** Using `useRef` to track previous direction value alongside `useState` for current direction
-**Why it's wrong:** Creates two sources of truth; can lead to stale closures or missed updates
-**Do this instead:** Use `useRef` alone or combine with useEffect properly. Example from `apps/frontend/src/app.tsx:14`:
-```typescript
-const prevDirection = useRef<Direction>("S")
-// Later in effect:
-if (direction !== prevDirection.current) {
-  sendCommand(direction)
-  prevDirection.current = direction
-}
-```
+**What happens:** Direct edits to `apps/frontend/src/app.tsx` get past local hooks but fail CI.
+**Why it's wrong:** CI runs `git diff --exit-code -- apps/frontend/src/app.tsx` (`.github/workflows/ci.yml:34-35`). The composition layer is intentionally frozen so new behavior is added via new hooks/components or by extending existing hooks.
+**Do this instead:** Add a new hook in `apps/frontend/src/hooks/` or a new component in `apps/frontend/src/components/` and (separately) request an allow-listed change to `app.tsx`.
 
-### Mixed Type Definitions
+### Calling `navigator.bluetooth` directly in components
 
-**What happens:** Direction type defined in both `apps/frontend/src/types.ts` and `apps/frontend/src/hooks/use-gamepad.ts:3`
-**Why it's wrong:** Duplicate type definitions can drift apart; violates DRY principle
-**Do this instead:** Export from single location (`apps/frontend/src/types.ts`) and import in hooks
+**What happens:** A component reaches into `navigator.bluetooth` instead of going through `useBluetooth`.
+**Why it's wrong:** WebKitGTK (the Steam Deck WebView) has no `navigator.bluetooth`. The Web Bluetooth path in `use-bluetooth.ts:87-122` is a fallback for browser-based dev/test only. Production traffic must flow through `invoke("ble_*")`.
+**Do this instead:** Use `useBluetooth()` and call `send`/`connect`. The hook handles runtime detection (`isTauri()`).
 
-### Hardcoded Configuration
+### `tauri::async_runtime::spawn` for gilrs polling
 
-**What happens:** Serial port path, baud rate, Bluetooth device name, and server port are hardcoded
-**Why it's wrong:** Reduces flexibility; requires code changes for different environments
-**Do this instead:** Use environment variables with defaults. Example from `apps/backend/src/index.ts:10-18`:
-```typescript
-const serverConfig: ServerConfig = {
-  port: parseInt(process.env.PORT || "3001", 10),
-  host: process.env.HOST || "0.0.0.0",
-}
-// But serial config still hardcoded:
-const serialConfig: SerialPortConfig = {
-  path: "/dev/rfcomm0", // Should be process.env.SERIAL_PATH || "/dev/rfcomm0"
-  baudRate: 9600,
-}
-```
+**What happens:** Wrap the gamepad polling loop in `tauri::async_runtime::spawn(async move { ... })`.
+**Why it's wrong:** `Gilrs` initialization and `next_event` are blocking and not designed to be polled cooperatively. Mixing them with the async runtime leads to runtime starvation and missed events. Comments `D-32` / `D-33` in `gamepad/mod.rs:117-121` flag this explicitly.
+**Do this instead:** Use `std::thread::spawn(move || { let mut gilrs = Gilrs::new()...; loop { ... } })`. Clone `AppHandle` (it's `Send`) into the thread.
+
+### Emitting `gamepad-direction` on every poll
+
+**What happens:** Emit on every `EventType::AxisChanged` regardless of whether the inferred direction actually changed.
+**Why it's wrong:** Stick chatter would flood the IPC channel and cause `ble_send` calls every frame — exhausting BlueZ throughput and producing visible robot stutter. Comments `D-13` / `D-41` in `gamepad/mod.rs:182, 200` describe the direction-change guard.
+**Do this instead:** Keep the `last_direction: Option<Direction>` thread-local and only emit when `last_direction != Some(new_direction)`.
+
+### Holding the `BleState` lock across `.await`
+
+**What happens:** `let guard = state.peripheral.lock().unwrap(); peripheral.write(...).await;`
+**Why it's wrong:** `BleState` uses `std::sync::Mutex`, which is not async-aware. Holding the guard across `.await` blocks the Tokio worker and can deadlock if another command tries to acquire the lock.
+**Do this instead:** Use the existing `BleState::get` (which clones the `Peripheral` out of the `Mutex`) and operate on the clone. See `ble_send` for the pattern (`apps/frontend/src-tauri/src/ble/mod.rs:188-217`).
+
+### Skipping `tauri::generate_handler!` registration
+
+**What happens:** Add a new `#[tauri::command]` but forget to list it in `tauri::generate_handler![...]` and/or the capability files.
+**Why it's wrong:** The command will exist but `invoke()` returns "command not found" at runtime, and the Tauri ACL system blocks calls without an explicit permission. Both are silent on the Rust side.
+**Do this instead:** Always update three places: the command's `mod.rs`, the `generate_handler!` macro in `lib.rs:54-58`, and `permissions/*.toml` + `capabilities/main.json`.
 
 ## Error Handling
 
-**Strategy:** Graceful degradation with user feedback
+**Strategy:** Rust commands return `Result<(), String>`. Strings are formatted at the call site with context (e.g., `format!("Failed to discover BT24 services: {}", e)`). On the JS side, `invoke()` rejects the promise with an `Error` whose `message` is the string. `useBluetooth` catches and stores it in `error` state. Background tasks (`setup_event_listener`, gamepad thread) ignore most errors — they `let _ =` the result so a transient failure doesn't crash the listener.
 
 **Patterns:**
-- Frontend: Bluetooth state machine shows "connecting", "connected", "unsupported" states
-- Backend: try-catch around Bluetooth connection; auto-reconnect on serial port errors
-- WebSocket: Error events logged; invalid commands return error JSON messages
-- Serial port: Write errors logged; port auto-reconnects on close/error
+- **Validated input:** `ble_send` rejects multi-byte commands explicitly with `"Invalid command: '{}'. Must be single char (F/B/L/R/S)"`. (`apps/frontend/src-tauri/src/ble/mod.rs:181-186`)
+- **Domain errors over panics:** `state.get().ok_or_else(|| "Not connected to BT24 device".to_string())` returns a domain error instead of unwrapping. (`apps/frontend/src-tauri/src/ble/mod.rs:188-190`)
+- **Timeout-bounded scans:** `tokio::time::timeout(SCAN_TIMEOUT, ...)` returns a structured `"Scan timed out after 10 seconds..."` message with remediation guidance.
+- **React error fence:** `ErrorBoundary` catches render-time exceptions and renders a fallback. Hook async errors are caught locally and stored in `error` state.
+- **Event-loop suppression:** Disconnect listener uses `let _ = app.emit(...)` to avoid bubbling emit failures.
 
 ## Cross-Cutting Concerns
 
 **Logging:**
-- Frontend: No logging framework; uses browser console for debugging
-- Backend: Fastify built-in logger (`server.log.info/error`); plus custom `log()` and `logError()` functions with timestamps (`apps/backend/src/index.ts:31-37`)
+- Rust: `eprintln!` with `[ble]` / `[gamepad] / [debug]` prefixes (`apps/frontend/src-tauri/src/ble/mod.rs:113`, `gamepad/mod.rs:131, 138`, `lib.rs:24`). No structured logging crate.
+- TS: `console.error` for hook failures, `console.log` for Steam Deck detection breadcrumbs (`use-gamepad.ts:59`, `use-bluetooth.ts:60`).
 
 **Validation:**
-- Backend: `isValidCommand()` whitelist validation for WebSocket messages (`apps/backend/src/types.ts:20-22`)
-- Frontend: Relies on TypeScript types; no runtime validation
+- Single command validator in `ble_send` (length check).
+- TypeScript-level: `Direction` literal type prevents arbitrary strings from being sent through the hook surface.
+- Rust enum `Direction` prevents invalid emissions from the gamepad side.
 
-**Authentication:**
-- None: WebSocket server accepts all connections
-- Bluetooth: Web Bluetooth API handles device pairing; no application-level auth
+**Authentication:** None — local device, no auth surface.
 
-**Styling:**
-- Tailwind CSS 4 with utility classes
-- Custom CSS variables in `apps/frontend/src/index.css`
-- Class naming: `bg-surface`, `border-border`, `text-accent` (Tailwind theme)
+**IPC permissioning:** Tauri capabilities/permissions described above; enforced by the runtime.
 
-**Testing:**
-- Frontend: Vitest + jsdom + @testing-library/react (`apps/frontend/vitest.config.ts`)
-- Backend: Vitest + Node environment (`apps/backend/vitest.config.ts`)
-- Test files co-located with source: `*.test.tsx` and `*.test.ts`
+**Build-time enforcement:**
+- `app.tsx` lock (CI step).
+- Vite `strictPort: true` (fails fast if 5173 is taken).
+- `tsconfig` extends `@ks0555/tsconfig/tsconfig.react.json` (strict + `noUncheckedIndexedAccess`).
+- ESLint flat config at root (`eslint.config.ts`) plus React-specific config at `packages/eslint-config/src/react.ts`.
 
 ---
 
-*Architecture analysis: 2026-05-05*
+*Architecture analysis: 2026-05-14*

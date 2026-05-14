@@ -2,15 +2,12 @@ name: Build and Release
 
 on:
   push:
-    tags: ["v*", "*-v*"]
+    tags:
+      - "[0-9]*"
+      - "v*"
   pull_request:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      skip_release:
-        description: "Skip GitHub Release upload (build only)"
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       ref:
@@ -155,6 +152,7 @@ jobs:
           name: robot-controller-deb
           path: apps/frontend/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 7
+          if-no-files-found: error
 
       - name: configure flathub remote
         run: sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -172,9 +170,22 @@ jobs:
           flatpak build-export repo build-dir
           flatpak build-bundle repo RobotController-${VERSION}-x86_64.flatpak com.ks0555.robotcontroller
 
+      - name: verify flatpak bundle
+        run: |
+          BUNDLE="RobotController-${VERSION}-x86_64.flatpak"
+          test -f "$BUNDLE" || { echo "ERROR: flatpak bundle not produced at $BUNDLE"; exit 1; }
+          test -s "$BUNDLE" || { echo "ERROR: flatpak bundle is empty: $BUNDLE"; exit 1; }
+          SIZE=$(stat -c%s "$BUNDLE")
+          echo "Flatpak bundle: $BUNDLE ($SIZE bytes)"
+          if [ "$SIZE" -lt 1048576 ]; then
+            echo "ERROR: flatpak bundle suspiciously small (<1MiB): $SIZE bytes"
+            exit 1
+          fi
+
       - name: generate sha256 checksum
         run: |
           sha256sum RobotController-${VERSION}-x86_64.flatpak > RobotController-${VERSION}-x86_64.flatpak.sha256
+          test -s "RobotController-${VERSION}-x86_64.flatpak.sha256" || { echo "ERROR: sha256 file empty"; exit 1; }
 
       - name: upload flatpak artifact
         uses: actions/upload-artifact@v4
@@ -184,12 +195,14 @@ jobs:
             RobotController-${{ env.VERSION }}-x86_64.flatpak
             RobotController-${{ env.VERSION }}-x86_64.flatpak.sha256
           retention-days: 7
+          if-no-files-found: error
 
       - name: upload to release
         if: inputs.tag_name != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag_name }}
+          fail_on_unmatched_files: true
           files: |
             RobotController-${{ env.VERSION }}-x86_64.flatpak
             RobotController-${{ env.VERSION }}-x86_64.flatpak.sha256

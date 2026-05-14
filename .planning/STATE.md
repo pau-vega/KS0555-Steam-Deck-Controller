@@ -4,8 +4,8 @@ milestone: v2.0 + v2.1
 milestone_name: Tauri Migration + Flatpak Packaging
 status: archived
 stopped_at: All 14 phases complete. Milestones archived.
-last_updated: "2026-05-12"
-last_activity: 2026-05-12 -- v2.0 + v2.1 milestones archived
+last_updated: "2026-05-14"
+last_activity: 2026-05-14 -- quick 260514-001: harden flatpak release upload
 progress:
   total_phases: 14
   completed_phases: 14
@@ -99,6 +99,7 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 | 260511-001 | Fix D-pad not working in gaming mode | 2026-05-11 |
 | 260510-001 | Docker-based flatpak local build | 2026-05-10 |
 | 260513-030 | Switch release-please to PAT for CI triggers on PRs | 2026-05-12 |
+| 260514-001 | Harden flatpak release upload (fail-on-missing + verify bundle) | 2026-05-14 |
 
 ## Session Continuity
 

@@ -1,5 +1,8 @@
 # Dockerfile — build .deb + .flatpak from source
 # Usage: just docker-build-all
+# Target: Steam Deck (x86_64). The host MUST pass `--platform linux/amd64` on `docker build`
+# (the wrapping `justfile` recipe does this). Avoid hardcoding --platform on FROM to silence
+# BuildKit warning FromPlatformFlagConstDisallowed and keep the image multi-platform-buildable.
 FROM ubuntu:24.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

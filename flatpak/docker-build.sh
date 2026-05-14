@@ -33,6 +33,27 @@ if [ ! -s "$DEB_PATH" ]; then
     exit 1
 fi
 
+# === Host arch check (aarch64 cannot run amd64 flatpak-builder) ===
+# Bubblewrap requires user namespaces (CLONE_NEWUSER). Neither Rosetta nor QEMU translates
+# this syscall correctly when emulating amd64 on aarch64:
+#   - Rosetta: prctl(PR_SET_SECCOMP) returns EINVAL
+#   - QEMU:    unshare(CLONE_NEWUSER) returns EINVAL
+# Refuse early with actionable guidance.
+
+HOST_ARCH="$(uname -m)"
+if [ "$HOST_ARCH" = "arm64" ] || [ "$HOST_ARCH" = "aarch64" ]; then
+    echo "✗ Refusing to run on $HOST_ARCH host."
+    echo "  Docker amd64 emulation on aarch64 hosts cannot run flatpak-builder."
+    echo "  Root cause: bubblewrap needs user namespaces (CLONE_NEWUSER); neither Rosetta"
+    echo "  nor QEMU translates that syscall correctly when emulating amd64 on aarch64."
+    echo "  Tested: Rosetta fails on prctl(PR_SET_SECCOMP); QEMU fails on unshare(CLONE_NEWUSER)."
+    echo "  Workarounds:"
+    echo "    - Push a tag and let GitHub Actions build the flatpak (.github/workflows/build.yml)"
+    echo "    - Run on a native x86_64 Linux host (or via 'just flatpak-build')"
+    echo "    - SSH to a Steam Deck and run 'just flatpak-build' there"
+    exit 1
+fi
+
 # === Platform check (Docker availability) ===
 
 if ! command -v docker &>/dev/null; then
@@ -67,12 +88,14 @@ echo "→ Copied deb to $DEB_COPY"
 echo ""
 echo "→ Pulling container image (first run may take a few minutes)..."
 echo "   Image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48"
-docker pull ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+# Target = Steam Deck (x86_64). Force linux/amd64 so Apple Silicon hosts don't produce aarch64 artifacts.
+docker pull --platform linux/amd64 ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
 
 echo ""
 echo "→ Running flatpak-builder inside Docker..."
 
 docker run --rm \
+    --platform linux/amd64 \
     --privileged \
     -v "${REPO_ROOT}:/workspace" \
     -w /workspace \

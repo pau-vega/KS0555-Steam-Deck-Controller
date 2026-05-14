@@ -54,8 +54,24 @@ describe("CI workflow: .github/workflows/build.yml", () => {
     expect(buildYml).toContain("cargo-target")
   })
 
-  it("has skip_release workflow_dispatch input", () => {
-    expect(buildYml).toContain("skip_release")
+  it("hardening: gh-release fail_on_unmatched_files enabled", () => {
+    expect(buildYml).toContain("fail_on_unmatched_files: true")
+  })
+
+  it("hardening: upload-artifact steps set if-no-files-found: error", () => {
+    const matches = buildYml.match(/if-no-files-found:\s*error/g)
+    expect(matches).not.toBeNull()
+    expect(matches!.length).toBe(2)
+  })
+
+  it("hardening: verify flatpak bundle step exists with size check", () => {
+    expect(buildYml).toContain("verify flatpak bundle")
+    expect(buildYml).toContain("flatpak bundle is empty")
+    expect(buildYml).toContain("flatpak bundle suspiciously small")
+  })
+
+  it("hardening: tag triggers cover plain-semver and v-prefixed", () => {
+    expect(buildYml).toMatch(/tags:\s*\n\s+-\s+"\[0-9\]\*"\s*\n\s+-\s+"v\*"/)
   })
 
   it("is valid YAML syntax", () => {
