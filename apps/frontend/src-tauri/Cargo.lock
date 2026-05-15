@@ -2733,6 +2733,7 @@ dependencies = [
  "btleplug",
  "futures",
  "gilrs",
+ "regex",
  "serde",
  "serde_json",
  "tauri",
