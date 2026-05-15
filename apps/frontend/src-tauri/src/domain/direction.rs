@@ -1,5 +1,7 @@
 //! Pure direction logic with no external-crate dependencies.
 
+use std::fmt;
+
 pub const DEADZONE: f32 = 0.15;
 pub const TRIGGER_THRESHOLD: f32 = 0.1;
 pub const TRIGGER_HEARTBEAT_MIN_MS: u64 = 30;
@@ -33,6 +35,21 @@ impl Direction {
             "R" => Some(Direction::R),
             "S" => Some(Direction::S),
             _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Command {
+    Drive { dir: Direction, pwm: u8 },
+    Stop,
+}
+
+impl fmt::Display for Command {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Command::Drive { dir, pwm } => writeln!(f, "{}{}", dir.as_char(), pwm),
+            Command::Stop => writeln!(f, "S"),
         }
     }
 }
