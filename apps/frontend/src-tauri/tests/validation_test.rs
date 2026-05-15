@@ -48,12 +48,13 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_ble_event_listener_for_disconnect() {
-        // BLE-05: CentralEvent::DeviceDisconnected handler
-        let content =
-            fs::read_to_string("src/ble/mod.rs").expect("Should be able to read ble/mod.rs");
+        // BLE-05: CentralEvent::DeviceDisconnected handler — lives in the
+        // btleplug adapter after the hexagonal port refactor.
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
         assert!(
             content.contains("DeviceDisconnected"),
-            "BLE source must handle unexpected disconnect events"
+            "BLE adapter must handle unexpected disconnect events"
         );
         assert!(
             content.contains("ble-state-changed"),
@@ -65,46 +66,46 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_direction_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-direction"),
-            "Gamepad source must emit 'gamepad-direction' events"
+            "Gamepad adapter must emit 'gamepad-direction' events"
         );
         assert!(
-            content.contains("app_handle.emit"),
-            "Gamepad source must use app_handle.emit for events"
+            content.contains(".emit("),
+            "Gamepad adapter must call .emit for events"
         );
     }
 
     #[test]
     fn test_gamepad_connected_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-connected"),
-            "Gamepad source must emit 'gamepad-connected' events"
+            "Gamepad adapter must emit 'gamepad-connected' events"
         );
     }
 
     #[test]
     fn test_gamepad_disconnected_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-disconnected"),
-            "Gamepad source must emit 'gamepad-disconnected' events"
+            "Gamepad adapter must emit 'gamepad-disconnected' events"
         );
     }
 
     #[test]
     fn test_gamepad_direction_payload_shape() {
         // D-35: gamepad-direction payload: { direction: 'F' }
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("serde_json::json!"),
-            "Gamepad source must use serde_json::json! for payload construction"
+            "Gamepad adapter must use serde_json::json! for payload construction"
         );
         assert!(
             content.contains("direction"),
@@ -114,12 +115,12 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_deadzone_constant() {
-        // D-42: Deadzone 0.15
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        // D-42: Deadzone 0.15 — lives in the domain layer after the hexagonal port refactor.
+        let content = fs::read_to_string("src/domain/direction.rs")
+            .expect("Should be able to read domain/direction.rs");
         assert!(
             content.contains("DEADZONE"),
-            "Gamepad source must define DEADZONE constant"
+            "Domain must define DEADZONE constant"
         );
         assert!(content.contains("0.15"), "DEADZONE must be 0.15");
     }
@@ -127,26 +128,26 @@ mod event_pipeline_tests {
     #[test]
     fn test_gamepad_direction_change_guard() {
         // D-41: Direction change guard prevents event spam
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("last_direction"),
-            "Gamepad source must track last_direction for change guard"
+            "Gamepad adapter must track last_direction for change guard"
         );
     }
 
     #[test]
     fn test_gamepad_left_stick_axes_used() {
         // GPAD-03: Read Axis::LeftStickX/Y
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("LeftStickX"),
-            "Gamepad source must read LeftStickX axis"
+            "Gamepad adapter must read LeftStickX axis"
         );
         assert!(
             content.contains("LeftStickY"),
-            "Gamepad source must read LeftStickY axis"
+            "Gamepad adapter must read LeftStickY axis"
         );
     }
 
@@ -197,14 +198,14 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_all_bluetooth_commands_are_valid() {
-        // Verify BLE source references the BT24 characteristic UUID used by ble_send.
+        // Verify the BLE adapter references the BT24 characteristic UUID used by writes.
         // Service UUID is not required at the Rust layer — btleplug discovers services
-        // via discover_services(); only the characteristic UUID is matched by ble_send.
-        let content =
-            fs::read_to_string("src/ble/mod.rs").expect("Should be able to read ble/mod.rs");
+        // via discover_services(); only the characteristic UUID is matched on write.
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
         assert!(
             content.contains("0000ffe1-0000-1000-8000-00805f9b34fb"),
-            "BLE source must reference BT24 characteristic UUID"
+            "BLE adapter must reference BT24 characteristic UUID"
         );
     }
 

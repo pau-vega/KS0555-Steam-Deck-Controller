@@ -1,32 +1,24 @@
-use btleplug::platform::Peripheral;
-use std::sync::{Arc, Mutex};
+use crate::ports::bluetooth::BluetoothPort;
+use std::sync::Arc;
 
 pub struct BleState {
-    pub peripheral: Arc<Mutex<Option<Peripheral>>>,
+    inner: Arc<dyn BluetoothPort>,
 }
 
 impl BleState {
-    pub fn new() -> Self {
-        Self {
-            peripheral: Arc::new(Mutex::new(None)),
-        }
+    pub fn new(port: Arc<dyn BluetoothPort>) -> Self {
+        Self { inner: port }
     }
 
-    pub fn set(&self, peripheral: Option<Peripheral>) {
-        let mut guard = self.peripheral.lock().unwrap();
-        *guard = peripheral;
-    }
-
-    pub fn get(&self) -> Option<Peripheral> {
-        let guard = self.peripheral.lock().unwrap();
-        guard.clone()
+    pub fn port(&self) -> &Arc<dyn BluetoothPort> {
+        &self.inner
     }
 }
 
 impl Clone for BleState {
     fn clone(&self) -> Self {
         Self {
-            peripheral: Arc::clone(&self.peripheral),
+            inner: Arc::clone(&self.inner),
         }
     }
 }

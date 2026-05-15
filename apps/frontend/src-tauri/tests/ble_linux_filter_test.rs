@@ -8,7 +8,8 @@ mod tests {
     #[test]
     fn test_bt24_name_constant_defined() {
         // BLE-06: BT24_NAME constant should be defined
-        let content = fs::read_to_string("src/ble/mod.rs").expect("Should be able to read mod.rs");
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
 
         assert!(
             content.contains("BT24_NAME"),
@@ -23,7 +24,8 @@ mod tests {
     #[test]
     fn test_post_filter_uses_contains() {
         // BLE-06: Post-filter using name.contains(BT24_NAME)
-        let content = fs::read_to_string("src/ble/mod.rs").expect("Should be able to read mod.rs");
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
 
         assert!(
             content.contains("name.contains(BT24_NAME)"),

@@ -8,7 +8,7 @@ import globals from "globals"
 import tseslint from "typescript-eslint"
 
 export const node = defineConfig([
-  globalIgnores(["dist/**", "build/**", "node_modules/**", "coverage/**", ".turbo/**"]),
+  globalIgnores(["dist/**", "build/**", "node_modules/**", "coverage/**", ".turbo/**", "**/target/**"]),
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
     extends: [eslintJs.configs.recommended, tseslint.configs.recommended, eslintConfigPrettier],

@@ -1,10 +1,16 @@
+pub mod adapters;
 pub mod ble;
+pub mod domain;
 pub mod gamepad;
+pub mod ports;
 
-use ble::{
-    ble_connect, ble_send, get_invert_state, setup_event_listener, toggle_invert, BleState,
-};
+use adapters::{BtleplugBluetooth, GilrsGamepad, TauriEventSink};
+use ble::{ble_connect, ble_send, get_invert_state, toggle_invert, BleState};
 use gamepad::setup_gamepad_monitor;
+use ports::bluetooth::BluetoothPort;
+use ports::event_sink::EventSink;
+use ports::gamepad::GamepadPort;
+use std::sync::Arc;
 use tauri::Manager;
 
 fn in_flatpak() -> bool {
@@ -41,15 +47,16 @@ pub fn run() {
 
     tauri::Builder::default()
         .setup(|app| {
-            // Create and manage BLE state (D-05)
-            let ble_state = BleState::new();
-            app.manage(ble_state.clone());
+            let sink: Arc<dyn EventSink> = Arc::new(TauriEventSink::new(app.handle().clone()));
 
-            // Setup event listener for auto-disconnect (BLE-05)
-            setup_event_listener(app.handle().clone(), ble_state);
+            // BLE composition (BLE-04, BLE-05)
+            let ble_port: Arc<dyn BluetoothPort> = Arc::new(BtleplugBluetooth::new());
+            ble_port.watch_state(Arc::clone(&sink));
+            app.manage(BleState::new(Arc::clone(&ble_port)));
 
-            // Setup gamepad monitoring (GPAD-01, GPAD-06)
-            setup_gamepad_monitor(app)?;
+            // Gamepad composition (GPAD-01, GPAD-06)
+            let gamepad_port: Box<dyn GamepadPort> = Box::new(GilrsGamepad::new()?);
+            setup_gamepad_monitor(gamepad_port, sink)?;
 
             Ok(())
         })

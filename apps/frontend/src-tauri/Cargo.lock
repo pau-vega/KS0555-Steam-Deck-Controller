@@ -2729,6 +2729,7 @@ dependencies = [
 name = "robot-controller"
 version = "0.1.21"
 dependencies = [
+ "async-trait",
  "btleplug",
  "futures",
  "gilrs",
