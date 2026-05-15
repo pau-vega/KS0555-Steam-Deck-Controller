@@ -1,68 +1,19 @@
-# Build outputs
-dist/
-build/
-.vite/
+# Ignore everything by default
+**
 
-# Turbo
-.turbo/
+# Re-include workspace source files
+!apps/
+!apps/*/
+!apps/*/src/
+!apps/*/src/**
+!packages/
+!packages/*/
+!packages/*/src/
+!packages/*/src/**
 
-# Rust / Tauri
-**/target/
-**/src-tauri/gen/
-
-# Coverage
-coverage/
-.nyc_output
-
-# Test artifacts
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-
-# Lock files
+# Re-apply exclusions within workspaces
+**/dist/
+**/build/
+**/node_modules/
+**/.turbo/
 pnpm-lock.yaml
-
-# TypeScript build info
-*.tsbuildinfo
-
-# Logs
-*.log
-pnpm-debug.log*
-
-# Minified files
-*.min.js
-
-# OS
-.DS_Store
-
-# Dependencies
-node_modules/
-
-# Environment
-.env
-.env.*
-
-# IDE
-.vscode/
-.idea/
-
-# pnpm
-.pnpm-store/
-
-# GSD planning (auto-generated)
-.planning/
-
-# Auto-generated changelog
-CHANGELOG.md
-
-# Claude
-.claude/
-
-# OpenCode
-tui.json
-opencode.json
-
-# Flatpak
-*.flatpak
-flatpak/robot-controller.deb

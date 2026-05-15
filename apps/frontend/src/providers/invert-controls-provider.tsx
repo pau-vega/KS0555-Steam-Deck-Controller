@@ -1,15 +1,13 @@
+import type { ReactNode } from "react"
+
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
-import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
+import type { InvertControlsContextValue } from "../contexts/invert-controls-context"
+
+import { InvertControlsContext } from "../contexts/invert-controls-context"
 import { isTauri } from "../lib/is-tauri"
-
-export interface InvertControlsContextValue {
-  inverted: boolean
-  toggleInvert: () => Promise<void>
-}
-
-export const InvertControlsContext = createContext<InvertControlsContextValue | null>(null)
 
 interface InvertControlsProviderProps {
   children: ReactNode
@@ -63,5 +61,5 @@ export function InvertControlsProvider({ children }: InvertControlsProviderProps
 
   const value = useMemo<InvertControlsContextValue>(() => ({ inverted, toggleInvert }), [inverted, toggleInvert])
 
-  return <InvertControlsContext.Provider value={value}>{children}</InvertControlsContext.Provider>
+  return <InvertControlsContext value={value}>{children}</InvertControlsContext>
 }

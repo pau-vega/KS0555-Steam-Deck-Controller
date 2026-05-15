@@ -1,6 +1,8 @@
 import { use } from "react"
 
-import { InvertControlsContext, type InvertControlsContextValue } from "../providers/invert-controls-provider"
+import type { InvertControlsContextValue } from "../contexts/invert-controls-context"
+
+import { InvertControlsContext } from "../contexts/invert-controls-context"
 
 export function useInvertControls(): InvertControlsContextValue {
   const ctx = use(InvertControlsContext)
