@@ -4,7 +4,8 @@
 
 - ✅ **v2.0 Tauri Migration** — Phases 6-10 (shipped 2026-05-12)
 - ✅ **v2.1 Flatpak Packaging** — Phases 11-19 (shipped 2026-05-12)
-- 📋 **v2.2+ Future** — Backlog (planned)
+- 📋 **v2.2 Analog Speed Control** — Phases 20-23 (planned, 2026-05-15)
+- 📋 **v2.3+ Future** — Backlog (Pipeline polish, auto-reconnect, Flathub prep)
 
 ## Phases
 
@@ -34,6 +35,19 @@
 
 </details>
 
+<details open>
+<summary>📋 v2.2 Analog Speed Control (Phases 20-23) — PLANNED 2026-05-15</summary>
+
+- [ ] Phase 20: Protocol & Domain — `Command` type, `quantize_pressure`, expand `compute_trigger`/`compute_stick_direction`, relax `ble_send` validation. Pure-Rust + tests. (REQ-SPD-01..06 partial)
+- [ ] Phase 21: Gamepad Adapter & IPC — emit `(direction, pwm)` from `gilrs_adapter`, coalesce on `(dir, pwm_bucket)`, update mock-port behavioral tests. (REQ-SPD-04..08)
+- [ ] Phase 22: Frontend Hooks & UI — add `Command` type, additive `lastCommand` on `useGamepad`, `useBluetooth.send` accepts `Command`, passive speed indicator on `control-pad.tsx`. (REQ-SPD-09..11)
+- [ ] Phase 23: Docs + Meta-tests + Milestone Close — update AGENTS.md, ARCHITECTURE.md, meta-tests; record retrospective. (REQ-SPD-12..14)
+
+Out of scope this milestone: right-stick mapping, smoothing curves, user-tunable presets, firmware changes.
+Deferred follow-up: REQ-SPD-15 hardware smoke test (rolls into VAL-09).
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -52,6 +66,10 @@
 | 17. Close Verification Gaps | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 18. Fix Stale Docs | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 19. Execute Deb Build + Flatpak Runner | v2.1 | 1/1 | Complete | 2026-05-12 |
+| 20. Protocol & Domain | v2.2 | 0/? | Planned | — |
+| 21. Gamepad Adapter & IPC | v2.2 | 0/? | Planned | — |
+| 22. Frontend Hooks & UI | v2.2 | 0/? | Planned | — |
+| 23. Docs + Meta-tests + Milestone Close | v2.2 | 0/? | Planned | — |
 
 ---
 

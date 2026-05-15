@@ -1,77 +1,59 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0 + v2.1
-milestone_name: Tauri Migration + Flatpak Packaging
-status: archived
-stopped_at: All 14 phases complete. Milestones archived.
-last_updated: "2026-05-14"
-last_activity: 2026-05-14 -- quick 260514-ugl: switch the controls to go forward and go backwards
+milestone: v2.2
+milestone_name: Analog Speed Control
+status: active
+stopped_at: Milestone bootstrapped — Phase 20 not yet planned.
+last_updated: "2026-05-15"
+last_activity: 2026-05-15 -- /gsd-new-milestone bootstrap for v2.2 Analog Speed Control
 progress:
-  total_phases: 14
-  completed_phases: 14
-  total_plans: 27
-  completed_plans: 27
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # STATE.md
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-12)
+See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** Control a real robot from Steam Deck gamepad input with low latency — commands must reach the robot reliably and quickly.
-**Current focus:** Planning next milestone
+**Current focus:** v2.2 Analog Speed Control — R2/L2 triggers and left-stick magnitude drive variable PWM (80–255) over the existing BT24 serial protocol.
 
 ## Current Position
 
-Phase: All archived (v2.0: 6-10, v2.1: 11-19)
-Status: Milestones shipped
-Last activity: 2026-05-14 -- Quick task 260514-ugl: Switch the controls to go forward and go backwards.
+Phase: 20 (not yet planned)
+Status: Milestone bootstrapped, awaiting `/gsd-plan-phase 20`
+Last activity: 2026-05-15 -- /gsd-new-milestone bootstrap for v2.2 Analog Speed Control
 
 ## Progress
 
-**Total shipped:** 14 phases (6-19), 27 plans, 415+ commits, ~4,424 LOC
+**v2.2 plans:** 0 / TBD (phases not yet planned)
 
 | Phase | Milestone | Status |
 |-------|-----------|--------|
-| 6. Tauri Shell Setup | v2.0 | Complete |
-| 7. BLE Commands with btleplug | v2.0 | Complete |
-| 8. Gamepad Monitoring with gilrs | v2.0 | Complete |
-| 9. Hook Rewrites | v2.0 | Complete |
-| 10. Build and Test on SteamOS | v2.0 | Complete |
-| 11. Bundle Pipeline Restructure | v2.1 | Complete |
-| 12. Manifest + AppStream + Local Build | v2.1 | Complete |
-| 13. Sandbox Permissions for BLE + Gamepad | v2.1 | Complete |
-| 14. Steam Deck On-Device Validation | v2.1 | Complete |
-| 15. CI Migration (Parallel-Run) | v2.1 | Complete |
-| 16. AppImage Decommission + Upgrade Workflow Docs | v2.1 | Complete |
-| 17. Close Verification Gaps | v2.1 | Complete |
-| 18. Fix Stale Docs | v2.1 | Complete |
-| 19. Execute Deb Build + Flatpak Runner | v2.1 | Complete |
+| 20. Protocol & Domain | v2.2 | Planned |
+| 21. Gamepad Adapter & IPC | v2.2 | Planned |
+| 22. Frontend Hooks & UI | v2.2 | Planned |
+| 23. Docs + Meta-tests + Milestone Close | v2.2 | Planned |
 
 ## Decisions Made
 
-(Full log in PROJECT.md Key Decisions table)
+**Key v2.2 decisions (planning phase):**
+- Adopt PWM serial protocol `<dir><pwm>\n` — robot firmware already supports it (range 80–255, default 150). No firmware flashing.
+- Quantize trigger/stick pressure to 10 buckets to cap BLE write rate (~10 Hz/axis) while keeping perceived smoothness.
+- Stronger trigger wins on R2 vs L2 conflict (mirrors existing stick-axis tiebreak).
+- Left-stick magnitude → analog L/R PWM (firmware already accepts `L<pwm>` / `R<pwm>`).
+- Hook return shapes stay additive-only (AGENTS.md contract preserved).
 
-**Key v2.0 decisions:**
-- Tauri v2 over v1 — better SteamOS support
-- btleplug for BLE — cross-platform Rust BLE
-- gilrs for gamepad — sees Steam Deck controller
-- Keep hook return shapes stable — app.tsx/control-pad.tsx/status-bar.tsx unchanged
-- Deprecate apps/backend — Fastify no longer needed
-
-**Key v2.1 decisions:**
-- Flatpak runtime: org.freedesktop.Platform//24.08
-- Sideload-only distribution (no Flathub)
-- in_flatpak() D-Bus gate — belt-and-suspenders detection
-- Single-job CI — AppImage decommissioned
-- Version from Cargo.toml via cargo metadata + jq
-- Stale Tauri cache cleanup step
+(Full historical decisions in PROJECT.md Key Decisions table.)
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-05-12:
+Carried from prior milestones (still deferred):
 
 | Category | Item | Status |
 |----------|------|--------|
@@ -81,6 +63,7 @@ Items acknowledged and deferred at milestone close on 2026-05-12:
 | ci | VAL-08 tag push bypass (lefthook.yml missing lock) | deferred — pre-commit hooks cover PRs |
 | ci | appstream-util validate not in CI | deferred — non-blocking |
 | test | upgrade-robot-controller.sh integration test | deferred — not tested against actual release |
+| validation | REQ-SPD-15: Analog-speed Steam Deck smoke test | deferred — folds into VAL-09 follow-up |
 
 ## Accumulated Context
 
@@ -89,6 +72,12 @@ Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, hook rewrites, Stea
 
 ### v2.1 Delivered
 Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flatpak), documentation rewrite, validated end-to-end CI run. All 9 phases complete.
+
+### v2.2 Planning (this session)
+- Discovered Arduino firmware in sibling repo `~/Documents/arduino-tank-controller/firmware/` already speaks `<dir><pwm>\n` PWM protocol. "Firmware immutable / 5-char only" assertions in AGENTS.md, PROJECT.md, docs/ARCHITECTURE.md are stale.
+- Drafted REQ-SPD-01..15 across protocol/domain, gamepad layer, IPC, frontend, docs.
+- Updated PROJECT.md (Active requirements, constraint reword, key decisions).
+- Created REQUIREMENTS.md, extended ROADMAP.md.
 
 ### Quick Tasks (v2.1)
 | # | Description | Date | Commit | Directory |
@@ -105,6 +94,6 @@ Flatpak packaging pipeline, sandbox permissions, CI migration (AppImage → Flat
 
 ## Session Continuity
 
-Last session: 2026-05-14
-Resume: Milestones archived. Ready for next milestone planning.
-Next action: `/gsd-new-milestone` to start next cycle
+Last session: 2026-05-15
+Resume: v2.2 milestone bootstrapped. PROJECT/REQUIREMENTS/ROADMAP/STATE updated. No code changes yet.
+Next action: `/gsd-plan-phase 20`

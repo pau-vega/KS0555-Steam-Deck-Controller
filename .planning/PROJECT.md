@@ -10,25 +10,28 @@ Control a real robot from Steam Deck gamepad input with low latency — commands
 
 ## Current State
 
+**Active: v2.2 (Analog Speed Control) — Phases 20–23 planned**
 **Shipped: v2.0 (Tauri Migration) + v2.1 (Flatpak Packaging)**
 
-- v2.0: Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, native Rust backend replacing broken Web APIs
-- v2.1: Flatpak packaging pipeline, sandbox permissions for BLE + gamepad, CI producing deb → Flatpak artifacts
+- v2.2 (in progress): R2/L2 analog triggers and left-stick magnitude drive variable PWM (80–255) over the existing BT24 serial protocol. 10-bucket quantization, stronger-trigger-wins tiebreak.
+- v2.0: Tauri v2 desktop shell, BLE via btleplug, gamepad via gilrs, native Rust backend replacing broken Web APIs.
+- v2.1: Flatpak packaging pipeline, sandbox permissions for BLE + gamepad, CI producing deb → Flatpak artifacts.
 
 **Current codebase:**
 - ~4,424 LOC (TypeScript + Rust)
 - Tech stack: Tauri v2, React + Vite + TypeScript frontend, Rust backend (btleplug + gilrs)
 - CI: Single GitHub Actions job producing .deb (3.6 MB) → .flatpak (2.4 MB)
-- Locked files: app.tsx, control-pad.tsx, status-bar.tsx (pre-commit hooks)
+- Locked files: app.tsx, control-pad.tsx, status-bar.tsx (pre-commit hooks; additive-only changes in v2.2)
 
 **Known gaps:**
 - VAL-06, VAL-07, VAL-09 require real BT24 hardware + Steam Deck validation (manual)
+- REQ-SPD-15 — analog-speed on-device smoke test (folds into VAL-09 follow-up)
 
 ## Next Milestone Goals
 
-The next milestone should focus on one of:
-- **v2.2 Pipeline Fixes & Optimization** — Release-please integration, CI optimization (concurrency groups, action version standardization), versioned artifact naming
-- **Feature work** — Motor speed control (u/v commands), auto-reconnect with exponential backoff, multiple robot profiles
+Active milestone (v2.2) drives analog speed control via the already-deployed PWM-capable firmware. Backlog for after v2.2:
+- **Pipeline Fixes & Optimization** — Release-please integration, CI optimization (concurrency groups, action version standardization), versioned artifact naming
+- **Auto-reconnect / multi-profile** — Exponential backoff, multiple robot profiles
 - **Flathub preparation** — Signed bundles, OSTree repo, AppStream polish
 
 ## Requirements
@@ -72,11 +75,26 @@ The next milestone should focus on one of:
 
 ### Active
 
-*(No active requirements — milestone archived, ready for next planning)*
+**v2.2 — Analog Speed Control (see `.planning/REQUIREMENTS.md`):**
+
+- REQ-SPD-01: `Command` type carrying `{ dir, pwm }` or `Stop`
+- REQ-SPD-02: `quantize_pressure` — 10-bucket pressure→PWM map (80..=255)
+- REQ-SPD-03: BLE write payload `"<dir><pwm>\n"` / `"S\n"`; relax single-char validation
+- REQ-SPD-04: `compute_trigger` returns `Command`; stronger trigger wins
+- REQ-SPD-05: `compute_stick_direction` returns `Command` with magnitude PWM
+- REQ-SPD-06: Coalesce on `(dir, pwm_bucket)`
+- REQ-SPD-07: `gamepad-direction` IPC payload gains `pwm: number | null` (additive)
+- REQ-SPD-08: `ble_send` validates encoded line shape, not length==1
+- REQ-SPD-09: FE `Command` type + `useGamepad` additive `lastCommand`
+- REQ-SPD-10: `useBluetooth.send` accepts `Command`
+- REQ-SPD-11: `control-pad.tsx` speed indicator (additive UI)
+- REQ-SPD-12: Update AGENTS.md IPC table + drop firmware-immutable line
+- REQ-SPD-13: Update `docs/ARCHITECTURE.md` BLE protocol section
+- REQ-SPD-14: Sync meta-tests that quote the 5-char protocol
+- REQ-SPD-15: Steam Deck on-device smoke test (deferred → VAL-09)
 
 ### Out of Scope
 
-- Motor speed control (u<number>#, v<number>#) — deferred, not needed for MVP
 - Windows/macOS builds — Linux/SteamOS only
 - Complex backend frameworks — minimal Rust Tauri only
 - AppImage distribution — replaced by Flatpak in v2.1
@@ -89,7 +107,7 @@ The next milestone should focus on one of:
 
 - Target platform: Steam Deck (SteamOS Linux) running Tauri v2 desktop app, distributed as Flatpak
 - Robot: Keyestudio Mini Tank Robot V3 with BT24 Bluetooth module (service: 0000ffe0, characteristic: 0000ffe1)
-- Arduino firmware is FIXED and accepts: F, B, L, R, S commands
+- Arduino firmware (sibling repo `~/Documents/arduino-tank-controller/firmware/`) accepts `<dir><pwm>\n` PWM commands at 9600 baud: `F{pwm}\n`, `B{pwm}\n`, `L{pwm}\n`, `R{pwm}\n`, `S\n`. PWM range 80–255; values below 80 stall the motors. Default PWM 150 when omitted.
 - Browser Web APIs (navigator.bluetooth, navigator.getGamepads()) do NOT work in Tauri's WebKitGTK — replaced by native Rust (btleplug + gilrs)
 - Flatpak sandbox requires specific finish-args for BLE (--system-talk-name=org.bluez) and gamepad (--device=input)
 - Low latency is critical for responsive robot control
@@ -100,7 +118,7 @@ The next milestone should focus on one of:
 
 - **Tech Stack**: Tauri v2 + React + Vite + TypeScript frontend, Rust (edition 2021) backend with btleplug + gilrs
 - **Platform**: Steam Deck (SteamOS Linux) — Flatpak distribution, no Windows/macOS builds
-- **Robot Firmware**: Cannot modify Arduino code — must work with existing BT24 UART serial protocol (F, B, L, R, S commands)
+- **Robot Firmware**: Source lives in sibling repo `~/Documents/arduino-tank-controller/firmware/` (PlatformIO, AVR/Arduino). Already PWM-capable: accepts `<dir><pwm>\n` over BT24 serial (range 80–255, default 150). Tauri app speaks this protocol; firmware changes are out of scope for v2.2.
 - **Bluetooth**: BT24 device — btleplug crate, service UUID 0000ffe0, characteristic UUID 0000ffe1, device name filter "BT24"
 - **Gamepad**: gilrs crate, deadzone 0.15, prefer Steam Deck controller (id contains "Steam")
 - **Monorepo**: pnpm workspaces mandatory — src-tauri lives inside apps/frontend/
@@ -126,6 +144,10 @@ The next milestone should focus on one of:
 | Single-job CI (Flatpak only) | AppImage decommissioned after parallel-run window | ✓ Phase 16 |
 | Version from Cargo.toml (cargo metadata + jq) | Single source of truth, not github.ref_name | ✓ Phase 16 |
 | Stale Tauri cache cleanup | Prevents path-drift build failures from cached target dirs | ✓ Phase 19 |
+| Adopt PWM serial protocol (`<dir><pwm>\n`) for v2.2 | Robot firmware already supports it; unblocks variable speed without flashing the Arduino | Planned Phase 20 |
+| Quantize trigger/stick magnitude to 10 buckets | Keeps BT24 BLE write rate humane (≤~10 Hz/axis) while feeling smooth to a human | Planned Phase 20 |
+| Stronger-trigger-wins for R2 vs L2 conflict | Mirrors existing stick-axis tiebreak; avoids fighting motor commands on simultaneous press | Planned Phase 20 |
+| Left-stick magnitude drives L/R PWM | Symmetric analog feel across all motion directions; firmware already accepts `L<pwm>` / `R<pwm>` | Planned Phase 20 |
 
 ## Evolution
 
@@ -146,4 +168,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-05-12 — v2.0 + v2.1 milestones shipped and archived*
+*Last updated: 2026-05-15 — v2.2 (Analog Speed Control) milestone opened*
