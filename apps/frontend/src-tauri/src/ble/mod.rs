@@ -172,11 +172,6 @@ pub async fn ble_send(
         .get()
         .ok_or_else(|| "Not connected to BT24 device".to_string())?;
 
-    peripheral
-        .discover_services()
-        .await
-        .map_err(|e| format!("Failed to discover services: {}", e))?;
-
     let chars = peripheral.characteristics();
     let char_uuid =
         uuid::Uuid::parse_str(BT24_CHAR_UUID).map_err(|e| format!("Invalid UUID: {}", e))?;

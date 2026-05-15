@@ -29,11 +29,6 @@ impl Direction {
     }
 }
 
-struct TriggerState {
-    last_trigger: Option<Direction>,
-    last_send_time: Instant,
-}
-
 fn get_direction_from_axes(x: f32, y: f32) -> Direction {
     let abs_x = x.abs();
     let abs_y = y.abs();
@@ -159,15 +154,24 @@ fn compute_trigger_direction(gamepad: &gilrs::Gamepad) -> (Direction, f32, f32) 
         (r2_pressure, l2_pressure)
     };
 
-    let direction = if r2_eff > l2_eff {
+    let direction = if r2_eff > 0.0 && r2_eff >= l2_eff {
         Direction::F
-    } else if l2_eff > r2_eff {
+    } else if l2_eff > 0.0 {
         Direction::B
     } else {
         Direction::S
     };
 
     (direction, r2_eff, l2_eff)
+}
+
+fn compute_combined_direction(gamepad: &gilrs::Gamepad) -> Direction {
+    if is_dpad_active(gamepad) || is_stick_active(gamepad) {
+        compute_direction(gamepad)
+    } else {
+        let (d, _, _) = compute_trigger_direction(gamepad);
+        d
+    }
 }
 
 fn compute_trigger_interval(pressure: f32) -> u64 {
@@ -202,7 +206,8 @@ fn is_stick_active(gamepad: &gilrs::Gamepad) -> bool {
 fn poll_triggers(
     gamepad: &gilrs::Gamepad,
     app_handle: &tauri::AppHandle,
-    state: &mut TriggerState,
+    last_direction: &mut Option<Direction>,
+    last_send_time: &mut Instant,
 ) {
     if is_dpad_active(gamepad) || is_stick_active(gamepad) {
         return;
@@ -210,16 +215,15 @@ fn poll_triggers(
 
     let (new_direction, r2_pressure, l2_pressure) = compute_trigger_direction(gamepad);
 
-    let direction_changed = state.last_trigger != Some(new_direction);
-    let trigger_held = matches!(state.last_trigger, Some(Direction::F | Direction::B));
+    let direction_changed = *last_direction != Some(new_direction);
+    let trigger_held = matches!(new_direction, Direction::F | Direction::B);
     let pressure = r2_pressure.max(l2_pressure);
     let interval_ms = compute_trigger_interval(pressure) as u128;
-    let heartbeat_overdue =
-        trigger_held && state.last_send_time.elapsed().as_millis() > interval_ms;
+    let heartbeat_overdue = trigger_held && last_send_time.elapsed().as_millis() > interval_ms;
 
     if direction_changed || heartbeat_overdue {
-        state.last_trigger = Some(new_direction);
-        state.last_send_time = Instant::now();
+        *last_direction = Some(new_direction);
+        *last_send_time = Instant::now();
         let payload = serde_json::json!({ "direction": new_direction.as_char() });
         let _ = app_handle.emit("gamepad-direction", payload);
     }
@@ -233,10 +237,7 @@ pub fn setup_gamepad_monitor(app: &tauri::App) -> Result<(), String> {
 
         let mut connected_gamepad_id: Option<gilrs::GamepadId> = None;
         let mut last_direction: Option<Direction> = None;
-        let mut trigger_state = TriggerState {
-            last_trigger: None,
-            last_send_time: Instant::now(),
-        };
+        let mut last_send_time = Instant::now();
 
         for (id, gamepad) in gilrs.gamepads() {
             let name = gamepad.name().to_string();
@@ -275,13 +276,16 @@ pub fn setup_gamepad_monitor(app: &tauri::App) -> Result<(), String> {
                     EventType::AxisChanged(axis, _value, _) => {
                         let is_stick = axis == Axis::LeftStickX || axis == Axis::LeftStickY;
                         let is_dpad_axis = axis == Axis::DPadX || axis == Axis::DPadY;
+                        let is_trigger_axis = axis == Axis::RightZ || axis == Axis::LeftZ;
 
-                        if is_stick || is_dpad_axis {
+                        if is_stick || is_dpad_axis || is_trigger_axis {
                             if let Some(id) = connected_gamepad_id {
-                                let new_direction = compute_direction(&gilrs.gamepad(id));
+                                let new_direction =
+                                    compute_combined_direction(&gilrs.gamepad(id));
 
                                 if last_direction != Some(new_direction) {
                                     last_direction = Some(new_direction);
+                                    last_send_time = Instant::now();
 
                                     let payload = serde_json::json!(
                                         { "direction": new_direction.as_char() }
@@ -294,39 +298,26 @@ pub fn setup_gamepad_monitor(app: &tauri::App) -> Result<(), String> {
                     EventType::ButtonChanged(button, _, _)
                     | EventType::ButtonPressed(button, _)
                     | EventType::ButtonReleased(button, _) => {
-                        if button.is_dpad() {
+                        let is_trigger = matches!(
+                            button,
+                            Button::RightTrigger
+                                | Button::RightTrigger2
+                                | Button::LeftTrigger
+                                | Button::LeftTrigger2
+                        );
+                        if button.is_dpad() || is_trigger {
                             if let Some(id) = connected_gamepad_id {
-                                let new_direction = compute_direction(&gilrs.gamepad(id));
+                                let new_direction =
+                                    compute_combined_direction(&gilrs.gamepad(id));
 
                                 if last_direction != Some(new_direction) {
                                     last_direction = Some(new_direction);
+                                    last_send_time = Instant::now();
 
                                     let payload = serde_json::json!(
                                         { "direction": new_direction.as_char() }
                                     );
                                     let _ = app_handle.emit("gamepad-direction", payload);
-                                }
-                            }
-                        }
-
-                        let is_r2 = matches!(button, Button::RightTrigger | Button::RightTrigger2);
-                        let is_l2 = matches!(button, Button::LeftTrigger | Button::LeftTrigger2);
-                        if is_r2 || is_l2 {
-                            if let Some(id) = connected_gamepad_id {
-                                let gamepad = gilrs.gamepad(id);
-                                // Don't override DPad/stick
-                                if !is_dpad_active(&gamepad) && !is_stick_active(&gamepad) {
-                                    let (new_direction, _r2, _l2) =
-                                        compute_trigger_direction(&gamepad);
-
-                                    if trigger_state.last_trigger != Some(new_direction) {
-                                        trigger_state.last_trigger = Some(new_direction);
-                                        trigger_state.last_send_time = Instant::now();
-                                        let payload = serde_json::json!(
-                                            { "direction": new_direction.as_char() }
-                                        );
-                                        let _ = app_handle.emit("gamepad-direction", payload);
-                                    }
                                 }
                             }
                         }
@@ -336,7 +327,12 @@ pub fn setup_gamepad_monitor(app: &tauri::App) -> Result<(), String> {
             }
 
             if let Some(id) = connected_gamepad_id {
-                poll_triggers(&gilrs.gamepad(id), &app_handle, &mut trigger_state);
+                poll_triggers(
+                    &gilrs.gamepad(id),
+                    &app_handle,
+                    &mut last_direction,
+                    &mut last_send_time,
+                );
             }
 
             std::thread::sleep(std::time::Duration::from_millis(8));
