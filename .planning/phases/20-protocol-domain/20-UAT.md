@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 20-protocol-domain
 source: [20-01-SUMMARY.md, 20-02-SUMMARY.md, 20-03-SUMMARY.md]
 started: 2026-05-15T16:56:57Z
-updated: 2026-05-15T17:02:30Z
+updated: 2026-05-15T17:10:00Z
 ---
 
 ## Current Test
@@ -58,13 +58,39 @@ blocked: 0
   reason: "User reported: the robot do not respond to any of the inputs"
   severity: blocker
   test: 4
-  artifacts: []
-  missing: []
+  root_cause: "Plan 20-03 tightened ble_send to require wire format `^[FBLR]\\d{2,3}\\n$|^S\\n$`, but FE producers were not migrated. ControlPad → App.sendCommand → useBluetooth.send passes single-char Direction (`F`/`B`/`L`/`R`/`S`) to `invoke(\"ble_send\", { command: data })`. Validator rejects, `state.port().write` never reached. Rejection silently swallowed by `void invoke(...)` at use-bluetooth.ts:58 (no `.catch`, no `setError`). `setLastCommand(cmd)` runs unconditionally so UI looks healthy."
+  artifacts:
+    - path: "apps/frontend/src/hooks/use-bluetooth.ts"
+      issue: "send() emits single-char payload and uses `void invoke(...)` — rejection swallowed silently (line 56-59)"
+    - path: "apps/frontend/src/app.tsx"
+      issue: "sendCommand(cmd) forwards bare Direction char to send(); setLastCommand runs even on BLE failure (line 16-22)"
+    - path: "apps/frontend/src/components/control-pad.tsx"
+      issue: "BUTTONS values are bare Direction chars, passed through applyDirectionInversion unchanged (line 15-19, 82)"
+    - path: "apps/frontend/src-tauri/src/ble/mod.rs"
+      issue: "Validator (working as designed) rejects legacy single-char payloads at line 15-16, 67-74"
+  missing:
+    - "FE-side `encodeCommand(direction: Direction): string` helper that maps `S` → `\"S\\n\"` and `F|B|L|R` → `\"{dir}{pwm}\\n\"` (constant default PWM like 150 until Phase 21 wires analog speed)"
+    - "Wire encodeCommand into useBluetooth.send (or App.sendCommand) so payloads emitted to ble_send match the new wire format"
+    - "Stop swallowing the invoke rejection in use-bluetooth.ts — chain `.catch` that surfaces the error via setError, mirroring the connect path"
+  debug_session: .planning/debug/controlpad-robot-no-response.md
 
 - truth: "Gamepad triggers/stick drive the robot via BLE"
   status: failed
   reason: "User reported: The indicator on the screen is showing the correct inputs, but the robot does not move"
   severity: blocker
   test: 5
-  artifacts: []
-  missing: []
+  root_cause: "Shared root cause with Test 4 plus a Rust-side producer gap. gilrs_adapter.emit_direction (gilrs_adapter.rs:45-50) still emits `{ direction: direction.as_char() }` — a single ASCII char — using legacy compute_combined/compute_trigger. useGamepad listener writes the char to state, App effect calls sendCommand which calls send(direction). ble_send validator rejects, BLE write never happens. UI `Current direction` updates because it's driven by the `gamepad-direction` event, not by the BLE write outcome — so user sees correct on-screen state while the robot stays still. Phase 20 deliberately deferred the adapter rewrite to Phase 21 (per 20-03-SUMMARY.md:166-178, 188-192), which created the gap between phases."
+  artifacts:
+    - path: "apps/frontend/src-tauri/src/adapters/gilrs_adapter.rs"
+      issue: "emit_direction emits bare Direction::as_char(); still calls legacy compute_combined (line 127, 150) and compute_trigger (line 63) instead of the Phase-20 Command-returning variants (line 45-50)"
+    - path: "apps/frontend/src/hooks/use-gamepad.ts"
+      issue: "Listens to gamepad-direction with payload typed `{ direction: Direction }` — bare char (line 29-33). Sets FE direction state which then feeds sendCommand, also bare char."
+    - path: "apps/frontend/src/hooks/use-bluetooth.ts"
+      issue: "Same fire-and-forget swallowing as Test 4 (line 56-59) — failure invisible to user"
+    - path: "apps/frontend/src-tauri/src/domain/direction.rs"
+      issue: "Command::Display already produces correct wire format (`F138\\n`, `S\\n`) at line 48-55; compute_stick_command (line 136-165) and compute_trigger_command (line 272-312) are present but unused by the adapter"
+  missing:
+    - "Rewire gilrs_adapter to compute Command via compute_stick_command / compute_trigger_command and emit its Display form as the gamepad-direction payload (or via a new event), so FE passes the wire string through verbatim to ble_send"
+    - "OR (minimal alternative) keep gilrs_adapter emitting Direction and have App.sendCommand encode via encodeCommand before invoking ble_send — defers analog speed to Phase 21 but unblocks UAT today"
+    - "Defense-in-depth: surface ble_send rejections in use-bluetooth.ts via setError so silent BLE failures stop masquerading as hardware issues"
+  debug_session: .planning/debug/gamepad-robot-no-response.md
