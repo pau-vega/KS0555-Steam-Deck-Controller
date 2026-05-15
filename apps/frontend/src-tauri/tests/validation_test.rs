@@ -48,12 +48,13 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_ble_event_listener_for_disconnect() {
-        // BLE-05: CentralEvent::DeviceDisconnected handler
-        let content =
-            fs::read_to_string("src/ble/mod.rs").expect("Should be able to read ble/mod.rs");
+        // BLE-05: CentralEvent::DeviceDisconnected handler — lives in the
+        // btleplug adapter after the hexagonal port refactor.
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
         assert!(
             content.contains("DeviceDisconnected"),
-            "BLE source must handle unexpected disconnect events"
+            "BLE adapter must handle unexpected disconnect events"
         );
         assert!(
             content.contains("ble-state-changed"),
@@ -197,14 +198,14 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_all_bluetooth_commands_are_valid() {
-        // Verify BLE source references the BT24 characteristic UUID used by ble_send.
+        // Verify the BLE adapter references the BT24 characteristic UUID used by writes.
         // Service UUID is not required at the Rust layer — btleplug discovers services
-        // via discover_services(); only the characteristic UUID is matched by ble_send.
-        let content =
-            fs::read_to_string("src/ble/mod.rs").expect("Should be able to read ble/mod.rs");
+        // via discover_services(); only the characteristic UUID is matched on write.
+        let content = fs::read_to_string("src/adapters/btleplug_adapter.rs")
+            .expect("Should be able to read adapters/btleplug_adapter.rs");
         assert!(
             content.contains("0000ffe1-0000-1000-8000-00805f9b34fb"),
-            "BLE source must reference BT24 characteristic UUID"
+            "BLE adapter must reference BT24 characteristic UUID"
         );
     }
 
