@@ -96,11 +96,12 @@ mod tests {
 
     #[test]
     fn test_ble_send_discover_services() {
-        // BLE-03: Should call peripheral.discover_services().await
+        // BLE-03: Should call peripheral.discover_services() before writing
+        // (rustfmt may break the chained `.await` onto its own line, so match the call name only)
         let content = fs::read_to_string("src/ble/mod.rs").expect("Should be able to read mod.rs");
 
         assert!(
-            content.contains("discover_services().await"),
+            content.contains("discover_services()"),
             "Should discover services before writing"
         );
     }

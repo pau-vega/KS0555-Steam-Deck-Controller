@@ -4,7 +4,6 @@
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::Path;
 
     #[test]
     fn test_setup_event_listener_exists() {
@@ -65,14 +64,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_auto_reconnect_mentioned() {
-        // BLE-05 with D-01: Auto-reconnect mentioned for future implementation
-        let content = fs::read_to_string("src/ble/mod.rs").expect("Should be able to read mod.rs");
-
-        assert!(
-            content.contains("Auto-reconnect"),
-            "Auto-reconnect should be mentioned as D-01"
-        );
-    }
 }

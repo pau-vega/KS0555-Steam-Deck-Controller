@@ -174,17 +174,16 @@ Steam Deck detection: `gamepad.name().contains("Steam")` — prefers the built-i
 
 ### React Hooks
 
-- **`use-bluetooth.ts`**: Calls `invoke("ble_connect")`, `invoke("ble_disconnect")`, `invoke("ble_send", { command })`. Listens to `listen("ble-state-changed")` for state updates. Return shape: `{ connected, connecting, unsupported, connect, send }`.
+- **`use-bluetooth.ts`**: Calls `invoke("ble_connect")`, `invoke("ble_send", { command })`. Listens to `listen("ble-state-changed")` for state updates. Return shape: `{ connected, connecting, unsupported, connect, send }`.
 - **`use-gamepad.ts`**: Listens to `listen("gamepad-direction")`, `listen("gamepad-connected")`, `listen("gamepad-disconnected")`. Return shape: `{ direction, gamepadConnected }`.
 
 ### Tauri Commands
 
-| Command          | Signature                                 | Purpose                                |
-| ---------------- | ----------------------------------------- | -------------------------------------- |
-| `ble_connect`    | `() -> Result<(), String>`                | Scan for BT24, connect, emit state     |
-| `ble_disconnect` | `() -> Result<(), String>`                | Disconnect BT24 peripheral             |
-| `ble_send`       | `(command: String) -> Result<(), String>` | Write F/B/L/R/S to BT24 characteristic |
-| `get_ble_state`  | `() -> String`                            | Get current BLE connection state       |
+| Command         | Signature                                 | Purpose                                |
+| --------------- | ----------------------------------------- | -------------------------------------- |
+| `ble_connect`   | `() -> Result<(), String>`                | Scan for BT24, connect, emit state     |
+| `ble_send`      | `(command: String) -> Result<(), String>` | Write F/B/L/R/S to BT24 characteristic |
+| `get_ble_state` | `() -> String`                            | Get current BLE connection state       |
 
 ### Vite Integration
 

@@ -156,26 +156,6 @@ pub fn setup_event_listener(app: AppHandle, _state: BleState) {
 const BT24_CHAR_UUID: &str = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
 #[tauri::command]
-pub async fn ble_disconnect(
-    app: AppHandle,
-    state: tauri::State<'_, BleState>,
-) -> Result<(), String> {
-    match state.get() {
-        Some(peripheral) => {
-            peripheral
-                .disconnect()
-                .await
-                .map_err(|e| format!("Failed to disconnect: {}", e))?;
-            state.set(None);
-            app.emit("ble-state-changed", "disconnected")
-                .map_err(|e| format!("Failed to emit disconnected: {}", e))?;
-            Ok(())
-        }
-        None => Err("Not connected to any device".to_string()),
-    }
-}
-
-#[tauri::command]
 pub async fn ble_send(
     _app: AppHandle,
     state: tauri::State<'_, BleState>,
@@ -279,6 +259,9 @@ mod tests {
         // Actual BLE send requires hardware, but we verify the length validation
         // accepts F and B (no inversion in the send path).
         // This test validates the contract: ble_send is NOT modified for inversion.
-        assert!(true, "ble_send should not be modified — inversion handled in TS layer");
+        assert!(
+            true,
+            "ble_send should not be modified — inversion handled in TS layer"
+        );
     }
 }

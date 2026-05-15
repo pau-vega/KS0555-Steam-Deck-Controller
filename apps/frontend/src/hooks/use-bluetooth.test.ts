@@ -1,17 +1,8 @@
-import { renderHook, act } from "@testing-library/react"
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { act, renderHook } from "@testing-library/react"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { useBluetooth } from "./use-bluetooth"
 
-// --- Web Bluetooth mocks ---
-const mockWriteValue = vi.fn()
-const mockGetCharacteristic = vi.fn()
-const mockGetPrimaryService = vi.fn()
-const mockGattConnect = vi.fn()
-const mockRequestDevice = vi.fn()
-const mockAddEventListener = vi.fn()
-
-// --- Tauri IPC mocks (must use vi.hoisted — vi.mock factory is hoisted above all const/let) ---
 const capturedBleHandler = vi.hoisted(() => ({ current: null as ((event: { payload: string }) => void) | null }))
 
 const mockUnlisten = vi.hoisted(() => vi.fn())
@@ -35,130 +26,22 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // Tauri v2 exposes `__TAURI_INTERNALS__`; ensure neither global is present
-  // before each test so isTauri() falls back to the navigator branch.
-  delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
-  delete (window as unknown as Record<string, unknown>).__TAURI__
   capturedBleHandler.current = null
+  ;(window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {}
+  mockTauriInvoke.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
   vi.restoreAllMocks()
-})
-
-describe("useBluetooth (Web Bluetooth)", () => {
-  beforeEach(() => {
-    mockWriteValue.mockResolvedValue(undefined)
-    mockGetCharacteristic.mockResolvedValue({ writeValue: mockWriteValue })
-    mockGetPrimaryService.mockResolvedValue({ getCharacteristic: mockGetCharacteristic })
-    mockGattConnect.mockResolvedValue({ getPrimaryService: mockGetPrimaryService })
-    mockRequestDevice.mockResolvedValue({
-      gatt: { connect: mockGattConnect },
-      addEventListener: mockAddEventListener,
-    })
-
-    Object.defineProperty(navigator, "bluetooth", {
-      value: { requestDevice: mockRequestDevice },
-      configurable: true,
-      writable: true,
-    })
-  })
-
-  it("starts disconnected when bluetooth available", () => {
-    const { result } = renderHook(() => useBluetooth())
-    expect(result.current.connected).toBe(false)
-    expect(result.current.connecting).toBe(false)
-    expect(result.current.unsupported).toBe(false)
-  })
-
-  it("connect() sets connected after GATT chain resolves", async () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(result.current.connected).toBe(true)
-    expect(result.current.connecting).toBe(false)
-  })
-
-  it("connect() requests device with BT24 name filter", async () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(mockRequestDevice).toHaveBeenCalledWith(expect.objectContaining({ filters: [{ name: "BT24" }] }))
-  })
-
-  it("send() writes encoded data when connected", async () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    act(() => {
-      result.current.send("F")
-    })
-
-    expect(mockWriteValue).toHaveBeenCalledTimes(1)
-    const [arg] = mockWriteValue.mock.calls[0] ?? []
-    expect(arg?.[0]).toBe(70)
-  })
-
-  it("send() does nothing when disconnected", () => {
-    const { result } = renderHook(() => useBluetooth())
-
-    act(() => {
-      result.current.send("F")
-    })
-
-    expect(mockWriteValue).not.toHaveBeenCalled()
-  })
-
-  it("connect() sets disconnected and error on requestDevice rejection", async () => {
-    mockRequestDevice.mockRejectedValue(new Error("User cancelled"))
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(result.current.connected).toBe(false)
-    expect(result.current.connecting).toBe(false)
-    expect(result.current.error).toBe("User cancelled")
-  })
-
-  it("connect() sets disconnected and error when device has no gatt", async () => {
-    mockRequestDevice.mockResolvedValue({
-      gatt: null,
-      addEventListener: mockAddEventListener,
-    })
-    const { result } = renderHook(() => useBluetooth())
-
-    await act(async () => {
-      await result.current.connect()
-    })
-
-    expect(result.current.connected).toBe(false)
-    expect(result.current.error).toBe("Device has no GATT server")
-  })
+  delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+  delete (window as unknown as Record<string, unknown>).__TAURI__
 })
 
 describe("useBluetooth (Tauri IPC)", () => {
-  beforeEach(() => {
-    // Tauri v2 default: only `__TAURI_INTERNALS__` is injected (not `__TAURI__`).
-    // Match production behavior so isTauri() takes the IPC branch.
-    ;(window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {}
-    delete (navigator as unknown as Record<string, unknown>).bluetooth
-    mockTauriInvoke.mockResolvedValue(undefined)
-  })
-
-  it("starts disconnected in Tauri mode", () => {
+  it("starts disconnected", () => {
     const { result } = renderHook(() => useBluetooth())
     expect(result.current.connected).toBe(false)
+    expect(result.current.connecting).toBe(false)
     expect(result.current.unsupported).toBe(false)
   })
 
@@ -239,7 +122,7 @@ describe("useBluetooth (Tauri IPC)", () => {
     expect(result.current.connected).toBe(false)
   })
 
-  it("send() calls invoke ble_send in Tauri mode", async () => {
+  it("send() calls invoke ble_send", async () => {
     const { result } = renderHook(() => useBluetooth())
 
     await act(async () => {
@@ -296,5 +179,32 @@ describe("useBluetooth (Tauri IPC)", () => {
       capturedBleHandler.current?.({ payload: "connected" })
     })
     expect(result.current.connected).toBe(false)
+  })
+
+  it("connect() is a no-op outside Tauri", async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+    mockTauriInvoke.mockClear()
+
+    const { result } = renderHook(() => useBluetooth())
+
+    await act(async () => {
+      await result.current.connect()
+    })
+
+    expect(mockTauriInvoke).not.toHaveBeenCalled()
+    expect(result.current.connected).toBe(false)
+  })
+
+  it("send() is a no-op outside Tauri", () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+    mockTauriInvoke.mockClear()
+
+    const { result } = renderHook(() => useBluetooth())
+
+    act(() => {
+      result.current.send("F")
+    })
+
+    expect(mockTauriInvoke).not.toHaveBeenCalled()
   })
 })

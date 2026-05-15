@@ -23,6 +23,10 @@ vi.mock("./hooks/use-gamepad", () => ({
   useGamepad: () => mockUseGamepad(),
 }))
 
+vi.mock("./hooks/use-invert-controls", () => ({
+  useInvertControls: () => ({ inverted: false, toggleInvert: vi.fn() }),
+}))
+
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks()
