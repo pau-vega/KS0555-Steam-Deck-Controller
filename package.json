@@ -15,18 +15,23 @@
     "prepare": "lefthook install"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0",
+    "pnpm": ">=10"
   },
   "packageManager": "pnpm@10.29.3",
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@eslint/json": "^1.2.0",
+    "@types/node": "^25.8.0",
     "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
-    "eslint": "^10.3.0",
+    "eslint": "catalog:",
     "lefthook": "^2.1.6",
-    "prettier": "^3.8.3",
+    "prettier": "catalog:",
     "turbo": "^2.9.14"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "lefthook", "@tauri-apps/cli"]
   }
 }

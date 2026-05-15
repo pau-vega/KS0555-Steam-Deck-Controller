@@ -93,7 +93,7 @@ describe("CI workflow: .github/workflows/build.yml", () => {
   })
 
   it("CI-05: single job named 'build' exists", () => {
-    expect(buildYml).toMatch(/^  build:/m)
+    expect(buildYml).toMatch(/^ {2}build:/m)
   })
 
   it("CI-05: no concurrency block (cancel-in-progress removed)", () => {

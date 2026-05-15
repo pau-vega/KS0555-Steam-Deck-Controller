@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useReducer, useEffect, useCallback, useRef } from "react"
 
 import type { Direction } from "./types"
 
@@ -8,10 +8,10 @@ import { useBluetooth } from "./hooks/use-bluetooth"
 import { useGamepad } from "./hooks/use-gamepad"
 
 export function App() {
-  const [lastCommand, setLastCommand] = useState<Direction>("S")
+  const [lastCommand, setLastCommand] = useReducer((_prev: Direction, next: Direction) => next, "S" as Direction)
   const { connected: bleConnected, connecting, connect, send, error: bleError } = useBluetooth()
   const { direction, gamepadConnected } = useGamepad()
-  const prevDirection = useRef<Direction>("S")
+  const prevDirectionRef = useRef<Direction>("S")
 
   const sendCommand = useCallback(
     (cmd: Direction) => {
@@ -22,9 +22,9 @@ export function App() {
   )
 
   useEffect(() => {
-    if (direction !== prevDirection.current) {
+    if (direction !== prevDirectionRef.current) {
       sendCommand(direction)
-      prevDirection.current = direction
+      prevDirectionRef.current = direction
     }
   }, [direction, sendCommand])
 

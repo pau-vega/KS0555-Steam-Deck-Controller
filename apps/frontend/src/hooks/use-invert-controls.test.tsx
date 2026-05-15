@@ -1,8 +1,11 @@
+import type { ReactNode } from "react"
+
 import { renderHook } from "@testing-library/react"
-import { type ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
 
-import { InvertControlsContext, type InvertControlsContextValue } from "../providers/invert-controls-provider"
+import type { InvertControlsContextValue } from "../contexts/invert-controls-context"
+
+import { InvertControlsContext } from "../contexts/invert-controls-context"
 import { useInvertControls } from "./use-invert-controls"
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }))
@@ -12,7 +15,7 @@ describe("useInvertControls", () => {
   it("returns the context value when wrapped in a provider", () => {
     const value: InvertControlsContextValue = { inverted: true, toggleInvert: vi.fn() }
     const wrapper = ({ children }: { children: ReactNode }) => (
-      <InvertControlsContext.Provider value={value}>{children}</InvertControlsContext.Provider>
+      <InvertControlsContext value={value}>{children}</InvertControlsContext>
     )
 
     const { result } = renderHook(() => useInvertControls(), { wrapper })

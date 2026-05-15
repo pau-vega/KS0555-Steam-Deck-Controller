@@ -1,4 +1,6 @@
-import { listen, type UnlistenFn } from "@tauri-apps/api/event"
+import type { UnlistenFn } from "@tauri-apps/api/event"
+
+import { listen } from "@tauri-apps/api/event"
 import { useEffect, useRef, useState } from "react"
 
 import type { Direction } from "../types"
@@ -13,7 +15,10 @@ export function useGamepad() {
   const unlistenersRef = useRef<UnlistenFn[]>([])
   const { inverted, toggleInvert } = useInvertControls()
   const invertedRef = useRef(inverted)
-  invertedRef.current = inverted
+
+  useEffect(() => {
+    invertedRef.current = inverted
+  }, [inverted])
 
   useEffect(() => {
     let cancelled = false

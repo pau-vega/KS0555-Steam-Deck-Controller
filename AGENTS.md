@@ -100,7 +100,7 @@ BLE writes use `WriteType::WithoutResponse` (fire-and-forget) on characteristic 
 
 ## Critical constraints
 
-- **`apps/frontend/src/app.tsx` is locked.** CI runs `git diff --exit-code -- apps/frontend/src/app.tsx`; any change fails CI. New behavior must land in components, hooks, or new files. **Hook return shapes for `useBluetooth` / `useGamepad` are part of this contract** — adding fields is fine; renaming or removing is not.
+- **Keep `apps/frontend/src/app.tsx` thin.** New behavior should land in components, hooks, or new files rather than bloating the root component. **Hook return shapes for `useBluetooth` / `useGamepad` are part of this contract** — adding fields is fine; renaming or removing is not.
 - **Vite dev port is fixed at 5173** and must match `devUrl` in `tauri.conf.json`. Don't change it.
 - **CI runs `turbo build lint typecheck test` in that order** — build failures must be fixed before lint/typecheck errors will even surface.
 - **Conventional Commits required.** Lefthook + commitlint enforce on commit-msg. Use scoped types: `feat(tauri): …`, `fix(ble): …`, `chore(ci): …`. Pre-commit also runs `pnpm format` (auto-fix), `pnpm lint`, `pnpm typecheck` in parallel.
@@ -127,4 +127,4 @@ Authoritative source: `.agents/rules/typescript.md`. Highlights — these are en
 - **`AGENTS.md` is the single source of truth.** `CLAUDE.md` is a symlink to this file, so all agents read identical content. Edit `AGENTS.md` directly.
 - This repo uses the **GSD planning system** (`.planning/`). For non-trivial work, prefer the GSD slash commands (`/gsd-quick`, `/gsd-debug`, `/gsd-plan-phase`, `/gsd-execute-phase`) over raw edits. Direct edits are fine for typo-level fixes; anything that touches Rust, BLE, gamepad logic, or CI should go through a plan.
 - `.planning/STATE.md` and `.planning/PROJECT.md` describe current milestone position. v2.0 (Tauri migration) and v2.1 (Flatpak packaging) are archived; the repo is between milestones at time of writing.
-- Pre-commit hooks: `lefthook` (configured in `lefthook.yml`). Husky shims under `.husky/` just delegate. **Do not skip hooks** (`--no-verify`) without explicit user instruction — `app.tsx` lock and commitlint live there.
+- Pre-commit hooks: `lefthook` (configured in `lefthook.yml`). Husky shims under `.husky/` just delegate. **Do not skip hooks** (`--no-verify`) without explicit user instruction — commitlint lives there.

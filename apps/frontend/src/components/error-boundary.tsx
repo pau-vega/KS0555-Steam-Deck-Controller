@@ -1,4 +1,6 @@
-import { Component, type ReactNode } from "react"
+import type { ReactNode } from "react"
+
+import { Component } from "react"
 
 interface ErrorBoundaryState {
   error: Error | null
