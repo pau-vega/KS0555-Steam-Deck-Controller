@@ -65,46 +65,46 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_direction_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-direction"),
-            "Gamepad source must emit 'gamepad-direction' events"
+            "Gamepad adapter must emit 'gamepad-direction' events"
         );
         assert!(
-            content.contains("app_handle.emit"),
-            "Gamepad source must use app_handle.emit for events"
+            content.contains(".emit("),
+            "Gamepad adapter must call .emit for events"
         );
     }
 
     #[test]
     fn test_gamepad_connected_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-connected"),
-            "Gamepad source must emit 'gamepad-connected' events"
+            "Gamepad adapter must emit 'gamepad-connected' events"
         );
     }
 
     #[test]
     fn test_gamepad_disconnected_event_name() {
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("gamepad-disconnected"),
-            "Gamepad source must emit 'gamepad-disconnected' events"
+            "Gamepad adapter must emit 'gamepad-disconnected' events"
         );
     }
 
     #[test]
     fn test_gamepad_direction_payload_shape() {
         // D-35: gamepad-direction payload: { direction: 'F' }
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("serde_json::json!"),
-            "Gamepad source must use serde_json::json! for payload construction"
+            "Gamepad adapter must use serde_json::json! for payload construction"
         );
         assert!(
             content.contains("direction"),
@@ -127,26 +127,26 @@ mod event_pipeline_tests {
     #[test]
     fn test_gamepad_direction_change_guard() {
         // D-41: Direction change guard prevents event spam
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("last_direction"),
-            "Gamepad source must track last_direction for change guard"
+            "Gamepad adapter must track last_direction for change guard"
         );
     }
 
     #[test]
     fn test_gamepad_left_stick_axes_used() {
         // GPAD-03: Read Axis::LeftStickX/Y
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
+            .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
             content.contains("LeftStickX"),
-            "Gamepad source must read LeftStickX axis"
+            "Gamepad adapter must read LeftStickX axis"
         );
         assert!(
             content.contains("LeftStickY"),
-            "Gamepad source must read LeftStickY axis"
+            "Gamepad adapter must read LeftStickY axis"
         );
     }
 

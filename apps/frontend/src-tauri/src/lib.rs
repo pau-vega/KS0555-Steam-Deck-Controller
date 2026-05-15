@@ -1,11 +1,17 @@
+pub mod adapters;
 pub mod ble;
 pub mod domain;
 pub mod gamepad;
+pub mod ports;
 
+use adapters::{GilrsGamepad, TauriEventSink};
 use ble::{
     ble_connect, ble_send, get_invert_state, setup_event_listener, toggle_invert, BleState,
 };
 use gamepad::setup_gamepad_monitor;
+use ports::event_sink::EventSink;
+use ports::gamepad::GamepadPort;
+use std::sync::Arc;
 use tauri::Manager;
 
 fn in_flatpak() -> bool {
@@ -50,7 +56,9 @@ pub fn run() {
             setup_event_listener(app.handle().clone(), ble_state);
 
             // Setup gamepad monitoring (GPAD-01, GPAD-06)
-            setup_gamepad_monitor(app)?;
+            let sink: Arc<dyn EventSink> = Arc::new(TauriEventSink::new(app.handle().clone()));
+            let gamepad_port: Box<dyn GamepadPort> = Box::new(GilrsGamepad::new()?);
+            setup_gamepad_monitor(gamepad_port, sink)?;
 
             Ok(())
         })
