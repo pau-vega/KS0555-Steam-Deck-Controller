@@ -19,6 +19,7 @@ export const react = defineConfig([
     ".turbo/**",
     ".react-router/**",
     "storybook-static/**",
+    "**/target/**",
   ]),
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
