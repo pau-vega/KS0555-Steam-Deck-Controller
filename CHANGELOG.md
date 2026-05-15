@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.0.2](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/compare/0.0.1...0.0.2) (2026-05-15)
+
+
+### Features
+
+* **gamepad:** expose gamepadName from hook, support any gamepad controller ([f29af80](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/f29af803abc15f7399476556e070113794651e58))
+* **gamepad:** restrict controls to lateral-only and remove forward/backward buttons ([6a5bee2](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/6a5bee2a093445df8ba132144d92a82523b04b3b))
+* **gamepad:** restrict controls to lateral-only and remove forward/backward buttons ([b2052b7](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/b2052b7329130caad0a69eea2a1e1bdf95ab5827))
+* invert forward/backward controls toggle ([928bdbd](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/928bdbd1be67d9a80b8224d64d0d08a286f1cea7))
+* **quick-260514-ugl:** add inversion state management in Rust ([12a7e84](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/12a7e841568a396ea2e64a99b307054e25e1969d))
+* **quick-260514-ugl:** create useInvertControls hook and wire into useGamepad ([c1c7c3d](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/c1c7c3db62842745ad58f58079e4fc9bcd67764d))
+* **quick-260514-ugl:** refactor invert controls into provider pattern and clean up BLE/gamepad ([40c401c](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/40c401c0807851a23dcc85d82fdfd6fa8be3d02e))
+* **quick-260514-ugl:** wire inversion into ControlPad with toggle button ([5345b74](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/5345b74283afe35fa32138d8e1a8de78b718e006))
+* **quick-no4:** expose gamepadName from hook, remove dead Steam Deck detection ([8ea758c](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/8ea758c5f6829630ef5e1e2123c29c72bed52db5))
+
+
+### Bug Fixes
+
+* **quick-260514-ugl:** handle simultaneous gamepad inputs and cache BLE characteristic ([a4a3351](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/a4a335103b67d87fd7061a3f87d9851669bc0020))
+
+
+### Code Refactoring
+
+* **cleanup:** silence cargo clippy default-lint warnings ([ca4cff8](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/ca4cff81e6d7fe7a2385fbb71fff5732faa40fc2))
+* **domain:** extract pure direction module ([4fac8ba](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/4fac8ba76c96f64ac63b2f70400bb1f7b5b3a61a))
+* **ports:** introduce BluetoothPort + BtleplugBluetooth ([567a653](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/567a6534fd8284e6074e594c4134868fd8a99511))
+* **ports:** introduce GamepadPort + EventSink for gilrs ([a6d1495](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/a6d149513cb257b42481754a27a6c9d1414d35f6))
+
+
+### Documentation
+
+* **260514-no4:** pre-dispatch plan for connect to any gamepad controller ([40ee4fa](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/40ee4fac69ac0c6c4b993026d84cb9d2243ec872))
+* **agents:** symlink CLAUDE.md to AGENTS.md ([a0afdc9](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/a0afdc93a63f154300b24cf2a8c565b7ea060982))
+* **agents:** symlink CLAUDE.md to AGENTS.md ([f17306a](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/f17306ab3d6b9a0b5fc67e4edb95b652dc26970d))
+* **quick-260514-no4:** support any gamepad controller, not just steam deck ([566501c](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/566501cadf1a4ba4058188f6cdf25b107ec8fa78))
+* **quick-260514-ugl:** switch the controls to go forward and go backwards ([0908331](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/09083312b65a277d2b36afc686db8882e2dd88f1))
+* **quick:** plan invert forward/backward controls toggle ([05c49f7](https://github.com/pau-vega/KS0555-Steam-Deck-Controller/commit/05c49f7a51a3703435279d4754efb288df649261))
+
 ## 0.0.1 (2026-05-14)
 
 
