@@ -125,6 +125,45 @@ pub fn compute_stick_direction(x: f32, y: f32, deadzone: f32) -> Direction {
     }
 }
 
+/// Analog-aware stick computation that returns a `Command` instead of a bare `Direction`.
+///
+/// Uses the module-level `DEADZONE` (0.15) directly — no parameter — per REQ-SPD-05.
+/// Picks the dominant axis using the same tiebreak as `compute_stick_direction`. The
+/// magnitude `sqrt(x*x + y*y)` is clamped to `1.0` and then passed to
+/// `quantize_pressure`. If either axis is non-finite (NaN, ±INF), returns
+/// `Command::Stop` (T-20-04 mitigation). If the per-axis deadzone gate passes but the
+/// magnitude still quantizes to `None` (very small vector), returns `Command::Stop`.
+pub fn compute_stick_command(x: f32, y: f32) -> Command {
+    if !x.is_finite() || !y.is_finite() {
+        return Command::Stop;
+    }
+
+    let abs_x = x.abs();
+    let abs_y = y.abs();
+
+    if abs_x < DEADZONE && abs_y < DEADZONE {
+        return Command::Stop;
+    }
+
+    let dir = if abs_y > abs_x {
+        if y < 0.0 {
+            Direction::F
+        } else {
+            Direction::B
+        }
+    } else if x < 0.0 {
+        Direction::L
+    } else {
+        Direction::R
+    };
+
+    let m = (x * x + y * y).sqrt().min(1.0);
+    match quantize_pressure(m) {
+        Some(pwm) => Command::Drive { dir, pwm },
+        None => Command::Stop,
+    }
+}
+
 pub fn lateral_only(d: Direction) -> Direction {
     match d {
         Direction::L | Direction::R => d,
