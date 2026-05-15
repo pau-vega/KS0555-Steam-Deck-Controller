@@ -69,9 +69,9 @@ Deferred follow-up: REQ-SPD-15 hardware smoke test (rolls into VAL-09).
 7. `cargo clippy` and `cargo fmt --check` clean for touched files
 
 **Plans:** 3 plans (planned 2026-05-15)
-- [ ] 20-01-domain-types-PLAN.md — `Command` enum + `Display` impl, `quantize_pressure` pure function, plus unit tests (REQ-SPD-01, REQ-SPD-02). Wave 1.
+- [x] 20-01-domain-types-PLAN.md — `Command` enum + `Display` impl, `quantize_pressure` pure function, plus unit tests (REQ-SPD-01, REQ-SPD-02). Wave 1.
 - [ ] 20-02-gamepad-domain-functions-PLAN.md — `compute_trigger_command` and `compute_stick_command` added alongside legacy functions; tests cover R2-wins-tie, axis tiebreak, NaN safety, magnitude clamping (REQ-SPD-04, REQ-SPD-05, REQ-SPD-06 partial). Wave 2.
-- [ ] 20-03-ble-send-validation-PLAN.md — relax `ble_send` to accept `^[FBLR]\d{2,3}\n$ | ^S\n$` with pwm range check, regex compiled once, 18 accept/reject tests (REQ-SPD-03). Wave 1.
+- [x] 20-03-ble-send-validation-PLAN.md — relax `ble_send` to accept `^[FBLR]\d{2,3}\n$ | ^S\n$` with pwm range check, regex compiled once, 18 accept/reject tests (REQ-SPD-03). Wave 1.
 
 ### Phase 21: Gamepad Adapter & IPC
 
@@ -111,7 +111,7 @@ Deferred follow-up: REQ-SPD-15 hardware smoke test (rolls into VAL-09).
 | 17. Close Verification Gaps | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 18. Fix Stale Docs | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 19. Execute Deb Build + Flatpak Runner | v2.1 | 1/1 | Complete | 2026-05-12 |
-| 20. Protocol & Domain | v2.2 | 0/3 | Planned | — |
+| 20. Protocol & Domain | v2.2 | 2/3 | In Progress|  |
 | 21. Gamepad Adapter & IPC | v2.2 | 0/? | Planned | — |
 | 22. Frontend Hooks & UI | v2.2 | 0/? | Planned | — |
 | 23. Docs + Meta-tests + Milestone Close | v2.2 | 0/? | Planned | — |
