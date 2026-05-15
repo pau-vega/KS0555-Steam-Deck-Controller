@@ -54,6 +54,28 @@ impl fmt::Display for Command {
     }
 }
 
+const BUCKETS: [u8; 10] = [80, 100, 119, 138, 158, 177, 196, 216, 235, 255];
+
+/// Quantize an analog pressure value in `[0.0, 1.0]` to one of ten PWM buckets.
+///
+/// Returns `None` when `pressure <= TRIGGER_THRESHOLD` (0.1), i.e. below the deadzone.
+/// Returns `Some(pwm)` from `BUCKETS` for `0.1 < pressure <= 1.0`. NaN, negative, and
+/// values above `1.0` are clamped: NaN/negatives collapse to `0.0` (→ `None`); inputs
+/// above `1.0` clamp to `1.0` (→ `Some(255)`). Monotonic non-decreasing across the
+/// returned `Some` range.
+pub fn quantize_pressure(pressure: f32) -> Option<u8> {
+    // NOTE: deliberately NOT `pressure.clamp(0.0, 1.0)` — `f32::clamp` returns NaN when
+    // its input is NaN, which would defeat the NaN→None contract (T-20-01 in the threat
+    // register for Plan 20-01). `max(0.0)` then `min(1.0)` collapses NaN to `0.0` first.
+    #[allow(clippy::manual_clamp)]
+    let p = pressure.max(0.0).min(1.0);
+    if p <= TRIGGER_THRESHOLD {
+        return None;
+    }
+    let idx = (((p - TRIGGER_THRESHOLD) / 0.09).ceil() as i32 - 1).clamp(0, 9) as usize;
+    Some(BUCKETS[idx])
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct DpadButtons {
     pub up: bool,
