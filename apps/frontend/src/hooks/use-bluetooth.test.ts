@@ -134,7 +134,7 @@ describe("useBluetooth (Tauri IPC)", () => {
       result.current.send("F")
     })
 
-    expect(mockTauriInvoke).toHaveBeenCalledWith("ble_send", { command: "F" })
+    expect(mockTauriInvoke).toHaveBeenCalledWith("ble_send", { command: "F150\n" })
   })
 
   it("send() calls invoke ble_send with B command", async () => {
@@ -149,7 +149,42 @@ describe("useBluetooth (Tauri IPC)", () => {
       result.current.send("B")
     })
 
-    expect(mockTauriInvoke).toHaveBeenCalledWith("ble_send", { command: "B" })
+    expect(mockTauriInvoke).toHaveBeenCalledWith("ble_send", { command: "B150\n" })
+  })
+
+  it("send() surfaces invoke rejection via error state", async () => {
+    const { result } = renderHook(() => useBluetooth())
+
+    await act(async () => {
+      await result.current.connect()
+    })
+
+    mockTauriInvoke.mockClear()
+    mockTauriInvoke.mockRejectedValueOnce(new Error("Invalid BLE payload \"X\": expected '<dir><pwm>\\n' ..."))
+
+    await act(async () => {
+      result.current.send("F")
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(result.current.error).toBeTruthy()
+    expect(result.current.error).toContain("Invalid BLE payload")
+  })
+
+  it("send() calls invoke ble_send with Stop payload S newline", async () => {
+    const { result } = renderHook(() => useBluetooth())
+
+    await act(async () => {
+      await result.current.connect()
+    })
+    mockTauriInvoke.mockClear()
+
+    act(() => {
+      result.current.send("S")
+    })
+
+    expect(mockTauriInvoke).toHaveBeenCalledWith("ble_send", { command: "S\n" })
   })
 
   it("updates state when ble-state-changed event fires", () => {
