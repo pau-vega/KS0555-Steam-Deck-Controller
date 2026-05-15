@@ -94,3 +94,33 @@ blocked: 0
     - "OR (minimal alternative) keep gilrs_adapter emitting Direction and have App.sendCommand encode via encodeCommand before invoking ble_send — defers analog speed to Phase 21 but unblocks UAT today"
     - "Defense-in-depth: surface ble_send rejections in use-bluetooth.ts via setError so silent BLE failures stop masquerading as hardware issues"
   debug_session: .planning/debug/gamepad-robot-no-response.md
+
+## Closure Attempt
+
+plan: 20-04-fe-wire-encoder-PLAN.md
+date: 2026-05-15
+rationale: |
+  FE-only fix. Encoded Phase-20 wire format in
+  apps/frontend/src/lib/encode-command.ts and routed every payload
+  through it in useBluetooth.send. Added .catch on the invoke promise
+  so future producer/validator regressions surface in the UI's
+  bleError state instead of being silently swallowed.
+
+  gilrs_adapter.rs is unchanged — Phase 21 still owns the adapter
+  rewrite to emit analog (direction, pwm) payloads. Until then this
+  FE shim uses DEFAULT_PWM = 150 (firmware default per PROJECT.md
+  Context section, within validator accept range 80..=255).
+
+verification_done:
+  - "just check (pnpm lint + typecheck + test) exits 0"
+  - "cargo test --manifest-path apps/frontend/src-tauri/Cargo.toml exits 0; ble::tests count unchanged at 18"
+  - "pnpm exec prettier --check . from repo root exits 0"
+
+regression_required:
+  scope: "User must re-run UAT Tests 4 and 5 with real hardware (BT24 + Steam Deck or gamepad)."
+  steps:
+    - "pnpm dev (or the installed Flatpak on the Deck)."
+    - "Click Connect Bluetooth; wait for StatusBar to reach connected."
+    - "Test 4: Click each ControlPad button (L, S, R; plus stick-driven F/B if applicable). Robot must drive in each direction; clicking S must stop it."
+    - "Test 5: With a gamepad connected, push the left stick forward/backward/left/right and press R2/L2. Robot must drive. Release to center; robot must stop."
+    - "Bonus T-20-16 visibility check: in the Tauri WebView devtools console, run window.__TAURI_INTERNALS__.invoke('ble_send', { command: 'X' }) once. The on-screen bleError area below the Connect button must now display the rejection message (it did NOT before this plan)."
