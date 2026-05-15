@@ -36,34 +36,18 @@ describe("ControlPad", () => {
     vi.restoreAllMocks()
   })
 
-  it("renders all 5 control buttons plus toggle button", () => {
+  it("renders 3 control buttons plus toggle button", () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
 
-    // Use within to scope queries to this render
     const buttons = container.querySelectorAll("button")
-    expect(buttons).toHaveLength(6)
+    expect(buttons).toHaveLength(4)
   })
 
-  it('calls onCommand with "F" when forward button clicked', () => {
+  it("does not render forward or backward buttons", () => {
     const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
 
-    // Find button by its grid-area style (Forward is at 1/2)
-    const forwardButton = container.querySelector('button[style*="1 / 2"]')
-    expect(forwardButton).toBeInTheDocument()
-
-    fireEvent.click(forwardButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith("F")
-  })
-
-  it('calls onCommand with "B" when backward button clicked', () => {
-    const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
-
-    // Backward is at 3/2
-    const backwardButton = container.querySelector('button[style*="3 / 2"]')
-    expect(backwardButton).toBeInTheDocument()
-
-    fireEvent.click(backwardButton!)
-    expect(mockOnCommand).toHaveBeenCalledWith("B")
+    expect(container.querySelector('button[style*="1 / 2"]')).toBeNull()
+    expect(container.querySelector('button[style*="3 / 2"]')).toBeNull()
   })
 
   it('calls onCommand with "L" when left button clicked', () => {
@@ -117,34 +101,6 @@ describe("ControlPad", () => {
   })
 
   describe("inversion", () => {
-    it("inverted=true: forward (▲) sends B", async () => {
-      const { useInvertControls } = await import("../hooks/use-invert-controls")
-      vi.mocked(useInvertControls).mockReturnValue({
-        inverted: true,
-        toggleInvert: mockToggleInvert,
-      })
-
-      const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
-
-      const forwardButton = container.querySelector('button[style*="1 / 2"]')
-      fireEvent.click(forwardButton!)
-      expect(mockOnCommand).toHaveBeenCalledWith("B")
-    })
-
-    it("inverted=true: backward (▼) sends F", async () => {
-      const { useInvertControls } = await import("../hooks/use-invert-controls")
-      vi.mocked(useInvertControls).mockReturnValue({
-        inverted: true,
-        toggleInvert: mockToggleInvert,
-      })
-
-      const { container } = render(<ControlPad onCommand={mockOnCommand} disabled={false} />)
-
-      const backwardButton = container.querySelector('button[style*="3 / 2"]')
-      fireEvent.click(backwardButton!)
-      expect(mockOnCommand).toHaveBeenCalledWith("F")
-    })
-
     it("inverted=true: left (◀), stop (■), right (▶) unchanged", async () => {
       const { useInvertControls } = await import("../hooks/use-invert-controls")
       vi.mocked(useInvertControls).mockReturnValue({

@@ -3,14 +3,8 @@ import { useEffect, useRef, useState } from "react"
 
 import type { Direction } from "../types"
 
+import { applyDirectionInversion } from "../lib/apply-direction-inversion"
 import { useInvertControls } from "./use-invert-controls"
-
-function applyInvert(dir: Direction, inverted: boolean): Direction {
-  if (!inverted) return dir
-  if (dir === "F") return "B"
-  if (dir === "B") return "F"
-  return dir
-}
 
 export function useGamepad() {
   const [direction, setDirection] = useState<Direction>("S")
@@ -29,7 +23,7 @@ export function useGamepad() {
 
       const unlistenDirection = await listen<{ direction: Direction }>("gamepad-direction", (event) => {
         if (cancelled) return
-        const effective = applyInvert(event.payload.direction, invertedRef.current)
+        const effective = applyDirectionInversion(event.payload.direction, invertedRef.current)
         setDirection(effective)
       })
       unlistenersRef.current.push(unlistenDirection)
@@ -41,7 +35,7 @@ export function useGamepad() {
       })
       unlistenersRef.current.push(unlistenConnected)
 
-      const unlistenDisconnected = await listen<{ name: string }>("gamepad-disconnected", (event) => {
+      const unlistenDisconnected = await listen<{ name: string }>("gamepad-disconnected", () => {
         if (cancelled) return
         setGamepadConnected(false)
         setDirection("S")
@@ -50,7 +44,7 @@ export function useGamepad() {
       unlistenersRef.current.push(unlistenDisconnected)
     }
 
-    setup()
+    void setup()
 
     return () => {
       cancelled = true

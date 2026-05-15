@@ -23,6 +23,10 @@ vi.mock("./hooks/use-gamepad", () => ({
   useGamepad: () => mockUseGamepad(),
 }))
 
+vi.mock("./hooks/use-invert-controls", () => ({
+  useInvertControls: () => ({ inverted: false, toggleInvert: vi.fn() }),
+}))
+
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -52,7 +56,7 @@ describe("App", () => {
   it("displays ControlPad component", () => {
     const { container } = render(<App />)
     const buttons = container.querySelectorAll("button")
-    expect(buttons.length).toBe(6)
+    expect(buttons.length).toBe(4)
   })
 
   it("displays last command section", () => {

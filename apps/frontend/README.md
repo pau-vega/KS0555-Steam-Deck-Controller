@@ -72,12 +72,11 @@ pnpm tauri:dev
 
 The React UI invokes these Tauri commands via `invoke()`:
 
-| Command          | Payload               | Returns                                 |
-| ---------------- | --------------------- | --------------------------------------- |
-| `ble_scan`       | `{}`                  | `{ devices: [{ address, name }, ...] }` |
-| `ble_connect`    | `{ address: string }` | `{}` (on success) or error              |
-| `ble_write`      | `{ data: string }`    | `{}`                                    |
-| `ble_disconnect` | `{}`                  | `{}`                                    |
+| Command       | Payload               | Returns                                 |
+| ------------- | --------------------- | --------------------------------------- |
+| `ble_scan`    | `{}`                  | `{ devices: [{ address, name }, ...] }` |
+| `ble_connect` | `{ address: string }` | `{}` (on success) or error              |
+| `ble_write`   | `{ data: string }`    | `{}`                                    |
 
 ### Events
 
@@ -167,4 +166,3 @@ Runs Vitest on `*.test.ts` and `*.test.tsx` files:
 - **[../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)** — System-level architecture, data flow, key abstractions
 - **[../../docs/RUNNING.md](../../docs/RUNNING.md)** — Per-device detailed run instructions (Steam Deck Desktop/Gaming Mode, macOS, Linux)
 - **[../../DEVELOPMENT.md](../../DEVELOPMENT.md)** — Development setup, branch conventions, PR process
-- **[../../TESTING.md](../../TESTING.md)** — Test framework setup, coverage, CI integration

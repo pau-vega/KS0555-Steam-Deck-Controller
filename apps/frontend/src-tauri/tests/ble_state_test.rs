@@ -5,7 +5,6 @@
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::Path;
 
     #[test]
     fn test_ble_state_struct_exists() {

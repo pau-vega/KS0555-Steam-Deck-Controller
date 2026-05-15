@@ -23,14 +23,7 @@ btleplug = "0.12.0"
 # Gamepad input (Phase 8)
 gilrs = { version = "0.11.1", features = ["serde"] }
 
-# Error handling
-thiserror = "2.0"
-
 # Async runtime
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 futures = "0.3"
 uuid = "1.0"
-
-[target.'cfg(target_os = "linux")'.dependencies]
-# Steam Deck requires proper evdev support for gamepad input
-gilrs = { version = "0.11.1", features = ["serde"] }

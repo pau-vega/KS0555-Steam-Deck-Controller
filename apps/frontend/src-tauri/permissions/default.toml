@@ -5,7 +5,6 @@ description = "Default permissions for BLE commands"
 
 permissions = [
   "ble-connect",
-  "ble-disconnect",
   "ble-send",
   "ble-state-changed"
 ]

@@ -177,22 +177,16 @@
       "description": "Permission identifier",
       "oneOf": [
         {
-          "description": "Default permissions for BLE commands\n#### This default permission set includes:\n\n- `ble-connect`\n- `ble-disconnect`\n- `ble-send`\n- `ble-state-changed`",
+          "description": "Default permissions for BLE commands\n#### This default permission set includes:\n\n- `ble-connect`\n- `ble-send`\n- `ble-state-changed`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for BLE commands\n#### This default permission set includes:\n\n- `ble-connect`\n- `ble-disconnect`\n- `ble-send`\n- `ble-state-changed`"
+          "markdownDescription": "Default permissions for BLE commands\n#### This default permission set includes:\n\n- `ble-connect`\n- `ble-send`\n- `ble-state-changed`"
         },
         {
           "description": "Allow BLE connect command",
           "type": "string",
           "const": "ble-connect",
           "markdownDescription": "Allow BLE connect command"
-        },
-        {
-          "description": "Allow BLE disconnect command",
-          "type": "string",
-          "const": "ble-disconnect",
-          "markdownDescription": "Allow BLE disconnect command"
         },
         {
           "description": "Allow BLE send command",

@@ -105,6 +105,11 @@ mod flatpak_sandbox_tests {
 
     #[test]
     fn test_manifest_has_ble_finish_args() {
+        // SBX-01: BLE access via BlueZ over the system D-Bus.
+        // We grant the narrowest finish-args that let btleplug reach BlueZ:
+        //   --system-talk-name=org.bluez(.*) + --share=network.
+        // --allow=bluetooth (AF_BLUETOOTH socket) is intentionally omitted —
+        // btleplug uses D-Bus, not raw sockets (see anti-feature checklist).
         let content = fs::read_to_string("../../../flatpak/com.ks0555.robotcontroller.yaml")
             .expect("Should be able to read manifest");
         assert!(
@@ -116,12 +121,8 @@ mod flatpak_sandbox_tests {
             "Manifest must have --system-talk-name=org.bluez.* for BLE"
         );
         assert!(
-            content.contains("--allow=bluetooth"),
-            "Manifest must have --allow=bluetooth for BLE"
-        );
-        assert!(
             content.contains("--share=network"),
-            "Manifest must have --share=network for BLE (required by --allow=bluetooth)"
+            "Manifest must have --share=network for BLE"
         );
     }
 
@@ -129,15 +130,13 @@ mod flatpak_sandbox_tests {
 
     #[test]
     fn test_manifest_has_gamepad_finish_args() {
+        // SBX-02: gilrs reads /dev/input/event*. --device=all is the supported grant
+        // on Flatpak runtimes that don't yet expose the narrower --device=input.
         let content = fs::read_to_string("../../../flatpak/com.ks0555.robotcontroller.yaml")
             .expect("Should be able to read manifest");
         assert!(
-            content.contains("--device=input"),
-            "Manifest must have --device=input for gamepad access"
-        );
-        assert!(
             content.contains("--device=all"),
-            "Manifest must document --device=all as fallback comment"
+            "Manifest must have --device=all for gamepad access"
         );
     }
 
