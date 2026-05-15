@@ -219,6 +219,59 @@ pub fn compute_trigger(inputs: &GamepadInputs, threshold: f32) -> (Direction, f3
     (direction, r2_eff, l2_eff)
 }
 
+/// Analog-aware trigger computation that returns a `Command` instead of a bare `Direction`.
+///
+/// Mirrors `compute_trigger` for pressure derivation, digital fallback, and R2-wins-tie
+/// semantics (REQ-SPD-04). Differences:
+/// - Uses the module-level `TRIGGER_THRESHOLD` directly (no `threshold` parameter).
+/// - Returns `Command::Drive { dir, pwm }` when a direction is active and
+///   `quantize_pressure(max(r2_eff, l2_eff))` resolves to `Some(pwm)`; otherwise
+///   `Command::Stop`.
+/// - The second and third tuple elements are the same effective pressures the legacy
+///   function returns, so the adapter heartbeat cadence stays unchanged when callers
+///   migrate to this function in Phase 21.
+pub fn compute_trigger_command(inputs: &GamepadInputs) -> (Command, f32, f32) {
+    let r2_pressure = if inputs.r2 > TRIGGER_THRESHOLD {
+        inputs.r2 - TRIGGER_THRESHOLD
+    } else {
+        0.0
+    };
+    let l2_pressure = if inputs.l2 > TRIGGER_THRESHOLD {
+        inputs.l2 - TRIGGER_THRESHOLD
+    } else {
+        0.0
+    };
+
+    let (r2_eff, l2_eff) = if r2_pressure == 0.0 && l2_pressure == 0.0 {
+        let r2_btn = inputs.trigger_buttons.r2 || inputs.trigger_buttons.r1;
+        let l2_btn = inputs.trigger_buttons.l2 || inputs.trigger_buttons.l1;
+        if r2_btn || l2_btn {
+            (
+                if r2_btn { 1.0 } else { 0.0 },
+                if l2_btn { 1.0 } else { 0.0 },
+            )
+        } else {
+            (0.0, 0.0)
+        }
+    } else {
+        (r2_pressure, l2_pressure)
+    };
+
+    let dir = if r2_eff > 0.0 && r2_eff >= l2_eff {
+        Direction::F
+    } else if l2_eff > 0.0 {
+        Direction::B
+    } else {
+        return (Command::Stop, r2_eff, l2_eff);
+    };
+
+    let strongest = r2_eff.max(l2_eff);
+    match quantize_pressure(strongest) {
+        Some(pwm) => (Command::Drive { dir, pwm }, r2_eff, l2_eff),
+        None => (Command::Stop, r2_eff, l2_eff),
+    }
+}
+
 pub fn compute_combined(inputs: &GamepadInputs, deadzone: f32) -> Direction {
     if is_dpad_active(inputs, deadzone) || is_stick_active(inputs, deadzone) {
         compute_dpad_or_stick(inputs, deadzone)
