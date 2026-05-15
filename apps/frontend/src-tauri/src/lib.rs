@@ -1,4 +1,5 @@
 pub mod ble;
+pub mod domain;
 pub mod gamepad;
 
 use ble::{

@@ -114,12 +114,12 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_deadzone_constant() {
-        // D-42: Deadzone 0.15
-        let content = fs::read_to_string("src/gamepad/mod.rs")
-            .expect("Should be able to read gamepad/mod.rs");
+        // D-42: Deadzone 0.15 — lives in the domain layer after the hexagonal port refactor.
+        let content = fs::read_to_string("src/domain/direction.rs")
+            .expect("Should be able to read domain/direction.rs");
         assert!(
             content.contains("DEADZONE"),
-            "Gamepad source must define DEADZONE constant"
+            "Domain must define DEADZONE constant"
         );
         assert!(content.contains("0.15"), "DEADZONE must be 0.15");
     }
