@@ -100,7 +100,7 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_direction_payload_shape() {
-        // D-35: gamepad-direction payload: { direction: 'F' }
+        // D-35: gamepad-direction payload: { command: "F138\n" }
         let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
             .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
@@ -108,8 +108,8 @@ mod event_pipeline_tests {
             "Gamepad adapter must use serde_json::json! for payload construction"
         );
         assert!(
-            content.contains("direction"),
-            "Gamepad direction payload must contain 'direction' key"
+            content.contains("command"),
+            "Gamepad direction payload must contain 'command' key"
         );
     }
 
@@ -127,12 +127,12 @@ mod event_pipeline_tests {
 
     #[test]
     fn test_gamepad_direction_change_guard() {
-        // D-41: Direction change guard prevents event spam
+        // D-41: Command change guard prevents event spam
         let content = fs::read_to_string("src/adapters/gilrs_adapter.rs")
             .expect("Should be able to read adapters/gilrs_adapter.rs");
         assert!(
-            content.contains("last_direction"),
-            "Gamepad adapter must track last_direction for change guard"
+            content.contains("last_command"),
+            "Gamepad adapter must track last_command for change guard"
         );
     }
 

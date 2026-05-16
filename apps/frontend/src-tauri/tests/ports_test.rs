@@ -144,13 +144,14 @@ fn event_sink_records_emissions_in_order() {
     let sink = MockEventSink::new();
     sink.emit("ble-state-changed", serde_json::json!("connecting"));
     sink.emit("ble-state-changed", serde_json::json!("connected"));
-    sink.emit("gamepad-direction", serde_json::json!({ "direction": "F" }));
+    sink.emit("gamepad-direction", serde_json::json!({ "command": "F138\n" }));
 
     let snap = sink.snapshot();
     assert_eq!(snap.len(), 3);
     assert_eq!(snap[0].0, "ble-state-changed");
     assert_eq!(snap[0].1, serde_json::json!("connecting"));
     assert_eq!(snap[2].0, "gamepad-direction");
+    assert_eq!(snap[2].1, serde_json::json!({ "command": "F138\n" }));
 }
 
 #[test]
@@ -167,4 +168,16 @@ fn watch_state_emits_disconnect_once_per_event() {
         .filter(|(e, p)| e == "ble-state-changed" && p == &serde_json::json!("disconnected"))
         .count();
     assert_eq!(disconnect_count, 1, "exactly one disconnect emission");
+}
+
+#[test]
+fn gamepad_direction_command_wire_format() {
+    let sink = MockEventSink::new();
+    sink.emit("gamepad-direction", serde_json::json!({ "command": "F138\n" }));
+    sink.emit("gamepad-direction", serde_json::json!({ "command": "S\n" }));
+
+    let snap = sink.snapshot();
+    assert_eq!(snap.len(), 2);
+    assert_eq!(snap[0].1, serde_json::json!({ "command": "F138\n" }));
+    assert_eq!(snap[1].1, serde_json::json!({ "command": "S\n" }));
 }

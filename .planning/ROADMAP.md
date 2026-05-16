@@ -4,7 +4,8 @@
 
 - ✅ **v2.0 Tauri Migration** — Phases 6-10 (shipped 2026-05-12)
 - ✅ **v2.1 Flatpak Packaging** — Phases 11-19 (shipped 2026-05-12)
-- 📋 **v2.2+ Future** — Backlog (planned)
+- 📋 **v2.2 Analog Speed Control** — Phases 20-23 (planned, 2026-05-15)
+- 📋 **v2.3+ Future** — Backlog (Pipeline polish, auto-reconnect, Flathub prep)
 
 ## Phases
 
@@ -34,6 +35,65 @@
 
 </details>
 
+<details open>
+<summary>📋 v2.2 Analog Speed Control (Phases 20-23) — PLANNED 2026-05-15</summary>
+
+- [ ] Phase 20: Protocol & Domain — `Command` type, `quantize_pressure`, expand `compute_trigger`/`compute_stick_direction`, relax `ble_send` validation. Pure-Rust + tests. (REQ-SPD-01..06 partial)
+- [ ] Phase 21: Gamepad Adapter & IPC — emit `(direction, pwm)` from `gilrs_adapter`, coalesce on `(dir, pwm_bucket)`, update mock-port behavioral tests. (REQ-SPD-04..08)
+- [ ] Phase 22: Frontend Hooks & UI — add `Command` type, additive `lastCommand` on `useGamepad`, `useBluetooth.send` accepts `Command`, passive speed indicator on `control-pad.tsx`. (REQ-SPD-09..11)
+- [ ] Phase 23: Docs + Meta-tests + Milestone Close — update AGENTS.md, ARCHITECTURE.md, meta-tests; record retrospective. (REQ-SPD-12..14)
+
+Out of scope this milestone: right-stick mapping, smoothing curves, user-tunable presets, firmware changes.
+Deferred follow-up: REQ-SPD-15 hardware smoke test (rolls into VAL-09).
+
+### Phase 20: Protocol & Domain
+
+**Goal**: Land the analog wire protocol in pure Rust — `Command` enum with `Display` serializing to `<dir><pwm>\n` / `S\n`, `quantize_pressure` 10-bucket function, expanded `compute_trigger` / `compute_stick_direction` returning `Command`, and relaxed `ble_send` payload validation. All changes covered by unit tests; no adapter wiring yet.
+**Depends on**: Phase 19 (v2.1 shipped)
+**Requirements**: REQ-SPD-01, REQ-SPD-02, REQ-SPD-03, REQ-SPD-04, REQ-SPD-05 (REQ-SPD-06 partial — only the domain-side signatures consumed by `gilrs_adapter` land here; the adapter rewrite is Phase 21)
+
+**Scope**:
+- `apps/frontend/src-tauri/src/domain/direction.rs` — add `Command` enum, `quantize_pressure`, update `compute_trigger` and `compute_stick_direction` signatures + behavior.
+- `apps/frontend/src-tauri/src/ble/mod.rs` — drop `len == 1` validation, accept `^[FBLR]\d{2,3}\n$ | ^S\n$`, pass through to `BluetoothPort::write` unchanged.
+- Unit tests for `quantize_pressure` (deadzone, monotonicity, bucket boundaries, clamping), `compute_trigger` (R2/L2/tie/below-deadzone), `compute_stick_direction` (deadzone, axis tiebreak, magnitude→pwm), `Command::Display` (wire format), `ble_send` regex (accept/reject).
+
+**Out of scope (Phase 20)**: `gilrs_adapter.rs` rewrite, IPC payload changes, frontend types/hooks, docs.
+
+**Success Criteria**:
+1. `cargo test --manifest-path apps/frontend/src-tauri/Cargo.toml` passes
+2. `quantize_pressure` covers deadzone, all 10 buckets, and clamping; tests assert monotonicity
+3. `compute_trigger` returns `Command` covering R2-wins/L2/tie/below-deadzone
+4. `compute_stick_direction` returns `Command` covering deadzone/axis-tiebreak/magnitude
+5. `ble_send` rejects malformed payloads (no newline, wrong direction char, pwm out of range) and accepts the new wire format
+6. No changes to `gilrs_adapter.rs` IPC contract in this phase
+7. `cargo clippy` and `cargo fmt --check` clean for touched files
+
+**Plans:** 4 plans (3 shipped + 1 gap closure, 2026-05-15)
+- [x] 20-01-domain-types-PLAN.md — `Command` enum + `Display` impl, `quantize_pressure` pure function, plus unit tests (REQ-SPD-01, REQ-SPD-02). Wave 1.
+- [x] 20-02-gamepad-domain-functions-PLAN.md — `compute_trigger_command` and `compute_stick_command` added alongside legacy functions; tests cover R2-wins-tie, axis tiebreak, NaN safety, magnitude clamping (REQ-SPD-04, REQ-SPD-05, REQ-SPD-06 partial). Wave 2.
+- [x] 20-03-ble-send-validation-PLAN.md — relax `ble_send` to accept `^[FBLR]\d{2,3}\n$ | ^S\n$` with pwm range check, regex compiled once, 18 accept/reject tests (REQ-SPD-03). Wave 1.
+- [ ] 20-04-fe-wire-encoder-PLAN.md — FE-only gap closure (post-UAT). Adds `encodeCommand(Direction): string` in `apps/frontend/src/lib/`, wires it into `useBluetooth.send`, surfaces invoke rejections via `setError`. Closes Test 4 (ControlPad) and Test 5 (Gamepad) UAT failures without re-widening the Phase-20 validator and without pulling Phase 21's adapter rewrite forward. (REQ-SPD-03 producer-exercise). Wave 1.
+
+### Phase 21: Gamepad Adapter & IPC
+
+**Goal**: Wire the new `Command`-producing domain functions into `gilrs_adapter`, coalesce on `(dir, pwm_bucket)`, and update the `gamepad-direction` IPC payload + `ble_send` command shape. Mock-port behavioral tests updated.
+**Depends on**: Phase 20
+**Requirements**: REQ-SPD-04, REQ-SPD-05, REQ-SPD-06, REQ-SPD-07, REQ-SPD-08
+
+### Phase 22: Frontend Hooks & UI
+
+**Goal**: Add `Command` type to `apps/frontend/src/types.ts`, make `useBluetooth.send` accept `Command` (with legacy `Direction`-only overload defaulting PWM to 150), expose passive speed state through `useGamepad`, render a `SpeedIndicator` row beneath the d-pad in `control-pad.tsx`. Hook return shapes additive-only per AGENTS.md contract.
+**Depends on**: Phase 21
+**Requirements**: REQ-SPD-09, REQ-SPD-10, REQ-SPD-11
+
+### Phase 23: Docs + Meta-tests + Milestone Close
+
+**Goal**: Update AGENTS.md IPC contract table and remove "firmware immutable" claim, rewrite `docs/ARCHITECTURE.md` BLE-write section for the new wire format, refresh meta-tests under `apps/frontend/src/` that pattern-match the old 5-char protocol, record the v2.2 retrospective.
+**Depends on**: Phase 22
+**Requirements**: REQ-SPD-12, REQ-SPD-13, REQ-SPD-14
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -52,6 +112,10 @@
 | 17. Close Verification Gaps | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 18. Fix Stale Docs | v2.1 | 1/1 | Complete | 2026-05-10 |
 | 19. Execute Deb Build + Flatpak Runner | v2.1 | 1/1 | Complete | 2026-05-12 |
+| 20. Protocol & Domain | v2.2 | 3/3 (+1 gap closure pending) | UAT-blocked → 20-04 in flight | 2026-05-15 |
+| 21. Gamepad Adapter & IPC | v2.2 | 0/? | Planned | — |
+| 22. Frontend Hooks & UI | v2.2 | 0/? | Planned | — |
+| 23. Docs + Meta-tests + Milestone Close | v2.2 | 0/? | Planned | — |
 
 ---
 

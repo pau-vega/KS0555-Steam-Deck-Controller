@@ -55,12 +55,12 @@ describe("useGamepad", () => {
     await act(async () => {})
 
     act(() => {
-      listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+      listenerCallbacks["gamepad-direction"]!({ command: "F80\n" })
     })
     expect(result.current.direction).toBe("F")
 
     act(() => {
-      listenerCallbacks["gamepad-direction"]!({ direction: "L" })
+      listenerCallbacks["gamepad-direction"]!({ command: "L80\n" })
     })
     expect(result.current.direction).toBe("L")
   })
@@ -105,17 +105,17 @@ describe("useGamepad", () => {
     await act(async () => {})
 
     act(() => {
-      listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+      listenerCallbacks["gamepad-direction"]!({ command: "F80\n" })
     })
     expect(result.current.direction).toBe("F")
 
     act(() => {
-      listenerCallbacks["gamepad-direction"]!({ direction: "R" })
+      listenerCallbacks["gamepad-direction"]!({ command: "R80\n" })
     })
     expect(result.current.direction).toBe("R")
 
     act(() => {
-      listenerCallbacks["gamepad-direction"]!({ direction: "S" })
+      listenerCallbacks["gamepad-direction"]!({ command: "S\n" })
     })
     expect(result.current.direction).toBe("S")
   })
@@ -189,7 +189,7 @@ describe("useGamepad", () => {
       await act(async () => {})
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+        listenerCallbacks["gamepad-direction"]!({ command: "F80\n" })
       })
       expect(result.current.direction).toBe("F")
     })
@@ -205,7 +205,7 @@ describe("useGamepad", () => {
       await act(async () => {})
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "B" })
+        listenerCallbacks["gamepad-direction"]!({ command: "B80\n" })
       })
       expect(result.current.direction).toBe("B")
     })
@@ -221,7 +221,7 @@ describe("useGamepad", () => {
       await act(async () => {})
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "F" })
+        listenerCallbacks["gamepad-direction"]!({ command: "F80\n" })
       })
       expect(result.current.direction).toBe("B")
     })
@@ -237,7 +237,7 @@ describe("useGamepad", () => {
       await act(async () => {})
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "B" })
+        listenerCallbacks["gamepad-direction"]!({ command: "B80\n" })
       })
       expect(result.current.direction).toBe("F")
     })
@@ -253,17 +253,17 @@ describe("useGamepad", () => {
       await act(async () => {})
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "L" })
+        listenerCallbacks["gamepad-direction"]!({ command: "L80\n" })
       })
       expect(result.current.direction).toBe("L")
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "R" })
+        listenerCallbacks["gamepad-direction"]!({ command: "R80\n" })
       })
       expect(result.current.direction).toBe("R")
 
       act(() => {
-        listenerCallbacks["gamepad-direction"]!({ direction: "S" })
+        listenerCallbacks["gamepad-direction"]!({ command: "S\n" })
       })
       expect(result.current.direction).toBe("S")
     })

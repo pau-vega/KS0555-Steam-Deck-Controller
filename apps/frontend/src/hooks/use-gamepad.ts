@@ -26,10 +26,12 @@ export function useGamepad() {
     const setup = async () => {
       if (!window.__TAURI_INTERNALS__) return
 
-      const unlistenDirection = await listen<{ direction: Direction }>("gamepad-direction", (event) => {
+      const unlistenDirection = await listen<{ command: string }>("gamepad-direction", (event) => {
         if (cancelled) return
-        const effective = applyDirectionInversion(event.payload.direction, invertedRef.current)
-        setDirection(effective)
+        const cmd = event.payload.command as string
+        const dirChar = cmd[0] as Direction
+        const invertedDir = applyDirectionInversion(dirChar, invertedRef.current)
+        setDirection(invertedDir)
       })
       unlistenersRef.current.push(unlistenDirection)
 

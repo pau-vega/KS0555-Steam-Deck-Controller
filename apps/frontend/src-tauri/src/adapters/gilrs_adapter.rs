@@ -1,7 +1,8 @@
 use crate::domain::direction::{
-    compute_combined, compute_trigger, compute_trigger_interval, is_dpad_active, is_stick_active,
-    Direction, DpadButtons, GamepadInputs, TriggerButtons, DEADZONE, TRIGGER_HEARTBEAT_MAX_MS,
-    TRIGGER_HEARTBEAT_MIN_MS, TRIGGER_THRESHOLD,
+    compute_combined, compute_stick_command, compute_trigger, compute_trigger_command,
+    compute_trigger_interval, is_dpad_active, is_stick_active, Command, Direction, DpadButtons,
+    GamepadInputs, TriggerButtons, DEADZONE, TRIGGER_HEARTBEAT_MAX_MS, TRIGGER_HEARTBEAT_MIN_MS,
+    TRIGGER_THRESHOLD,
 };
 use crate::ports::event_sink::EventSink;
 use crate::ports::gamepad::GamepadPort;
@@ -42,17 +43,17 @@ fn read_inputs(gamepad: &gilrs::Gamepad) -> GamepadInputs {
     }
 }
 
-fn emit_direction(sink: &dyn EventSink, direction: Direction) {
+fn emit_command(sink: &dyn EventSink, cmd: Command) {
     sink.emit(
         "gamepad-direction",
-        serde_json::json!({ "direction": direction.as_char() }),
+        serde_json::json!({ "command": format!("{}", cmd) }),
     );
 }
 
 fn poll_triggers(
     gamepad: &gilrs::Gamepad,
     sink: &dyn EventSink,
-    last_direction: &mut Option<Direction>,
+    last_command: &mut Option<Command>,
     last_send_time: &mut Instant,
 ) {
     let inputs = read_inputs(gamepad);
@@ -60,20 +61,20 @@ fn poll_triggers(
         return;
     }
 
-    let (new_direction, r2_pressure, l2_pressure) = compute_trigger(&inputs, TRIGGER_THRESHOLD);
+    let (new_command, r2_pressure, l2_pressure) = compute_trigger_command(&inputs);
 
-    let direction_changed = *last_direction != Some(new_direction);
-    let trigger_held = matches!(new_direction, Direction::F | Direction::B);
+    let command_changed = *last_command != Some(new_command);
+    let trigger_held = matches!(new_command, Command::Drive { dir: Direction::F, .. });
     let pressure = r2_pressure.max(l2_pressure);
     let interval_ms =
         compute_trigger_interval(pressure, TRIGGER_HEARTBEAT_MIN_MS, TRIGGER_HEARTBEAT_MAX_MS)
             as u128;
     let heartbeat_overdue = trigger_held && last_send_time.elapsed().as_millis() > interval_ms;
 
-    if direction_changed || heartbeat_overdue {
-        *last_direction = Some(new_direction);
+    if command_changed || heartbeat_overdue {
+        *last_command = Some(new_command);
         *last_send_time = Instant::now();
-        emit_direction(sink, new_direction);
+        emit_command(sink, new_command);
     }
 }
 
@@ -82,7 +83,7 @@ impl GamepadPort for GilrsGamepad {
         let mut gilrs = Gilrs::new().expect("Failed to initialize gilrs");
 
         let mut connected_gamepad_id: Option<gilrs::GamepadId> = None;
-        let mut last_direction: Option<Direction> = None;
+        let mut last_command: Option<Command> = None;
         let mut last_send_time = Instant::now();
 
         for (id, gamepad) in gilrs.gamepads() {
@@ -123,13 +124,14 @@ impl GamepadPort for GilrsGamepad {
 
                         if is_stick || is_dpad_axis || is_trigger_axis {
                             if let Some(id) = connected_gamepad_id {
-                                let inputs = read_inputs(&gilrs.gamepad(id));
-                                let new_direction = compute_combined(&inputs, DEADZONE);
+                                let gamepad = gilrs.gamepad(id);
+                                let inputs = read_inputs(&gamepad);
+                                let cmd = compute_stick_command(inputs.stick_x, inputs.stick_y);
 
-                                if last_direction != Some(new_direction) {
-                                    last_direction = Some(new_direction);
+                                if last_command != Some(cmd) {
+                                    last_command = Some(cmd);
                                     last_send_time = Instant::now();
-                                    emit_direction(sink.as_ref(), new_direction);
+                                    emit_command(sink.as_ref(), cmd);
                                 }
                             }
                         }
@@ -146,13 +148,14 @@ impl GamepadPort for GilrsGamepad {
                         );
                         if button.is_dpad() || is_trigger {
                             if let Some(id) = connected_gamepad_id {
-                                let inputs = read_inputs(&gilrs.gamepad(id));
-                                let new_direction = compute_combined(&inputs, DEADZONE);
+                                let gamepad = gilrs.gamepad(id);
+                                let inputs = read_inputs(&gamepad);
+                                let cmd = compute_stick_command(inputs.stick_x, inputs.stick_y);
 
-                                if last_direction != Some(new_direction) {
-                                    last_direction = Some(new_direction);
+                                if last_command != Some(cmd) {
+                                    last_command = Some(cmd);
                                     last_send_time = Instant::now();
-                                    emit_direction(sink.as_ref(), new_direction);
+                                    emit_command(sink.as_ref(), cmd);
                                 }
                             }
                         }
@@ -165,7 +168,7 @@ impl GamepadPort for GilrsGamepad {
                 poll_triggers(
                     &gilrs.gamepad(id),
                     sink.as_ref(),
-                    &mut last_direction,
+                    &mut last_command,
                     &mut last_send_time,
                 );
             }

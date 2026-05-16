@@ -2,6 +2,9 @@ import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 import { useCallback, useEffect, useState } from "react"
 
+import type { Direction } from "../types"
+
+import { encodeCommand } from "../lib/encode-command"
 import { isTauri } from "../lib/is-tauri"
 
 type BluetoothState = "disconnected" | "connecting" | "connected"
@@ -53,9 +56,14 @@ export function useBluetooth() {
     }
   }, [])
 
-  const send = useCallback((data: string) => {
+  const send = useCallback((direction: Direction) => {
     if (!isTauri()) return
-    void invoke("ble_send", { command: data })
+    const payload = encodeCommand(direction)
+    invoke("ble_send", { command: payload }).catch((e) => {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error("BLE send failed:", e)
+      setError(msg)
+    })
   }, [])
 
   return {
